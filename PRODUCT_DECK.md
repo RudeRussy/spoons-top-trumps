@@ -1,5 +1,7 @@
 # SPOONS TOP TRUMPS — Product Deck
 
+> Trial posture: internal trial only. No public launch without JD Wetherspoon approval.
+
 ---
 
 ## Slide 1 — SPOONS TOP TRUMPS: the entire menu as a phone game
@@ -32,9 +34,19 @@
 
 ---
 
+## Slide 3.5 — THE ORDER-LINK MODEL
+
+- **Order first, play after.** Today the game uses an honour-system "I HAVE ORDERED" tap; on rollout, a receipt QR from the Wetherspoon Order and Pay app unlocks play. Either way, every session is tied to a paid order.
+- **Win = reward code.** Beat the Landlord and the game shows a short reward code. The customer shows it at the bar when they next order.
+- **First-tier reward:** a free hot drink at the next order. Codes redeem against a future order, not current stock, so the bar cost is zero during the trial.
+- **Escalation tiers:** hot-drink stamp (buy 4, get the 5th free), club-night discount, or free side with a main.
+- **Precedents:** Starbucks Starland (purchase unlocks play); McDonald's Monopoly (order unlocks a piece, a prize unlocks another order); Greggs buy-9-get-10th stamp (simple app-native reward that drives repeat orders).
+
+**Speaker notes** — "Same loop as coffee and fast-food apps: pay, play, win a code, come back and order again to redeem it. Today it's an honour tap; on rollout, receipt QR unlocks play. Codes are sight-checked at the bar in the trial — no till integration."
+
 ## Slide 4 — Why it spreads: order-first + forfeit
 
-- **Order to play:** customers must order via the app to unlock the game — play is a reward for an order, so basket is the entry ticket.
+- **Order to play:** today the game uses an honour-system "I HAVE ORDERED" tap; on rollout, a receipt QR from the Wetherspoon app unlocks play. Either way, the order is the arcade token.
 - **Loser forfeit:** the player who loses the match gets a forfeit — most often "buys the round" — which converts the loss into an order.
 - **Screenshot:** the roast-the-loser screen travels to the group chat; the next group arrives to play.
 - **Rematch:** loss creates demand, and one game almost always leads to one more round — "one more, but drinks first".
@@ -62,18 +74,21 @@
 ## Slide 7 — What the trial looks like
 
 - One pub, one week, one QR card on tables and the bar.
+- Self-contained: no public marketing, no social posts, no in-app slot, no press — the game is not promoted as a Wetherspoon product during the trial.
 - Cost to Spoons: roughly the price of the paper card.
 - We measure link opens, play sessions per pub, rematch rate, share rate, and a dwell proxy.
 - The pub manager gets a one-page weekly summary: sessions, games played, top item, rematch rate.
 
+**Speaker notes** — "Internal pilot, not a launch. If the data is poor, we stop and it never appears anywhere else."
+
 ---
 
-## Slide 8 — What the national rollout looks like
+## Slide 8 — What happens after a successful trial
 
-- A lightweight name licence lets Wetherspoon endorse the game without building it.
+- Everything beyond the single-pub week sits behind a signed name licence: use of the Wetherspoon mark, pub names in-game, and any in-app feature slot.
 - Continued access to the public per-pub menu PDFs (or a simple data feed) keeps prices live across the estate.
-- A feature slot in the Wetherspoon app can surface the game by pub location — order first, play after.
-- New rounds, seasonal items, and tie-ins with food and drink promotions keep the estate fresh.
+- New rounds, seasonal items, and tie-ins with food and drink promotions can follow, but only under licence.
+- No national rollout, brand push, or public marketing without JDW approval.
 
 ---
 
@@ -90,9 +105,9 @@
 
 ## Slide 10 — What we need from Wetherspoon
 
-- Permission to use the Wetherspoon name and pub names in the game experience (name licence).
+- Permission to trial the game in **one pub for one week** with a QR card.
 - Stable access to the public per-pub menu pages — we already read them, but explicit OK removes business risk.
-- One trial pub and one week to put a QR card on tables.
+- A name licence **only if the trial works** and only for the next step.
 - A single point of contact to review the weekly one-page summary and decide the next step.
 
 ---

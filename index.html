@@ -95,6 +95,7 @@ body::before{
 .chip.round{ background:transparent; color:var(--muted); border:1px solid rgba(242,232,213,.3); }
 .chip.combo{ background:var(--red); color:#fff; font-family:var(--font-arcade); font-size:10px; display:none; }
 .chip.wave{ background:var(--gold-deep); color:#161000; }
+.chip.demo{ background:#2b3a6b; color:#fff; font-family:var(--font-arcade); font-size:9px; border:1px solid #4a6ac7; }
 .hudbtn{
   background:transparent; border:1px solid rgba(242,232,213,.3); color:var(--cream);
   border-radius:8px; min-width:44px; min-height:34px; font-size:15px; cursor:pointer;
@@ -150,6 +151,10 @@ body::before{
 .modebtn.duel{ background:#2b3a6b; box-shadow:0 5px 0 #1a2650; min-width:220px; }
 .title-main{ flex-direction:column; align-items:center; }
 .title-links{ display:flex; gap:10px; justify-content:center; align-items:center; flex-wrap:wrap; margin:16px 0 10px; }
+.order-hint{
+  font-family:var(--font-arcade); color:var(--muted); font-size:8px; letter-spacing:.08em; margin-top:10px;
+}
+.order-hint a,.order-hint button.link{ background:transparent; border:0; color:var(--gold); font:inherit; font-size:8px; cursor:pointer; text-decoration:underline; padding:0; }
 .linkbtn{ font:inherit; background:transparent; border:0; color:var(--muted); font-size:12px; font-weight:800; letter-spacing:.1em; cursor:pointer; padding:4px 6px; }
 .linkbtn:hover{ color:var(--gold); }
 .linkbtn:focus-visible{ outline:2px solid var(--gold); outline-offset:1px; }
@@ -189,6 +194,54 @@ body::before{
 #spoonsList{ max-height:360px; overflow-y:auto; display:flex; flex-direction:column; gap:4px; margin-top:8px; }
 .spoons-item{ width:100%; text-align:left; background:#141920; color:var(--cream); border:1px solid rgba(242,232,213,.2); border-radius:8px; padding:10px 12px; font:inherit; font-size:13px; cursor:pointer; min-height:44px; }
 .spoons-item:hover{ background:rgba(242,232,213,.12); }
+
+/* ---------- Order panel ---------- */
+#orderPanel{
+  position:fixed; inset:0; z-index:75; display:none; place-items:center;
+  background:rgba(4,6,9,.88);
+}
+#orderPanel.open{ display:grid; }
+.order-inner{
+  max-width:380px; width:calc(100% - 32px); padding:24px;
+  background:#141920; border:1px solid rgba(242,232,213,.25); border-radius:14px;
+  text-align:center; display:flex; flex-direction:column; gap:14px;
+}
+.order-inner h3{ font-family:var(--font-arcade); color:var(--cream); font-size:14px; letter-spacing:.1em; line-height:1.6; }
+.order-inner p{ color:var(--muted); font-size:13px; line-height:1.6; }
+.order-bar{
+  font-family:var(--font-arcade); color:var(--gold); font-size:10px; letter-spacing:.12em;
+  border-top:1px dashed rgba(242,232,213,.25); border-bottom:1px dashed rgba(242,232,213,.25); padding:10px 0;
+}
+.order-actions{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+.order-actions .btn{ min-width:140px; }
+
+/* ---------- Reward screen ---------- */
+#rewardScreen{
+  position:fixed; inset:0; z-index:78; display:none; place-items:center;
+  background:rgba(4,6,9,.92);
+}
+#rewardScreen.open{ display:grid; }
+.reward-inner{
+  max-width:420px; width:calc(100% - 32px); padding:28px 24px;
+  background:#141920; border:1px solid rgba(242,232,213,.25); border-radius:14px;
+  text-align:center; display:flex; flex-direction:column; gap:16px;
+}
+.reward-inner h2{ font-family:var(--font-arcade); color:var(--gold); font-size:clamp(18px,4.5vw,28px); line-height:1.4; text-shadow:0 0 14px rgba(255,201,77,.45); }
+.reward-inner h3{ font-family:var(--font-arcade); color:var(--cream); font-size:12px; letter-spacing:.08em; }
+.reward-code{
+  font-family:var(--font-arcade); color:var(--cream); font-size:clamp(28px,7vw,48px); letter-spacing:.12em; line-height:1.2;
+  text-shadow:0 0 18px rgba(159,197,127,.55); background:rgba(159,197,127,.12); border:2px dashed var(--green); border-radius:10px; padding:16px; word-break:break-all;
+}
+.reward-label{ color:var(--green); font-size:15px; font-weight:800; letter-spacing:.04em; }
+.reward-bar{ font-family:var(--font-arcade); color:var(--gold); font-size:10px; letter-spacing:.12em; }
+.reward-qr{
+  width:min(180px,50vw); aspect-ratio:1; margin:0 auto;
+  background:var(--cream); padding:10px; border-radius:8px;
+  display:grid; grid-template-columns:repeat(7,1fr); gap:3px;
+}
+.reward-qr i{ display:block; background:var(--ink); border-radius:1px; }
+.reward-qr i.on{ background:transparent; }
+.reward-meta{ color:var(--muted); font-size:11px; }
 
 /* ---------- Handoff ---------- */
 .handoff{ text-align:center; padding-top:24vh; }
@@ -469,6 +522,8 @@ footer{ text-align:center; color:#7b7264; font-size:11px; padding:12px 16px 18px
     <span class="chip" id="aiChip"><span id="chipAiLabel">SPOONS</span> <b id="countAi">—</b></span>
     <span class="chip round">BEST <b id="countBest">0</b></span>
   </div>
+    <span class="chip demo" id="demoChip" style="display:none;">DEMO</span>
+  </div>
   <div style="display:flex;gap:6px;">
     <button class="hudbtn" id="btnMute" title="Mute (M)">🔊</button>
     <button class="hudbtn" id="btnPause" title="Pause (P)">⏸</button>
@@ -490,6 +545,9 @@ footer{ text-align:center; color:#7b7264; font-size:11px; padding:12px 16px 18px
       <button class="modebtn b-pvp duel" id="btnPvp">DUEL<small>PASS &amp; PLAY · SAME DECK</small></button>
     </div>
     <div id="playingAt" class="title-tag" style="display:none;margin-top:8px;"></div>
+    <div class="order-hint" id="orderHint">
+      ORDER TO PLAY · <button class="link" id="btnOrderInfo">HOW IT WORKS</button>
+    </div>
     <div class="title-links">
       <button class="linkbtn" id="btnSpoons">CHOOSE YOUR SPOONS</button> ·
       <button class="linkbtn" id="btnOnline">ONLINE</button> ·
@@ -581,6 +639,38 @@ footer{ text-align:center; color:#7b7264; font-size:11px; padding:12px 16px 18px
     <button class="btn btn-ghost" id="btnQuit" style="color:#f2e8d5;">QUIT TO TITLE</button>
   </div>
 </div>
+<!-- ORDER PANEL -->
+<div id="orderPanel" role="dialog" aria-modal="true" aria-label="Order to play">
+  <div class="order-inner">
+    <h3>ORDER TO PLAY</h3>
+    <p>Order at the bar or the Wetherspoon app, then scan the QR on your receipt to play.</p>
+    <div class="order-bar">HONOUR SYSTEM · TAP BELOW</div>
+    <div class="order-actions">
+      <button class="btn btn-cream" id="btnHaveOrdered">I HAVE ORDERED</button>
+      <button class="btn btn-ghost" id="btnPlayDemo" style="color:#f2e8d5;">PLAY DEMO</button>
+    </div>
+    <div class="order-actions">
+      <button class="btn btn-ghost" id="btnNewSession" style="color:#f2e8d5;">NEW SESSION</button>
+      <button class="btn btn-ghost" id="btnOrderBack" style="color:#f2e8d5;">BACK</button>
+    </div>
+  </div>
+</div>
+
+<!-- REWARD SCREEN -->
+<div id="rewardScreen" role="dialog" aria-modal="true" aria-label="Reward code">
+  <div class="reward-inner">
+    <h2>WINNER!</h2>
+    <div class="reward-label" id="rewardLabel">FREE COFFEE AT YOUR NEXT SPOONS ORDER</div>
+    <div class="reward-code" id="rewardCode"></div>
+    <div class="reward-qr" id="rewardQr"></div>
+    <div class="reward-bar">SHOW AT THE BAR</div>
+    <div class="reward-meta" id="rewardMeta"></div>
+    <div class="order-actions">
+      <button class="btn btn-cream" id="btnRewardPlay">PLAY AGAIN</button>
+      <button class="btn btn-ghost" id="btnRewardTitle" style="color:#f2e8d5;">BACK TO TITLE</button>
+    </div>
+  </div>
+</div>
 
 <div id="onlinePanel" class="online-panel hidden">
       <div class="online-row">
@@ -628,6 +718,18 @@ footer{ text-align:center; color:#7b7264; font-size:11px; padding:12px 16px 18px
 
 
 "use strict";
+/* ============================================================
+   REWARD CONFIG — tunable per pub later
+   ============================================================ */
+const REWARDS = {
+  unlocksOnOrder: true,
+  tiers: [
+    { rounds: 1, code: 'COFFEE', label: 'FREE COFFEE AT YOUR NEXT SPOONS ORDER' },
+    { rounds: 4, code: 'STAMP', label: 'CLUB STAMP ON YOUR CLUB NIGHT ORDER' },
+    { rounds: 8, code: 'CLUB', label: 'FREE CLUB DEAL ON YOUR CLUB NIGHT' }
+  ]
+};
+
 /* ==================== 1. DATA ==================== */
 // AUTO-GENERATED menu data — real prices/kcal from the 2026 Spoons menu
 // (compiled from wetherspoonsmenus.com). Vibe stats are house opinion.
@@ -1514,6 +1616,7 @@ const game = {
   pickHistory:{}, // stat -> times player picked it (Landlord reads this)
   pvp:{ picker:"p1", captures:{ p1:0, p2:0 }, matchWinner:null, remote:false, role:null, room:null, ready:false },
   duel:{ seed:null, bag:[], p1Score:0, p2Score:0, player:1, bagBuilt:false },
+  demo:false, pendingMode:null,
   rng:Math.random,
 };
 
@@ -1525,6 +1628,7 @@ function isBossWave(w){ return w > 1 && (w % 4) === 0; }
 
 function startGame(mode){
   game.mode = mode;
+  game.pendingMode = null;
   Spoons.applyOverlaySync();
   const M = MODES[mode];
   game.playerDeck = []; game.aiDeck = []; game.pot = []; game.bag = [];
@@ -1753,6 +1857,7 @@ function resolveRound(){
 function endGame(){
   game.phase = "over";
   if (game.pvp.remote && game.pvp.role === "host"){ endRemoteGame(); return; }
+  closeRewardScreen();
   AudioFX.over();
   const mode = game.mode, M = MODES[mode];
   const duel = M.duel;
@@ -1762,7 +1867,6 @@ function endGame(){
   const tag = document.getElementById("overTag");
   const rematchBtn = document.getElementById("btnRematch");
   if (tag) tag.textContent = "";
-  if (rematchBtn){ rematchBtn.textContent = "PLAY AGAIN"; rematchBtn.className = "btn btn-cream"; }
   if (mode === "pvp"){
     if (game.pvp.matchWinner){
       title.textContent = game.pvp.matchWinner === "p1" ? "PLAYER 1 WINS THE MATCH" : "PLAYER 2 WINS THE MATCH";
@@ -1777,11 +1881,15 @@ function endGame(){
   } else if (mode === "endless"){
     title.textContent = "CUT OFF AT " + game.roundsPlayed + " ROUNDS";
     title.className = "lose";
-  } else if (you > ai || mode === "arcade"){
+  } else if (you > ai){
     title.textContent = mode === "arcade" ? "GAME OVER — SCORE " + game.score : "LAST ORDERS ARE YOURS";
     title.className = "win";
+    showReward("player");
+  } else if (you === ai){
+    title.textContent = "DEAD HEAT — THE POT WINS";
+    title.className = "";
   } else {
-    title.textContent = "YOU'VE BEEN CUT OFF";
+    title.textContent = mode === "arcade" ? "GAME OVER — SCORE " + game.score : "YOU'VE BEEN CUT OFF";
     title.className = "lose";
   }
   const isArcade = mode === "arcade";
@@ -1888,7 +1996,7 @@ const BANTER = {
 };
 function showScreen(name){
   for (const s of ["title", "table", "over", "handoff"]) el("screen-" + s).classList.toggle("hidden", s !== name);
-  if (name === "title"){ openOnlinePanel(false); closeSpoonsPanel(); Spoons.restoreNational(); stopAttract(); }
+  if (name === "title"){ openOnlinePanel(false); closeSpoonsPanel(); closeRewardScreen(); openOrderPanel(false); Spoons.restoreNational(); stopAttract(); }
 }
 function shake(cls){
   const st = el("stage");
@@ -2093,11 +2201,11 @@ function openDetail(name){
 }
 
 /* ==================== 7. WIRING ==================== */
-el("btnArcade").addEventListener("click", () => { AudioFX.unlock(); startGame("arcade"); });
+el("btnArcade").addEventListener("click", () => { onModeStartRequested("arcade"); });
 // Classic/Endless buttons removed from title; branches remain callable for tests.
 // el("btnClassic").addEventListener("click", () => { AudioFX.unlock(); startGame("classic"); });
 // el("btnEndless").addEventListener("click", () => { AudioFX.unlock(); startGame("endless"); });
-el("btnPvp").addEventListener("click", () => { AudioFX.unlock(); startGame("duel"); });
+el("btnPvp").addEventListener("click", () => { onModeStartRequested("duel"); });
 el("btnOnline").addEventListener("click", () => { AudioFX.unlock(); openOnlinePanel(true); });
 el("btnSpoons").addEventListener("click", () => { AudioFX.click(); openSpoonsPanel(); });
 el("btnSpoonsBack").addEventListener("click", () => { AudioFX.click(); closeSpoonsPanel(); });
@@ -2117,7 +2225,7 @@ Net.onDisconnect(() => {
   if (game.phase !== "title") onDisconnect();
 });
 el("btnRematch").addEventListener("click", () => {
-  if (game.mode === "arcade"){ startGame("arcade"); }
+  if (game.mode === "arcade"){ AudioFX.unlock(); startGame("arcade"); }
   else if (game.mode === "pvp"){
     const p1 = game.duel.p1Score, p2 = game.duel.p2Score;
     if (p1 === p2 && game.duel.player === 2){ suddenDeathDuel(); }
@@ -2132,7 +2240,7 @@ function suddenDeathDuel(){
   game.rng = mulberry32(game.duel.seed);
   startArcadeRunForPlayer(1);
 }
-el("btnOverMenu").addEventListener("click", () => { refreshBests(); showScreen("title"); });
+el("btnOverMenu").addEventListener("click", () => { game.demo = false; el("demoChip").style.display = "none"; refreshBests(); showScreen("title"); });
 el("btnBrowser").addEventListener("click", openBrowser);
 el("btnPauseBrowser").addEventListener("click", openBrowser);
 el("spoonsSearch").addEventListener("input", renderSpoonsList);
@@ -2143,6 +2251,13 @@ el("spoonsStatus").addEventListener("click", e => {
 });
 el("btnBrowserClose").addEventListener("click", closeBrowser);
 el("btnHowTitle").addEventListener("click", () => { const d = el("howto"); d.open = !d.open; });
+el("btnOrderInfo").addEventListener("click", onOrderInfo);
+el("btnHaveOrdered").addEventListener("click", onHaveOrdered);
+el("btnPlayDemo").addEventListener("click", onPlayDemo);
+el("btnNewSession").addEventListener("click", onNewSession);
+el("btnOrderBack").addEventListener("click", onOrderBack);
+el("btnRewardPlay").addEventListener("click", onRewardPlay);
+el("btnRewardTitle").addEventListener("click", onRewardTitle);
 el("playerCard").addEventListener("click", e => {
   const chip = e.target.closest("button.cat-chip");
   if (chip){ cardChipOpenBrowser(e); return; }
@@ -2167,7 +2282,7 @@ el("btnPause").addEventListener("click", togglePause);
 el("btnResume").addEventListener("click", togglePause);
 el("btnQuit").addEventListener("click", () => {
   el("pause").classList.remove("open");
-  game.paused = false; game.phase = "title";
+  game.paused = false; game.phase = "title"; game.demo = false; el("demoChip").style.display = "none";
   Net.close();
   refreshBests(); showScreen("title");
 });
@@ -2210,6 +2325,123 @@ document.addEventListener("keydown", e => {
     startGame(game.mode);
   }
 });
+
+
+/* ---------- order unlock ---------- */
+const ORDER_LS = "spoons.hasOrdered";
+const LASTCODE_LS = "spoons.lastCode";
+function hasOrdered(){ try { return localStorage.getItem(ORDER_LS) === "1"; } catch(e){ return false; } }
+function setOrdered(v){
+  try { if (v) localStorage.setItem(ORDER_LS, "1"); else localStorage.removeItem(ORDER_LS); } catch(e){}
+  updateOrderHint();
+}
+function updateOrderHint(){
+  const h = el("orderHint");
+  if (h) h.style.display = (REWARDS.unlocksOnOrder && !hasOrdered()) ? "" : "none";
+}
+function openOrderPanel(show){
+  const p = el("orderPanel");
+  if (p) p.classList.toggle("open", show);
+}
+function closeRewardScreen(){
+  const p = el("rewardScreen");
+  if (p) p.classList.remove("open");
+}
+function generateCode(){
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let s = "";
+  for (let i = 0; i < 8; i++) s += alphabet[Math.floor(Math.random() * alphabet.length)];
+  return s;
+}
+function currentPubSlug(){
+  const pub = Spoons.myPub();
+  return pub ? pub.s : "national";
+}
+function rewardTierForRounds(n){
+  let tier = REWARDS.tiers[0];
+  for (const t of REWARDS.tiers){ if (n >= t.rounds) tier = t; }
+  return tier;
+}
+function makeQrGrid(seed){
+  let rng = mulberry32(seed ? hashStr(seed) : Math.floor(Math.random()*1e9));
+  let out = "";
+  for (let i = 0; i < 49; i++){
+    const on = rng() > 0.45;
+    out += "<i" + (on ? " class=\"on\"" : "") + "></i>";
+  }
+  return out;
+}
+function showReward(winner){
+  closeRewardScreen();
+  if (!REWARDS.unlocksOnOrder) return;
+  if (game.demo) return;
+  if (winner !== "player") return;
+  if (!hasOrdered()) return;
+  const tier = rewardTierForRounds(game.roundsPlayed);
+  const code = generateCode();
+  const pub = currentPubSlug();
+  const now = new Date().toISOString();
+  try {
+    localStorage.setItem(LASTCODE_LS, JSON.stringify({ code, tier: tier.label, pub, ts: now }));
+  } catch(e){}
+  el("rewardLabel").textContent = tier.label;
+  el("rewardCode").textContent = code;
+  el("rewardQr").innerHTML = makeQrGrid(code);
+  el("rewardMeta").textContent = pub === "national" ? "SPOONS NATIONAL" : pub.replace(/-/g, " ").toUpperCase();
+  const rs = el("rewardScreen");
+  rs.classList.add("open");
+  AudioFX.coin();
+}
+function onModeStartRequested(mode){
+  if (!REWARDS.unlocksOnOrder || hasOrdered() || mode === "pvp" || game.demo){
+    AudioFX.unlock();
+    startGame(mode);
+    return;
+  }
+  game.pendingMode = mode;
+  openOrderPanel(true);
+}
+function onPlayDemo(){
+  game.demo = true;
+  el("demoChip").style.display = "";
+  openOrderPanel(false);
+  AudioFX.unlock();
+  const mode = game.pendingMode || "arcade";
+  game.pendingMode = null;
+  startGame(mode);
+}
+function onHaveOrdered(){
+  setOrdered(true);
+  openOrderPanel(false);
+  AudioFX.unlock();
+  const mode = game.pendingMode || "arcade";
+  game.pendingMode = null;
+  game.demo = false;
+  el("demoChip").style.display = "none";
+  startGame(mode);
+}
+function onNewSession(){
+  setOrdered(false);
+  updateOrderHint();
+  AudioFX.click();
+}
+function onRewardPlay(){
+  closeRewardScreen();
+  AudioFX.unlock();
+  startGame(game.mode);
+}
+function onRewardTitle(){
+  closeRewardScreen();
+  refreshBests();
+  showScreen("title");
+}
+function onOrderInfo(){
+  openOrderPanel(true);
+}
+function onOrderBack(){
+  openOrderPanel(false);
+  game.pendingMode = null;
+}
 
 /* ==================== 8. DEBUG ==================== */
 function countActiveCards(){ return CARDS.length; }
@@ -2256,6 +2488,8 @@ if (__roomParam){
 }
 refreshBests();
 updatePlayingAt();
+updateOrderHint();
+game.demo = false;
 Spoons.preloadMyPub();
 
 
