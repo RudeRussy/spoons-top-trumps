@@ -801,6 +801,30 @@ footer{ text-align:center; color:#7b7264; font-size:11px; padding:12px 16px 18px
   Real menu data (Sep 2026 — prices &amp; calories approximate, vary per pub) · vibe stats are house opinion · unofficial, unaffiliated, unbothered.
 </footer>
 
+<section id="screen-bonus" class="screen hidden">
+    <div class="bonus-wrap">
+      <div class="bonus-tag">SECRET BONUS ROUND</div>
+      <h2>THE DISABLED SHITTER</h2>
+      <p class="bonus-sub">Select the WRITE items. One wrong tap and the bog's bricked.</p>
+      <div class="bonus-grid" id="bonusGrid"></div>
+      <div class="bonus-status" id="bonusStatus">TAP THE WRITE ONES</div>
+      <button class="btn btn-ghost" id="bonusBack">BACK</button>
+    </div>
+  </section>
+<section class="boards-overlay" id="boardsOverlay" role="dialog" aria-modal="true" aria-label="Leaderboards">
+    <div class="boards-panel">
+      <div class="boards-head">🏆 BOARDS</div>
+      <div class="boards-tabs">
+        <button class="linkbtn on" id="tabGlobal">WORLD</button> ·
+        <button class="linkbtn" id="tabPub">MY SPOONS</button> ·
+        <button class="linkbtn" id="tabPubPlayer">PLAYERS AT MY SPOONS</button>
+      </div>
+      <div class="boards-list" id="boardsList"></div>
+      <div class="boards-status" id="boardsStatus"></div>
+      <button class="btn btn-cream boards-close" id="btnBoardsClose">BACK</button>
+    </section>
+
+
 <script>
 
 
@@ -1256,7 +1280,7 @@ function startMusic(){
           a.loop = true; a.volume = 0.001; a.muted = false;
           a.setAttribute("playsinline", "");
           a.addEventListener("playing", function once(){
-            a.removeEventListener("playing", arguments.callee);
+            a.removeEventListener("playing", once);
             mediaAudio = a;
           });
           const p = a.play();
@@ -3243,29 +3267,6 @@ Spoons.preloadMyPub();
 
 
 </script>
-  <div class="boards-overlay"   <section id="screen-bonus" class="screen hidden">
-    <div class="bonus-wrap">
-      <div class="bonus-tag">SECRET BONUS ROUND</div>
-      <h2>THE DISABLED SHITTER</h2>
-      <p class="bonus-sub">Select the WRITE items. One wrong tap and the bog's bricked.</p>
-      <div class="bonus-grid" id="bonusGrid"></div>
-      <div class="bonus-status" id="bonusStatus">TAP THE WRITE ONES</div>
-      <button class="btn btn-ghost" id="bonusBack">BACK</button>
-    </div>
-  </section>
-  <section class="boards-overlay" id="boardsOverlay" role="dialog" aria-modal="true" aria-label="Leaderboards">
-    <div class="boards-panel">
-      <div class="boards-head">🏆 BOARDS</div>
-      <div class="boards-tabs">
-        <button class="linkbtn on" id="tabGlobal">WORLD</button> ·
-        <button class="linkbtn" id="tabPub">MY SPOONS</button> ·
-        <button class="linkbtn" id="tabPubPlayer">PLAYERS AT MY SPOONS</button>
-      </div>
-      <div class="boards-list" id="boardsList"></div>
-      <div class="boards-status" id="boardsStatus"></div>
-      <button class="btn btn-cream boards-close" id="btnBoardsClose">BACK</button>
-    </div>
-  </div>
-
+  
 </body>
 </html>
