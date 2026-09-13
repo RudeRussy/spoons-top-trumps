@@ -1055,6 +1055,7 @@ const statByKey = key => STATS.find(s => s.key === key);
 /* ==================== 2. AUDIO (synthesized, no files) ==================== */
 /* 0.1s of silence as a data URI — keeps an <audio> media session alive on iOS,
    bypassing the physical silent switch for WebAudio. */
+const FART_FILES = ["sfx/fart-alt.mp3", "sfx/fart-bad-chili.mp3", "sfx/fart-chair.mp3", "sfx/fart-computer.mp3", "sfx/fart-crazy.mp3", "sfx/fart-innocent.mp3", "sfx/fart-pig.mp3", "sfx/fart-push.mp3", "sfx/fart-real.mp3", "sfx/fart-reverb.mp3", "sfx/fart-s1.mp3", "sfx/fart-s2.mp3", "sfx/fart-s3.mp3", "sfx/fart-s4.mp3", "sfx/fart-s5.mp3", "sfx/fart-trumpet.mp3", "sfx/fart-wav506.mp3"];
 const SILENT_WAV = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
 const AudioFX = (() => {
   let ctx = null;
@@ -1063,7 +1064,7 @@ const AudioFX = (() => {
   try { musicOn = localStorage.getItem("spoons.music") !== "0"; } catch(e){}
   let musicTimer = null, musicStep = 0;
   let mediaAudio = null;
-  let fartAudio = null, fartIdx = 1;
+  let fartAudio = null;
   function ac(){
     if (!ctx){ try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } }
     if (ctx && ctx.state === "suspended") ctx.resume().catch(() => {});
@@ -1194,12 +1195,12 @@ const AudioFX = (() => {
       const f = [659, 784, 880, 988][Math.min(step - 2, 3)] || 659; tone(f, 0.1, "square", 0.05); tone(f * 1.5, 0.12, "square", 0.04, 0.06);
     },
     fart(){
-      // Real vicious farts (CC0, fartsoundboard.com) alternate for variety; synthesized fallback.
+      // Fart pack: 15 real samples (CC0, fartsoundboard.com), random pick for variety; synth fallback.
       try {
-        fartIdx = (fartIdx + 1) % 2;
-        const src = fartIdx === 0 ? "sfx/fart-pig.mp3" : "sfx/fart-alt.mp3";
+        if (!FART_FILES.length) throw new Error("no samples");
+        const src = FART_FILES[Math.floor(Math.random() * FART_FILES.length)];
         if (!fartAudio) fartAudio = new Audio();
-        if (fartAudio.src.indexOf(src) === -1) fartAudio.src = src;
+        fartAudio.src = src; // new Audio object per src? No: swapping src works and reuses the element
         fartAudio.currentTime = 0;
         fartAudio.volume = 0.9;
         fartAudio.play().catch(() => { this.synthFart(); });
