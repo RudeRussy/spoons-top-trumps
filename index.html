@@ -1064,6 +1064,11 @@ const AudioFX = (() => {
   try { musicOn = localStorage.getItem("spoons.music") !== "0"; } catch(e){}
   let musicTimer = null, musicStep = 0;
   let mediaAudio = null;
+  const FART_POOL = [];
+  function preloadFarts(){
+    if (FART_POOL.length || !FART_FILES.length) return;
+    FART_FILES.forEach(src => { try { const a = new Audio(src); a.preload = "auto"; a.load(); FART_POOL.push(a); } catch(e){} });
+  }
   let fartAudio = null;
   function ac(){
     if (!ctx){ try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } }
@@ -1163,7 +1168,7 @@ const AudioFX = (() => {
   function resumeMusic(){ if (musicOn && !muted && !musicTimer) startMusic(); }
   return {
     unlock(){
-      ac(); silentKick();
+      ac(); silentKick(); preloadFarts();
       // iOS: the physical silent switch silences WebAudio unless the page holds an
       // active <audio> media session. Open a silent looping one inside the first gesture.
       try {
@@ -1195,15 +1200,14 @@ const AudioFX = (() => {
       const f = [659, 784, 880, 988][Math.min(step - 2, 3)] || 659; tone(f, 0.1, "square", 0.05); tone(f * 1.5, 0.12, "square", 0.04, 0.06);
     },
     fart(){
-      // Fart pack: 15 real samples (CC0, fartsoundboard.com), random pick for variety; synth fallback.
+      // Fart pack: preloaded samples (CC0, fartsoundboard.com), random pick; synth fallback.
       try {
-        if (!FART_FILES.length) throw new Error("no samples");
-        const src = FART_FILES[Math.floor(Math.random() * FART_FILES.length)];
-        if (!fartAudio) fartAudio = new Audio();
-        fartAudio.src = src; // new Audio object per src? No: swapping src works and reuses the element
-        fartAudio.currentTime = 0;
-        fartAudio.volume = 0.9;
-        fartAudio.play().catch(() => { this.synthFart(); });
+        if (!FART_POOL.length) throw new Error("no samples");
+        const a = FART_POOL[Math.floor(Math.random() * FART_POOL.length)];
+        a.currentTime = 0;
+        a.volume = 0.9;
+        const p = a.play();
+        if (p && p.catch) p.catch(() => {});
         return;
       } catch (e) { /* fall through to synth */ }
       this.synthFart();
