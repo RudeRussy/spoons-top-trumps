@@ -1915,10 +1915,6 @@ el("aiCard").addEventListener("click", e => {
   const chip = e.target.closest("button.cat-chip");
   if (chip){ cardChipOpenBrowser(e); return; }
 });
-el("attract").addEventListener("click", e => {
-  const chip = e.target.closest("button.cat-chip");
-  if (chip){ cardChipOpenBrowser(e); return; }
-});
 el("browserSearch").addEventListener("input", renderBrowserGrid);
 el("browserGrid").addEventListener("click", e => {
   const b = e.target.closest(".bcard");
