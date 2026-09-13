@@ -171,6 +171,48 @@ body::before{
 @keyframes shitter-gold{ from{text-shadow:0 0 10px rgba(255,213,77,.4)} to{text-shadow:0 0 26px rgba(255,213,77,.9)} }
 .shitter-chip{ display:inline-block; background:rgba(255,213,77,.14); border:1px solid rgba(255,213,77,.4); border-radius:8px; padding:4px 10px; font-size:12px; color:var(--gold); margin-top:8px; }
 
+
+/* ---------- Disabled Shitter intro: the big steaming bog ---------- */
+.shitter-hero{ text-align:center; margin:10px auto 14px; position:relative; }
+.shitter-bog{
+  width:min(240px,64vw); height:min(190px,50vw); margin:0 auto; position:relative;
+  border-radius:22px 22px 46% 46%; background:linear-gradient(180deg,#e8ecef 0%,#c9d2d8 55%,#9fb0ba 100%);
+  border:3px solid #7d8f9a; box-shadow:0 14px 30px rgba(0,0,0,.45), inset 0 -14px 24px rgba(0,0,0,.25);
+  overflow:visible;
+}
+.shitter-tank{
+  position:absolute; top:-46px; left:50%; transform:translateX(-50%);
+  width:56%; height:52px; border-radius:10px; background:linear-gradient(180deg,#dfe6ea,#b9c5cd);
+  border:3px solid #7d8f9a;
+}
+.shitter-tank::after{ content:"🚽"; position:absolute; left:50%; top:50%; transform:translate(-50%,-52%); font-size:20px; }
+.shitter-bowl{
+  position:absolute; inset:14px 16px 18px; border-radius:40% 40% 50% 50%;
+  background:radial-gradient(ellipse at 50% 30%, #5d4534 0%, #4a3427 55%, #2e2016 100%);
+  box-shadow:inset 0 10px 18px rgba(0,0,0,.6); overflow:hidden;
+}
+.shitter-pile{ position:absolute; inset:auto 10px 12px; display:flex; justify-content:center; align-items:flex-end; gap:2px; font-size:clamp(26px,7vw,40px); filter:drop-shadow(0 3px 3px rgba(0,0,0,.5)); }
+.shitter-pile span{ display:inline-block; animation:turdBob 2.6s ease-in-out infinite; }
+.shitter-pile span:nth-child(2){ animation-delay:.4s; transform:scale(.85); }
+.shitter-pile span:nth-child(3){ animation-delay:.9s; transform:scale(.7); }
+.shitter-pile span:nth-child(4){ animation-delay:.2s; transform:scale(.9); }
+.shitter-pile span:nth-child(5){ animation-delay:.7s; transform:scale(.75); }
+@keyframes turdBob{ 0%,100%{ transform:translateY(0) rotate(-2deg);} 50%{ transform:translateY(-6px) rotate(2deg);} }
+.shitter-steam{ position:absolute; left:0; right:0; top:-6px; height:90px; pointer-events:none; }
+.shitter-steam b{
+  position:absolute; bottom:0; width:14px; height:14px; border-radius:50%;
+  background:rgba(255,255,255,.16); filter:blur(5px); animation:steamRise 3.2s linear infinite;
+}
+.shitter-steam b:nth-child(1){ left:18%; animation-delay:0s; }
+.shitter-steam b:nth-child(2){ left:38%; animation-delay:.8s; width:18px; height:18px; }
+.shitter-steam b:nth-child(3){ left:58%; animation-delay:1.6s; }
+.shitter-steam b:nth-child(4){ left:76%; animation-delay:2.2s; width:20px; height:20px; }
+@keyframes steamRise{ 0%{ transform:translateY(0) scale(.6); opacity:0;} 18%{ opacity:.85;} 100%{ transform:translateY(-78px) scale(2.1); opacity:0;} }
+.shitter-caption{ margin-top:10px; font-size:13px; letter-spacing:.14em; color:#cfd8dd; text-transform:uppercase; }
+@keyframes bogDrop{ 0%{ transform:translateY(-40px) scale(.7); opacity:0;} 60%{ transform:translateY(6px) scale(1.04); opacity:1;} 100%{ transform:none; opacity:1;} }
+.shitter-bog{ animation:bogDrop .7s cubic-bezier(.2,1.4,.4,1) both; }
+@media (prefers-reduced-motion: reduce){ .shitter-bog,.shitter-pile span,.shitter-steam b{ animation:none; } }
+
 /* ---------- Title ---------- */
 #screen-title{ text-align:center; padding-top:4vh; position:relative; }
 #screen-title h1{
@@ -618,14 +660,6 @@ footer{ text-align:center; color:#7b7264; font-size:11px; padding:12px 16px 18px
     </div>
     <h1>SPOONS<br><span class="red">TOP TRUMPS</span></h1>
 
-    <div class="signup-panel" id="signupPanel" style="display:none;">
-      <div class="signup-head">FIRST TIME IN THE SPOONS?</div>
-      <label for="signupName">YOUR HANDLE (3-8)</label>
-      <input id="signupName" maxlength="8" placeholder="RUS" autocomplete="off" inputmode="text">
-      <label for="signupPub">NAME YOUR LOCAL (3-24)</label>
-      <input id="signupPub" maxlength="24" placeholder="MY LOCAL" autocomplete="off" inputmode="text">
-      <button class="btn btn-cream" id="btnSignupGo">LET'S GO</button>
-    </div>
     <p class="title-tag">★ 210 CARDS · THE ENTIRE MENU · 6 STATS ★</p>
     <p class="title-sub">
       <b>201 real Spoons menu items.</b> Pick a stat. Highest wins — except <b>Price</b> &amp; <b>Regret</b>, where lower wins.
@@ -737,6 +771,15 @@ footer{ text-align:center; color:#7b7264; font-size:11px; padding:12px 16px 18px
     <h3>ORDER TO PLAY</h3>
     <p>Order at the bar or the Wetherspoon app, then scan the QR on your receipt to play.</p>
     <div class="order-bar">HONOUR SYSTEM · TAP BELOW</div>
+    <div class="signup-panel" id="signupPanel" style="display:none;">
+      <div class="signup-head">WHO'S PLAYING? (FOR THE LEADERBOARD)</div>
+      <label for="signupName">YOUR HANDLE (3-8)</label>
+      <input id="signupName" maxlength="8" placeholder="RUS" autocomplete="off" inputmode="text">
+      <label for="signupPub">NAME YOUR LOCAL (3-24)</label>
+      <input id="signupPub" maxlength="24" placeholder="MY LOCAL" autocomplete="off" inputmode="text">
+      <button class="btn btn-cream" id="btnSignupGo">LET'S GO</button>
+    </div>
+    <div id="signedInAs" style="display:none;font-size:11px;font-weight:800;color:var(--gold);margin:4px 0;letter-spacing:.5px;"></div>
       <div id="soundHint" style="display:none;color:#e07a6a;font-size:11px;font-weight:700;">🔇 Sound is muted — tap 🔊 (top right) to hear the game</div>
     <div class="order-actions">
       <button class="btn btn-cream" id="btnHaveOrdered">I HAVE ORDERED</button>
@@ -804,6 +847,17 @@ footer{ text-align:center; color:#7b7264; font-size:11px; padding:12px 16px 18px
 <section id="screen-bonus" class="screen hidden">
     <div class="bonus-wrap">
       <div class="bonus-tag">SECRET BONUS ROUND</div>
+    <div class="shitter-hero">
+      <div class="shitter-bog">
+        <div class="shitter-tank"></div>
+        <div class="shitter-bowl">
+          <div class="shitter-pile"><span>💩</span><span>💩</span><span>💩</span><span>💩</span><span>💩</span></div>
+          <div class="shitter-steam"><b></b><b></b><b></b><b></b><b></b></div>
+        </div>
+      </div>
+      <div class="shitter-caption">🧼 mind the steam 👃</div>
+    </div>
+
       <h2>THE DISABLED SHITTER</h2>
       <p class="bonus-sub">Select the WRITE items. One wrong tap and the bog's bricked.</p>
       <div class="bonus-grid" id="bonusGrid"></div>
@@ -1681,15 +1735,16 @@ function updatePlayingAt(){
 }
 
 /* ============ BOARDS: shared leaderboard (players update it from any device) ============
-   Store: crudcrud.com namespace (keyless, CORS *). Single doc holds all players.
+   Store: textdb.online (keyless, CORS *, plain-text JSON blob). Single key holds all players.
    Player record: { elo, wins, losses, streak, pub, games, bigSpoon, updated }.
    Flow: signup once (handle + local) -> after every finished game, submit result.
    Fail-soft: any network error = boards show local cache, game never blocks.
    NOTE (MVP): store is a free tier — data is demo-grade, last-write-wins on races.
-   Swap BOARD_NS/BOARD_API for a Supabase/Cloudflare edge when Spoons bite. */
+   Swap BOARD_KEY/BOARD_API for a Supabase/Cloudflare edge when Spoons bite. */
 
-const BOARD_NS = "98a36877c84d487ea8884e04c024e399";
-const BOARD_API = "https://crudcrud.com/api/" + BOARD_NS + "/board";
+const BOARD_KEY = "spoons-board-v2";
+const BOARD_API = "https://textdb.online/" + BOARD_KEY;               // read: raw JSON text
+const BOARD_WRITE = "https://textdb.online/update/?key=" + BOARD_KEY + "&value="; // write: value=<uriencoded json>
 const LS_BOARD_ME = "spoons.me";
 const LS_BOARD_CACHE = "spoons.boardCache";
 let boardCache = null;      // last known players map
@@ -1706,9 +1761,10 @@ async function boardRead(){
     if (typeof fetch !== "function") throw new Error("no fetch");
     const r = await fetch(BOARD_API, { cache: "no-store" });
     if (!r.ok) throw new Error("status " + r.status);
-    const items = await r.json();
-    const doc = Array.isArray(items) && items[0] && items[0].players ? items[0] : null;
-    if (!doc) throw new Error("no doc");
+    const txt = (await r.text()).trim();
+    if (!txt) throw new Error("empty");
+    const doc = JSON.parse(txt);
+    if (!doc || !doc.players) throw new Error("no doc");
     boardCache = doc;
     try { localStorage.setItem(LS_BOARD_CACHE, JSON.stringify(doc)); } catch(e){}
     return doc;
@@ -1719,14 +1775,11 @@ async function boardRead(){
 }
 
 async function boardWrite(doc){
-  const items = await (await fetch(BOARD_API, { cache: "no-store" })).json();
-  const cur = Array.isArray(items) && items[0] ? items[0] : null;
-  if (!cur || !cur._id) throw new Error("no doc");
-  const r = await fetch(BOARD_API + "/" + cur._id, {
-    method: "PUT", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id: "main", players: doc.players, pubs: doc.pubs || {} })
-  });
+  const payload = encodeURIComponent(JSON.stringify({ players: doc.players, pubs: doc.pubs || {} }));
+  const r = await fetch(BOARD_WRITE + payload, { cache: "no-store" });
   if (!r.ok) throw new Error("write " + r.status);
+  const j = await r.json().catch(() => null);
+  if (!j || j.status !== 1) throw new Error("write rejected");
   return true;
 }
 
@@ -1776,6 +1829,8 @@ function ensureSignup(){
   const panel = document.getElementById("signupPanel");
   if (!panel) return;
   panel.style.display = isSignedUp() ? "none" : "";
+  const who = document.getElementById("signedInAs");
+  if (who){ const m2 = me(); who.style.display = m2 ? "" : "none"; if (m2) who.textContent = "PLAYING AS " + m2.name + " · " + m2.pub.toUpperCase(); }
 }
 function doSignup(){
   const nEl = document.getElementById("signupName");
@@ -1789,6 +1844,16 @@ function doSignup(){
   ensureSignup();
   AudioFX.coin();
   renderBoards("global");
+  // resume the start flow the player was in the middle of
+  if (game.pendingMode){
+    const mode = game.pendingMode;
+    game.pendingMode = null;
+    game.demo = false;
+    setOrdered(true);
+    openOrderPanel(false);
+    AudioFX.unlock();
+    startGame(mode);
+  }
 }
 
 /* ---- boards UI ---- */
@@ -2200,6 +2265,22 @@ const game = {
 
 function refillBag(){ refillBagRng(); }
 function drawFromBag(n){ return drawFromBagRng(n); }
+
+/* ---------- MENU STAGES: breakfast -> mains -> drinks -> full-menu battle ---------- */
+const STAGES = [
+  { w: 1, name: "BREAKFAST CLUB",   cats: ["BREAKFAST"],                          tag: "🌅 WAVE 1 — THE FRY-UP OPENS" },
+  { w: 2, name: "THE MAIN EVENT",   cats: ["BURGER","PIZZA","CLASSIC","CHICKEN","CURRY","JACKET","DELI","SALAD","WINGS","SIDES"], tag: "🍝 WAVE 2 — MAINS ONLY" },
+  { w: 3, name: "PUDDING & A BREW", cats: ["COLD DRINK","HOT DRINK","DESSERT"],   tag: "🍺 WAVE 3 — DRINKS ROUND" },
+  { w: 4, name: "EVERYTHING ON THE MENU", cats: null,                             tag: "⚔️ WAVE 4 — FULL MENU · THE LANDLORD" },
+  { w: 5, name: "EVERYTHING ON THE MENU", cats: null,                             tag: "⚔️ FULL MENU" }
+];
+function stageForWave(w){
+  for (let i = STAGES.length - 1; i >= 0; i--){ if (w >= STAGES[i].w) return STAGES[i]; }
+  return STAGES[0];
+}
+function cardsForStage(stage){
+  return stage.cats ? CARDS.filter(c => stage.cats.includes(c.cat)) : CARDS;
+}
 function aiLevelForWave(w){ return w <= 2 ? 0 : (w <= 5 ? 1 : 2); }
 function isBossWave(w){ return w > 1 && (w % 4) === 0; }
 
@@ -2226,8 +2307,16 @@ function startGame(mode){
   game.duel.seed = null; game.duel.bag = []; game.duel.bagBuilt = false; game.duel.player = 1;
   game.duel.p1Score = 0; game.duel.p2Score = 0; game.rng = Math.random;
   if (M.endless || M.waves){
-    game.playerDeck = drawFromBag(M.startPlayer);
-    game.aiDeck = M.waves ? drawFromBag(Math.min(4 + game.wave, 12)) : [];
+    const openingStage = cardsForStage(stageForWave(1));
+    const openingFresh = openingStage.slice().sort(() => Math.random() - 0.5);
+    game.playerDeck = openingFresh.slice(0, M.startPlayer);
+    game.bag = CARDS.filter(c => !openingFresh.includes(c));
+    if (M.waves){
+      const pool1 = cardsForStage(stageForWave(1));
+      const inPlay1 = new Set([...game.playerDeck, ...game.bag]);
+      const fresh1 = pool1.filter(c => !inPlay1.has(c)).sort(() => Math.random() - 0.5);
+      game.aiDeck = fresh1.slice(0, Math.min(4 + game.wave, 12));
+    } else game.aiDeck = [];
   } else { // classic: whole menu split
     const sh = shuffle(CARDS.slice());
     const half = Math.ceil(sh.length / 2);
@@ -2284,6 +2373,15 @@ function beginRound(){
   game.aiCard = game.mode === "endless"
     ? drawFromBag(1)[0]
     : game.aiDeck.shift();
+  if (MODES[game.mode].waves && game.aiCard){
+    // stage integrity: the AI only deals from the current menu stage
+    const pool = cardsForStage(stageForWave(game.wave));
+    if (!pool.includes(game.aiCard)){
+      const inPlay = new Set([...game.playerDeck, ...game.aiDeck, ...game.pot]);
+      const alt = pool.filter(c => !inPlay.has(c));
+      if (alt.length) game.aiCard = alt[Math.floor(Math.random() * alt.length)];
+    }
+  }
   const pvp = game.mode === "pvp";
   const duel = MODES[game.mode].duel;
   renderHud();
@@ -2376,10 +2474,10 @@ function resolveRound(){
     game.streak++;
     game.bestStreak = Math.max(game.bestStreak, game.streak);
     game.statWins[game.statKey] = (game.statWins[game.statKey] || 0) + 1;
-    const mult = Math.min(Math.max(1, game.streak), 5);
+    const mult = game.streak; // uncapped — streaks climb as high as the player can take them
     const pts = (MODES[game.mode].winPts + Math.floor(margin / PERC[game.statKey].range * 100)) * mult;
     game.score += pts;
-    if (game.streak >= 2) showCombo(mult);
+    if (game.streak >= 2) showCombo(game.streak);
     if (game.streak >= 2) AudioFX.bacon(game.streak);
     AudioFX.win(game.streak); shake("shake-soft");
   } else if (winner === "ai"){
@@ -2401,12 +2499,23 @@ function resolveRound(){
     game.score += bonus;
     game.wave++;
     game.aiLevel = aiLevelForWave(game.wave);
-    game.aiDeck = drawFromBag(Math.min(4 + game.wave, 12));
+    const stage = stageForWave(game.wave);
+    const stagePool = cardsForStage(stage);
+    // sweep: leftover AI cards from the previous stage go back to the bag
+    game.aiDeck = game.aiDeck.filter(c => stagePool.includes(c));
+    const inPlay = new Set([...game.playerDeck, ...game.aiDeck, ...game.pot]);
+    const fresh = stagePool.filter(c => !inPlay.has(c));
+    game.aiDeck = game.aiDeck.concat(
+      fresh.length >= 4
+        ? fresh.sort(() => Math.random() - 0.5).slice(0, Math.min(4 + game.wave, 12) - game.aiDeck.length)
+        : drawFromBag(Math.min(4 + game.wave, 12) - game.aiDeck.length) // stage exhausted: full-deck fallback
+    );
     renderHud();
     AudioFX.wave();
     const boss = isBossWave(game.wave);
-    setVerdict('<div class="verdict-line wave-clear">WAVE ' + oldWave + ' CLEARED</div>' +
-      '<div class="verdict-sub">+' + bonus + ' · NEXT: ' + (boss ? 'BOSS — THE LANDLORD' : AI_NAMES[game.aiLevel]) + ' · ' + game.aiDeck.length + ' CARDS</div>');
+    const st = stageForWave(game.wave);
+    setVerdict('<div class="verdict-line wave-clear">WAVE ' + oldWave + ' CLEARED — ' + st.name + '</div>' +
+      '<div class="verdict-sub">+' + bonus + ' · ' + (boss ? '⚔️ BOSS — THE LANDLORD · ' : '') + st.tag + ' · ' + game.aiDeck.length + ' CARDS</div>');
     if (boss) shake("shake-hard");
     renderNextButton();
     return;
@@ -2598,7 +2707,11 @@ function shake(cls){
 }
 function showCombo(mult){
   const c = el("comboPop");
-  if (mult >= 4){
+  if (mult >= 8){
+    // legend tier: nobody beats the house
+    c.textContent = "🍛 CURRY HOUSE KING ×" + mult + " — NOBODY BEATS THE HOUSE";
+    c.classList.add("farting");
+  } else if (mult >= 4){
     c.textContent = "🐖💨 STREAK ×" + mult + " 💨🐖";
     c.classList.add("farting");
   } else {
@@ -2606,7 +2719,8 @@ function showCombo(mult){
     const strips = "🥓".repeat(Math.min(mult, 5));
     c.textContent = strips + " STREAK ×" + mult;
   }
-  c.style.fontSize = "clamp(" + (18 + mult * 3) + "px," + (4 + mult) + "vw," + (30 + mult * 5) + "px)";
+  const fs = Math.min(mult, 12);
+  c.style.fontSize = "clamp(" + (18 + fs * 3) + "px," + (4 + fs) + "vw," + (30 + fs * 5) + "px)";
   c.classList.remove("show"); void c.offsetWidth; c.classList.add("show");
   setTimeout(() => { c.classList.remove("show"); c.classList.remove("farting"); }, 2000);
 }
@@ -2639,7 +2753,7 @@ function renderHud(){
   renderHud._lastPot = potNow;
   const combo = el("comboChip");
   combo.style.display = game.streak >= 2 ? "" : "none";
-  if (game.streak >= 2) combo.textContent = game.streak >= 4 ? "🐖 ×" + game.streak : "🥓 ×" + game.streak;
+  if (game.streak >= 2) combo.textContent = game.streak >= 8 ? "🍛 ×" + game.streak : game.streak >= 4 ? "🐖 ×" + game.streak : "🥓 ×" + game.streak;
   el("countBest").textContent = highScore(game.mode);
 }
 
@@ -3104,6 +3218,7 @@ function openOrderPanel(show){
     const hint = document.getElementById("soundHint");
     if (hint) hint.style.display = "";
   }
+  if (show) ensureSignup();
   const p = el("orderPanel");
   if (p) p.classList.toggle("open", show);
 }
@@ -3176,6 +3291,17 @@ function onPlayDemo(){
   startGame(mode);
 }
 function onHaveOrdered(){
+  if (!isSignedUp()){
+    // first-time player: make the handle part of starting (user requirement)
+    const nEl = document.getElementById("signupName");
+    if (nEl){
+      nEl.focus();
+      try { nEl.scrollIntoView({ block: "center", behavior: "smooth" }); } catch(e){}
+    }
+    const head = document.querySelector("#signupPanel .signup-head");
+    if (head) head.textContent = "WHO'S PLAYING? ENTER YOUR NAME TO START";
+    return;
+  }
   setOrdered(true);
   openOrderPanel(false);
   AudioFX.unlock();
