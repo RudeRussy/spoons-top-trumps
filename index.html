@@ -307,7 +307,7 @@ button.cat-chip:active{ background:var(--gold); }
 button.cat-chip:focus-visible{ outline:2px solid var(--gold); outline-offset:1px; }
 .diet-chip{ font-size:9px; font-weight:900; border-radius:4px; padding:1px 5px; background:#2f6b3a; color:#dff3d2; }
 .diet-chip.v{ background:#8a6a1f; color:#fff6d8; }
-.card-name{ font-family:var(--font-display); font-size:15px; line-height:1.12; margin-bottom:4px; }
+.card-name{ font-family:var(--font-display); font-size:15px; line-height:1.12; margin-bottom:4px; min-height:calc(2 * 15px * 1.12); display:flex; align-items:flex-start; overflow:hidden; }
 .stat{
   display:flex; justify-content:space-between; align-items:center; gap:8px;
   width:100%; border:0; border-top:1px solid var(--line);
@@ -503,6 +503,7 @@ footer{ text-align:center; color:#7b7264; font-size:11px; padding:12px 16px 18px
   .card{ width:min(330px,46vw); }
 }
 @media (max-width:420px){
+  .card-name{ font-size:13px; min-height:calc(2 * 13px * 1.12); }
   #hud{ padding:8px 10px; gap:8px; }
   .brand{ font-size:13px; }
   .brand small{ font-size:6px; }
