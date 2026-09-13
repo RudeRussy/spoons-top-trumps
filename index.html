@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Press+Start+2P&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 <style>
 /* ============================================================
    SPOONS TOP TRUMPS — ARCADE EDITION
@@ -161,6 +162,25 @@ body::before{
 @keyframes attractFlip{ 0%{ transform:rotateY(90deg); opacity:.2; } 100%{ transform:rotateY(0); opacity:1; } }
 #attract .card{ animation:attractFlip .35s ease-out; }
 @media (prefers-reduced-motion:reduce){ #attract .card{ animation:none; } }
+
+
+/* ---------- Online PvP ---------- */
+.b-online{ background:var(--gold); color:#161000; box-shadow:0 5px 0 #c99a3c; }
+.online-panel{
+  max-width:420px; margin:0 auto 18px; padding:14px;
+  background:rgba(20,25,32,.9); border:1px solid rgba(242,232,213,.2); border-radius:14px;
+}
+.online-panel.hidden{ display:none; }
+.online-row{ display:flex; gap:10px; justify-content:center; align-items:center; flex-wrap:wrap; margin-bottom:10px; }
+.online-row label{ font-family:var(--font-arcade); color:var(--gold); font-size:9px; letter-spacing:.1em; }
+#roomCode{
+  font-family:var(--font-arcade); font-size:16px; text-transform:uppercase; letter-spacing:.2em;
+  width:90px; text-align:center; background:#141920; color:var(--cream);
+  border:1px solid var(--gold); border-radius:8px; padding:8px 6px;
+}
+#roomCode:disabled{ opacity:.6; }
+.online-link{ font-family:var(--font-arcade); color:var(--gold); font-size:8px; word-break:break-all; margin-bottom:8px; }
+.online-status{ min-height:18px; font-size:12px; color:var(--red); text-align:center; margin-bottom:4px; }
 
 /* ---------- Table ---------- */
 .table{
@@ -411,6 +431,23 @@ footer{ text-align:center; color:#7b7264; font-size:11px; padding:12px 16px 18px
       <button class="modebtn b-classic" id="btnClassic">CLASSIC 9v9<small id="bestClassic">BEST 0</small></button>
       <button class="modebtn b-endless" id="btnEndless">ENDLESS<small id="bestEndless">BEST 0</small></button>
       <button class="modebtn b-pvp" id="btnPvp">PVP PASS &amp; PLAY<small>FIRST TO 25 CAPTURES</small></button>
+      <button class="modebtn b-online" id="btnOnline">ONLINE PVP<small>FIRST TO 25 · ROOM CODE</small></button>
+    </div>
+    <div id="onlinePanel" class="online-panel hidden">
+      <div class="online-row">
+        <button class="btn btn-cream" id="btnHost">HOST</button>
+        <button class="btn btn-ghost" id="btnJoin" style="color:#f2e8d5;">JOIN</button>
+      </div>
+      <div class="online-row">
+        <label for="roomCode">ROOM</label>
+        <input id="roomCode" maxlength="4" placeholder="AB23" autocomplete="off" inputmode="text">
+        <button class="btn btn-cream" id="btnCopyLink" title="Copy link">COPY LINK</button>
+      </div>
+      <div id="onlineLink" class="online-link"></div>
+      <div id="onlineStatus" class="online-status"></div>
+      <div class="online-row">
+        <button class="btn btn-ghost" id="btnOnlineBack" style="color:#f2e8d5;">BACK</button>
+      </div>
     </div>
     <div class="title-tools">
       <button class="btn btn-ghost" id="btnBrowser">☰ BROWSE THE MENU</button>
@@ -500,6 +537,14 @@ footer{ text-align:center; color:#7b7264; font-size:11px; padding:12px 16px 18px
 </footer>
 
 <script>
+
+
+
+
+
+
+
+
 "use strict";
 /* ==================== 1. DATA ==================== */
 // AUTO-GENERATED menu data — real prices/kcal from the 2026 Spoons menu
@@ -778,6 +823,360 @@ const AudioFX = (() => {
   };
 })();
 
+/* ==================== 2b. NET + ONLINE PVP ==================== */
+const ROOM_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+function genRoomCode(n){
+  let s = "";
+  for (let i = 0; i < n; i++) s += ROOM_ALPHABET[Math.floor(Math.random() * ROOM_ALPHABET.length)];
+  return s;
+}
+function cleanCode(v){ return (v || "").toUpperCase().replace(/[^A-Z0-9]/g, "").replace(/0/g, "O").replace(/1/g, "I").slice(0, 4); }
+
+const ICE_CONFIG = { iceServers: [
+  { urls: "stun:stun.l.google.com:19302" },
+  { urls: "stun:stun1.l.google.com:19302" },
+] };
+
+let peerObj = null, connObj = null;
+let msgHandler = null;
+let disconnectHandler = null;
+let myRoom = null;
+let isHost = false;
+let netBack = {
+  get connected(){ return !!connObj && connObj.open; },
+  get isHost(){ return isHost; },
+  send(msg){ if (connObj && connObj.open){ connObj.send(msg); return true; } return false; },
+  close(){
+    try { if (connObj){ connObj.close(); } } catch (e){}
+    try { if (peerObj){ peerObj.destroy(); } } catch (e){}
+    connObj = null; peerObj = null; isHost = false; myRoom = null;
+  },
+};
+const Net = {
+  get connected(){ return netBack.connected; },
+  get isHost(){ return netBack.isHost; },
+  send(msg){ return netBack.send(msg); },
+  onMessage(cb){ msgHandler = cb; },
+  onDisconnect(cb){ disconnectHandler = cb; },
+  close(){ return netBack.close(); },
+};
+window.__wireNet = function(impl){
+  netBack = impl;
+  impl.onMessage = function(m){ if (msgHandler) msgHandler(m); };
+  impl.onDisconnect = function(){ if (disconnectHandler) disconnectHandler(); };
+};
+
+function setOnlineStatus(msg, ok){
+  const st = document.getElementById("onlineStatus");
+  if (!st) return;
+  st.textContent = msg;
+  st.style.color = ok ? "var(--green)" : "var(--red)";
+}
+
+function initPeer(code){
+  if (typeof Peer === "undefined"){
+    setOnlineStatus("PEERJS NOT LOADED — NEEDS INTERNET TO PLAY ONLINE", false);
+    document.getElementById("roomCode").disabled = false;
+    return null;
+  }
+  const id = "spoonstt-" + code;
+  const p = new Peer(id, { config: ICE_CONFIG });
+  peerObj = p;
+  window.peerObj = p;
+  p.on("error", err => {
+    setOnlineStatus("ROOM ERROR: " + (err.message || err.type || err), false);
+    if (err.type === "unavailable-id") Net.close();
+  });
+  return p;
+}
+
+function startHost(){
+  Net.close();
+  isHost = true;
+  myRoom = genRoomCode(4);
+  const link = location.origin + location.pathname + "?room=" + myRoom;
+  const rc = document.getElementById("roomCode");
+  if (rc) rc.value = myRoom;
+  const lk = document.getElementById("onlineLink");
+  if (lk) lk.textContent = link;
+  const cp = document.getElementById("btnCopyLink");
+  if (cp) cp.style.display = "";
+  setOnlineStatus("WAITING FOR OPPONENT…", true);
+  const p = initPeer(myRoom);
+  if (!p) return;
+  p.on("connection", c => {
+    if (connObj){ c.close(); return; }
+    connObj = c;
+    window.connObj = c;
+    wireConnection();
+  });
+}
+
+function startJoin(code){
+  Net.close();
+  isHost = false;
+  myRoom = cleanCode(code);
+  if (myRoom.length !== 4){ setOnlineStatus("ENTER A 4-CHAR ROOM CODE", false); return; }
+  const rc = document.getElementById("roomCode");
+  if (rc) rc.value = myRoom;
+  const lk = document.getElementById("onlineLink");
+  if (lk) lk.textContent = "";
+  const cp = document.getElementById("btnCopyLink");
+  if (cp) cp.style.display = "none";
+  setOnlineStatus("CONNECTING…", true);
+  const p = initPeer(myRoom + "-guest-" + Math.floor(Math.random()*1e6));
+  if (!p) return;
+  p.on("open", () => {
+    const c = p.connect("spoonstt-" + myRoom, { reliable: true });
+    connObj = c;
+    window.connObj = c;
+    wireConnection();
+  });
+}
+
+function wireConnection(){
+  const c = connObj;
+  if (!c) return;
+  let handshakeDone = false;
+  c.on("open", () => { c.send({ t:"hello", v:1 }); });
+  c.on("data", msg => {
+    if (!msg || typeof msg !== "object") return;
+    if (!handshakeDone){
+      if (msg.t === "hello" && msg.v === 1){
+        handshakeDone = true;
+        setOnlineStatus(isHost ? "OPPONENT JOINED" : "CONNECTED", true);
+        if (isHost) startRemoteGame(); else joinRemoteGame();
+        return;
+      }
+      setOnlineStatus("WRONG GAME VERSION — REFRESH", false);
+      Net.close();
+      return;
+    }
+    if (msgHandler) msgHandler(msg);
+  });
+  c.on("close", () => { if (disconnectHandler) disconnectHandler(); });
+  c.on("error", err => { setOnlineStatus("CONNECTION LOST", false); if (disconnectHandler) disconnectHandler(); });
+}
+
+function openOnlinePanel(show){
+  const panel = document.getElementById("onlinePanel");
+  if (panel) panel.classList.toggle("hidden", !show);
+}
+function copyRoomLink(){
+  const link = document.getElementById("onlineLink").textContent;
+  if (link) navigator.clipboard.writeText(link).catch(() => {});
+}
+
+function startRemoteGame(){
+  game.mode = "pvp";
+  game.pvp.remote = true;
+  game.pvp.role = "host";
+  game.pvp.room = myRoom;
+  startGame("pvp");
+  sendSnapshot();
+}
+function joinRemoteGame(){
+  game.mode = "pvp";
+  game.pvp.remote = true;
+  game.pvp.role = "guest";
+  game.pvp.room = myRoom;
+  game.pvp.ready = false;
+  showScreen("table");
+}
+
+function sendSnapshot(){
+  Net.send({
+    t:"snap",
+    playerDeck: game.playerDeck, aiDeck: game.aiDeck, pot: game.pot,
+    playerCard: game.playerCard, aiCard: game.aiCard,
+    picker: game.pvp.picker, captures: game.pvp.captures,
+    phase: game.phase, statKey: game.statKey, matchWinner: game.pvp.matchWinner,
+  });
+}
+
+function applySnap(s){
+  game.playerDeck = s.playerDeck || [];
+  game.aiDeck = s.aiDeck || [];
+  game.pot = s.pot || [];
+  game.playerCard = s.playerCard || null;
+  game.aiCard = s.aiCard || null;
+  game.pvp.picker = s.picker || "p1";
+  game.pvp.captures = s.captures || { p1:0, p2:0 };
+  game.phase = s.phase || "play";
+  game.statKey = s.statKey || null;
+  game.pvp.matchWinner = s.matchWinner || null;
+  game.turnOwner = game.pvp.picker === "p1" ? "player" : "ai";
+  renderRemoteState(true);
+  if (game.phase === "over") endRemoteGame();
+}
+
+function broadcastRound(){
+  if (!Net.isHost) return;
+  const guestOwnCard = game.pvp.picker === "p1" ? game.aiCard : game.playerCard;
+  const opponentCard = game.pvp.picker === "p1" ? game.playerCard : game.aiCard;
+  const opponentHidden = game.phase === "play";
+  const pickerIsYou = game.pvp.picker === "p2";
+  Net.send({
+    t:"round",
+    guestCard: opponentCard,
+    guestOwnCard: guestOwnCard,
+    opponentHidden: opponentHidden,
+    pickerIsYou: pickerIsYou,
+    captures: { you: game.pvp.captures.p2, opp: game.pvp.captures.p1 },
+    pot: game.pot.length,
+    verdictText: document.getElementById("verdict").innerHTML,
+    phase: game.phase,
+    statKey: game.statKey,
+  });
+}
+
+function sendOver(){
+  if (!Net.isHost) return;
+  const title = game.pvp.matchWinner === "p1" ? "PLAYER 1 WINS THE MATCH" : "PLAYER 2 WINS THE MATCH";
+  Net.send({ t:"over", winner: game.pvp.matchWinner, captures: { you: game.pvp.captures.p2, opp: game.pvp.captures.p1 }, title: title });
+}
+
+let guestReady = false;
+let hostReady = false;
+function onGuestMessage(msg){
+  if (msg.t === "pick"){
+    if (game.phase !== "play" || game.pvp.picker !== "p2") return;
+    game.statKey = msg.stat;
+    resolveRound();
+  } else if (msg.t === "next"){
+    guestReady = true;
+    checkProceed();
+  } else if (msg.t === "rematch"){
+    hostRematch();
+  }
+}
+function checkProceed(){
+  if (!Net.isHost) return;
+  if (hostReady && guestReady){
+    hostReady = false; guestReady = false;
+    beginRound();
+  }
+}
+function hostRematch(){
+  hostReady = false; guestReady = false;
+  startGame("pvp");
+  sendSnapshot();
+}
+
+function guestPick(statKey){
+  if (game.phase !== "play" || game.pvp.picker !== "p2" || game.pvp.role !== "guest") return;
+  Net.send({ t:"pick", stat: statKey });
+}
+function guestNext(){
+  if (game.pvp.role !== "guest") return;
+  Net.send({ t:"next" });
+}
+function guestRematch(){
+  Net.send({ t:"rematch" });
+  if (!Net.isHost){
+    game.pvp.matchWinner = null;
+    game.phase = "title";
+  }
+}
+
+function onHostMessage(msg){
+  if (msg.t === "snap") applySnap(msg);
+  else if (msg.t === "round") applyRound(msg);
+  else if (msg.t === "over") applyOver(msg);
+}
+
+function applyRound(r){
+  game.aiCard = r.guestCard;
+  if (r.guestOwnCard) game.playerCard = r.guestOwnCard;
+  game.pvp.captures = { p1: r.captures.opp, p2: r.captures.you };
+  game.phase = r.phase;
+  game.statKey = r.statKey || null;
+  game.turnOwner = r.pickerIsYou ? "ai" : "player";
+  game.pvp.picker = r.pickerIsYou ? "p2" : "p1";
+  renderRemoteState(r.opponentHidden);
+  document.getElementById("verdict").innerHTML = r.verdictText || "";
+}
+
+function renderRemoteState(opponentHidden){
+  renderHud();
+  const guestPicker = game.pvp.picker === "p2";
+  document.getElementById("sideLabelPlayer").textContent = guestPicker ? "PICK A STAT" : "YOUR CARD";
+  document.getElementById("sideLabelAi").textContent = "OPPONENT — FACE DOWN";
+  if (game.playerCard){
+    renderPlayerCard({ pickable: game.phase === "play" && !guestPicker, deal: true });
+  }
+  if (game.aiCard){
+    if (opponentHidden || game.phase === "play") renderAiBack();
+    else {
+      document.getElementById("aiCard").innerHTML = cardFaceHTML(game.aiCard, { locked: true, selectedKey: game.statKey });
+      const card = document.getElementById("aiCard").querySelector(".card");
+      if (card) card.classList.add("reveal");
+    }
+  }
+  if (game.phase === "reveal" && game.statKey){
+    const winner = game.lastRemoteWinner;
+    highlightStats(game.statKey, winner === "draw" ? "draw" : winner);
+  }
+  if (game.phase === "reveal") renderRemoteNextButton();
+  else clearActions();
+}
+
+function renderRemoteNextButton(){
+  document.getElementById("roundActions").innerHTML = '<button id="btnNext" class="btn btn-cream">NEXT CARD</button>';
+  document.getElementById("btnNext").addEventListener("click", () => {
+    if (game.pvp.role === "host"){ hostReady = true; checkProceed(); }
+    else guestNext();
+  });
+}
+
+function applyOver(o){
+  game.pvp.matchWinner = o.winner;
+  endRemoteGame(o.title);
+}
+
+function endRemoteGame(title){
+  game.phase = "over";
+  const t = title || (game.pvp.matchWinner === "p1" ? "PLAYER 1 WINS THE MATCH" : "PLAYER 2 WINS THE MATCH");
+  const titleEl = document.getElementById("overTitle");
+  titleEl.textContent = t;
+  titleEl.className = game.pvp.matchWinner === "p2" ? "win" : "lose";
+  document.getElementById("overScore").innerHTML =
+    "P1 CAPTURES <b>" + game.pvp.captures.p1 + "</b> · P2 CAPTURES <b>" + game.pvp.captures.p2 + "</b>";
+  document.getElementById("overStats").textContent = "";
+  document.getElementById("leaderboard").textContent = "";
+  document.getElementById("initialsForm").classList.remove("open");
+  const rematchBtn = document.getElementById("btnRematch");
+  const overBtn = document.getElementById("btnOverMenu");
+  const newRematch = rematchBtn.cloneNode(true);
+  const newMenu = overBtn.cloneNode(true);
+  rematchBtn.parentNode.replaceChild(newRematch, rematchBtn);
+  overBtn.parentNode.replaceChild(newMenu, overBtn);
+  newRematch.addEventListener("click", () => { if (game.pvp.role === "guest") guestRematch(); else hostRematch(); });
+  newMenu.addEventListener("click", () => { Net.close(); refreshBests(); showScreen("title"); });
+  showScreen("over");
+  AudioFX.over();
+}
+
+function onDisconnect(){
+  if (game.phase === "title"){ openOnlinePanel(false); return; }
+  game.phase = "over";
+  setVerdict('<div class="verdict-line lose">OPPONENT LEFT THE PUB</div>');
+  const titleEl = document.getElementById("overTitle");
+  titleEl.textContent = "OPPONENT LEFT THE PUB";
+  titleEl.className = "lose";
+  document.getElementById("overScore").textContent = "";
+  document.getElementById("overStats").textContent = "";
+  document.getElementById("leaderboard").textContent = "";
+  document.getElementById("initialsForm").classList.remove("open");
+  const rematchBtn = document.getElementById("btnRematch");
+  if (rematchBtn) rematchBtn.style.display = "none";
+  const overBtn = document.getElementById("btnOverMenu");
+  if (overBtn) overBtn.textContent = "BACK TO TITLE";
+  showScreen("over");
+  AudioFX.lose();
+}
+
+
 /* ==================== 3. ENGINE ==================== */
 function shuffle(arr){
   for (let i = arr.length - 1; i > 0; i--){
@@ -841,7 +1240,7 @@ const game = {
   round:0, wave:1, busy:false, aiLevel:1,
   score:0, streak:0, bestStreak:0, biggestPot:0, roundsPlayed:0, statWins:{},
   pickHistory:{}, // stat -> times player picked it (Landlord reads this)
-  pvp:{ picker:"p1", captures:{ p1:0, p2:0 }, matchWinner:null },
+  pvp:{ picker:"p1", captures:{ p1:0, p2:0 }, matchWinner:null, remote:false, role:null, room:null, ready:false },
 };
 
 function refillBag(){
@@ -886,6 +1285,7 @@ function startGame(mode){
 }
 
 function beginRound(){
+  if (game.pvp.remote && game.pvp.role === "guest") return;
   if (game.mode === "endless"){
     if (!game.playerDeck.length){ endGame(); return; }
   } else if (!game.playerDeck.length || !game.aiDeck.length){ endGame(); return; }
@@ -897,8 +1297,14 @@ function beginRound(){
   const pvp = game.mode === "pvp";
   renderHud();
   if (pvp){
-    el("sideLabelPlayer").textContent = game.pvp.picker === "p1" ? "PLAYER 1 — PICK A STAT" : "PLAYER 2 — PICK A STAT";
-    el("sideLabelAi").textContent = game.pvp.picker === "p1" ? "PLAYER 2 — FACE DOWN" : "PLAYER 1 — FACE DOWN";
+    if (game.pvp.remote){
+      const guestPicker = game.pvp.picker === "p2";
+      el("sideLabelPlayer").textContent = guestPicker ? "PICK A STAT" : "YOUR CARD";
+      el("sideLabelAi").textContent = "OPPONENT — FACE DOWN";
+    } else {
+      el("sideLabelPlayer").textContent = game.pvp.picker === "p1" ? "PLAYER 1 — PICK A STAT" : "PLAYER 2 — PICK A STAT";
+      el("sideLabelAi").textContent = game.pvp.picker === "p1" ? "PLAYER 2 — FACE DOWN" : "PLAYER 1 — FACE DOWN";
+    }
   } else {
     el("sideLabelPlayer").textContent = "YOUR CARD";
     el("sideLabelAi").textContent = "THE SPOONS";
@@ -911,9 +1317,14 @@ function beginRound(){
     : '<div class="verdict-line">THE SPOONS IS LOOKING…</div>');
   clearActions();
   if (game.turnOwner === "ai") aiTurn();
-}
+
+  if (game.pvp.remote && game.pvp.role === "host") broadcastRound();}
 
 function playerPick(statKey){
+  if (game.pvp.remote && game.pvp.role === "guest"){
+    guestPick(statKey);
+    return;
+  }
   if (game.phase !== "play" || game.turnOwner !== "player" || game.paused) return;
   game.pickHistory[statKey] = (game.pickHistory[statKey] || 0) + 1;
   game.statKey = statKey;
@@ -935,6 +1346,7 @@ function aiTurn(){
 function settle(statKey){
   const result = compareStat(game.playerCard, game.aiCard, statKey);
   if (game.mode === "pvp"){
+    game.lastRemoteWinner = result > 0 ? "player" : result < 0 ? "ai" : "draw";
     const taken = [game.playerCard, game.aiCard, ...game.pot.splice(0)];
     if (result > 0){ game.playerDeck.push(...taken); game.pvp.picker = "p1"; game.pvp.captures.p1++; return "player"; }
     if (result < 0){ game.aiDeck.push(...taken); game.pvp.picker = "p2"; game.pvp.captures.p2++; return "ai"; }
@@ -999,8 +1411,27 @@ function resolveRound(){
     setTimeout(() => endGame(winner), 1500); return;
   }
   if (game.mode === "pvp" && (game.pvp.captures.p1 >= 25 || game.pvp.captures.p2 >= 25)){
+    game.phase = "over";
     game.pvp.matchWinner = game.pvp.captures.p1 >= 25 ? "p1" : "p2";
-    setTimeout(endGame, 1400);
+    if (game.pvp.remote) sendOver();
+    setTimeout(() => { if (game.pvp.remote && game.pvp.role === "host") endRemoteGame(); else endGame(); }, 1400);
+    return;
+  }
+  if (game.pvp.remote){
+    if (game.pvp.role === "host"){
+      hostReady = false; guestReady = false;
+      broadcastRound();
+      renderNextButton();
+      const btn = document.getElementById("btnNext");
+      if (btn){
+        btn.replaceWith(btn.cloneNode(true));
+        const fresh = document.getElementById("btnNext");
+        fresh.addEventListener("click", () => {
+          if (game.phase === "reveal"){ hostReady = true; checkProceed(); }
+        });
+      }
+      return;
+    }
     return;
   }
   renderNextButton();
@@ -1008,6 +1439,7 @@ function resolveRound(){
 
 function endGame(){
   game.phase = "over";
+  if (game.pvp.remote && game.pvp.role === "host"){ endRemoteGame(); return; }
   AudioFX.over();
   const mode = game.mode, M = MODES[mode];
   const you = game.playerDeck.length;
@@ -1089,7 +1521,8 @@ const BANTER = {
 };
 function showScreen(name){
   for (const s of ["title", "table", "over"]) el("screen-" + s).classList.toggle("hidden", s !== name);
-  if (name === "title") startAttract(); else stopAttract();
+  if (name === "title"){ openOnlinePanel(false); startAttract(); }
+  else stopAttract();
 }
 function shake(cls){
   const st = el("stage");
@@ -1171,8 +1604,10 @@ function cardChipOpenBrowser(e){
   openBrowser();
 }
 function renderPlayerCard(opts){
+  const remoteGuest = game.pvp.remote && game.pvp.role === "guest";
+  const pickable = (opts && opts.pickable) || (remoteGuest && game.phase === "play" && game.pvp.picker === "p2");
   el("playerCard").innerHTML = cardFaceHTML(game.playerCard, {
-    asButton: opts && opts.pickable, locked: !(opts && opts.pickable), deal: opts && opts.deal,
+    asButton: pickable, locked: !pickable, deal: opts && opts.deal,
   });
 }
 function renderAiBack(){
@@ -1288,6 +1723,22 @@ el("btnArcade").addEventListener("click", () => { AudioFX.unlock(); startGame("a
 el("btnClassic").addEventListener("click", () => { AudioFX.unlock(); startGame("classic"); });
 el("btnEndless").addEventListener("click", () => { AudioFX.unlock(); startGame("endless"); });
 el("btnPvp").addEventListener("click", () => { AudioFX.unlock(); startGame("pvp"); });
+el("btnOnline").addEventListener("click", () => { AudioFX.unlock(); openOnlinePanel(true); });
+el("btnHost").addEventListener("click", () => { AudioFX.click(); startHost(); });
+el("btnJoin").addEventListener("click", () => { AudioFX.click(); startJoin(el("roomCode").value); });
+el("btnOnlineBack").addEventListener("click", () => { openOnlinePanel(false); Net.close(); });
+el("btnCopyLink").addEventListener("click", () => { AudioFX.click(); copyRoomLink(); });
+el("roomCode").addEventListener("input", () => {
+  const v = cleanCode(el("roomCode").value);
+  el("roomCode").value = v;
+});
+Net.onMessage(msg => {
+  if (game.pvp.role === "host") onGuestMessage(msg);
+  else onHostMessage(msg);
+});
+Net.onDisconnect(() => {
+  if (game.phase !== "title") onDisconnect();
+});
 el("btnRematch").addEventListener("click", () => startGame(game.mode));
 el("btnOverMenu").addEventListener("click", () => { refreshBests(); showScreen("title"); });
 el("btnBrowser").addEventListener("click", openBrowser);
@@ -1323,6 +1774,7 @@ el("btnResume").addEventListener("click", togglePause);
 el("btnQuit").addEventListener("click", () => {
   el("pause").classList.remove("open");
   game.paused = false; game.phase = "title";
+  Net.close();
   refreshBests(); showScreen("title");
 });
 el("btnSaveInitials").addEventListener("click", () => {
@@ -1374,25 +1826,41 @@ window.__autoplay = function(mode){
   startGame(mode || "classic");
   let guard = 4000;
   while (game.phase !== "over" && guard--){
+    if (!game.playerCard || (!game.aiCard && game.mode !== "endless")){ endGame(); break; }
     game.statKey = game.turnOwner === "ai"
       ? aiChooseStat(game.aiCard, game.aiLevel)
       : STATS[Math.floor(Math.random() * STATS.length)].key;
     settle(game.statKey);
     game.roundsPlayed++;
+    if (game.mode === "pvp" && (game.pvp.captures.p1 >= 25 || game.pvp.captures.p2 >= 25)){ game.pvp.matchWinner = game.pvp.captures.p1 >= 25 ? "p1" : "p2"; endGame(); break; }
     if (!game.playerDeck.length){ endGame(); break; }
     if (MODES[game.mode].waves && !game.aiDeck.length){
       game.score += 500 * game.wave; game.wave++;
       game.aiLevel = aiLevelForWave(game.wave);
       game.aiDeck = drawFromBag(Math.min(4 + game.wave, 12));
     }
-    game.playerCard = game.playerDeck.shift();
-    game.aiCard = game.mode === "endless" ? drawFromBag(1)[0] : game.aiDeck.shift();
+    game.playerCard = game.playerDeck.length ? game.playerDeck.shift() : null;
+    game.aiCard = game.mode === "endless" ? (game.bag.length || game.playerDeck.length ? drawFromBag(1)[0] : null) : (game.aiDeck.length ? game.aiDeck.shift() : null);
   }
   return { mode: game.mode, score: game.score, you: game.playerDeck.length,
     ai: game.aiDeck.length, pot: game.pot.length, rounds: game.roundsPlayed, wave: game.wave };
 };
+const __roomParam = (function(){ try { const p = new URLSearchParams(location.search); return p.get("room"); } catch(e){ return null; } })();
+if (__roomParam){
+  const rc = document.getElementById("roomCode");
+  if (rc) rc.value = cleanCode(__roomParam);
+  openOnlinePanel(true);
+}
 refreshBests();
 startAttract();
+
+
+
+
+
+
+
+
 </script>
 </body>
 </html>
