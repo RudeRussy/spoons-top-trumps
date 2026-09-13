@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#0b0e12">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Spoons Top Trumps ARCADE">
-<meta property="og:description" content="201 real Wetherspoons menu items. 6 stats. Arcade waves, combos, the Landlord. Highest wins — except Price and Regret, where lower wins.">
+<meta property="og:description" content="201 real Wetherspoons menu items. 6 stats. Arcade waves, win streaks, the Landlord. Highest wins — except Price and Regret, where lower wins.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -277,9 +277,8 @@ body::before{
 @keyframes dealIn{ 0%{ transform:translateY(-26px) rotate(-4deg); opacity:0; } 100%{ transform:none; opacity:1; } }
 .card.deal{ animation:dealIn .3s var(--ease-spring); }
 @keyframes bounce{ 0%,100%{ transform:translateY(0);} 35%{ transform:translateY(-12px) scale(1.03);} 60%{ transform:translateY(3px);} }
-.card.award{ animation:bounce .5s var(--ease-spring); }
-@keyframes defeat{ 0%,100%{ transform:none; filter:none; } 100%{ transform:rotate(4deg) translateY(6px); filter:grayscale(.6) brightness(.8); } }
-.card.defeat{ animation:defeat .5s forwards; }
+/* defeat/award moved after .card.reveal so the flip doesn't mask the tilt */
+
 @media (prefers-reduced-motion:reduce){ .card.deal,.card.award,.card.defeat{ animation:none; } }
 .card-art{
   height:56px; display:grid; place-items:center;
@@ -370,6 +369,11 @@ button.stat .keyhint{ display:inline; }
 @media (prefers-reduced-motion:reduce){ .card.flame{ animation:none; box-shadow:0 18px 40px rgba(0,0,0,.5), 0 0 12px rgba(255,107,53,.25); } }
 
 @media (prefers-reduced-motion:reduce){ .card.reveal{ animation:none; } }
+.card.defeat{ animation:defeat .5s forwards; }
+@keyframes defeat{ 0%,100%{ transform:none; filter:none; } 100%{ transform:rotate(4deg) translateY(6px); filter:grayscale(.6) brightness(.8); } }
+/* defeat rule moved after reveal */
+.card.award{ animation:bounce .5s var(--ease-spring); }
+/* defeat moved after reveal */
 .card.boss-shake{ animation:bossShake .45s var(--ease-spring); }
 @media (prefers-reduced-motion:reduce){ .card.boss-shake{ animation:none; } }
 
@@ -515,7 +519,7 @@ footer{ text-align:center; color:#7b7264; font-size:11px; padding:12px 16px 18px
   <div class="brand">SPOONS <em>TOP TRUMPS</em><small id="modeLabel">ARCADE</small></div>
   <div class="score">
     <span id="scoreChip">0</span>
-    <span class="chip combo" id="comboChip">COMBO ×2</span>
+    <span class="chip combo" id="comboChip">🥓 STREAK ×2</span>
     <span class="chip round" id="waveChip"><span id="waveChipLabel">WAVE</span> <b id="countWave">1</b></span>
     <span id="chipPlayer"><span id="chipPlayerLabel">YOU</span> <b id="countPlayer">—</b></span>
     <span class="chip pot" id="potChip">POT <b id="countPot">0</b></span>
@@ -535,7 +539,7 @@ footer{ text-align:center; color:#7b7264; font-size:11px; padding:12px 16px 18px
   <!-- TITLE -->
   <section id="screen-title" class="screen">
     <h1>SPOONS<br><span class="red">TOP TRUMPS</span></h1>
-    <p class="title-tag">★ 201 CARDS · THE ENTIRE MENU · 6 STATS ★</p>
+    <p class="title-tag">★ 210 CARDS · THE ENTIRE MENU · 6 STATS ★</p>
     <p class="title-sub">
       <b>201 real Spoons menu items.</b> Pick a stat. Highest wins — except <b>Price</b> &amp; <b>Regret</b>, where lower wins.
       Survive the waves, beat the Landlord, brag to your mate.
@@ -561,7 +565,7 @@ footer{ text-align:center; color:#7b7264; font-size:11px; padding:12px 16px 18px
         <li>Your card is face up; THE SPOONS is face down. Tap a stat to play.</li>
         <li>Higher wins — except <b>PRICE</b> and <b>REGRET</b>, where lower wins.</li>
         <li>Winner takes both cards. Draws stack the <b>pot</b>; the next winner hoovers it.</li>
-        <li>Win rounds in a row for a <b>combo multiplier</b>. Chain 3+ and the points get silly.</li>
+        <li>Win rounds in a row for a <b>streak multiplier</b> — stack the bacon 🥓🥓. Chain 3+ and the points get silly.</li>
         <li>On a computer: <b>1–6</b> pick stat · <b>ENTER</b> next · <b>M</b> mute · <b>P</b> pause. On a phone, everything is a tap.</li>
       </ul>
     </details>
@@ -2015,7 +2019,7 @@ function shake(cls){
 }
 function showCombo(mult){
   const c = el("comboPop");
-  c.textContent = "COMBO ×" + mult;
+  c.textContent = "🥓 STREAK ×" + mult;
   c.classList.remove("show"); void c.offsetWidth; c.classList.add("show");
   setTimeout(() => c.classList.remove("show"), 900);
 }
@@ -2048,7 +2052,7 @@ function renderHud(){
   renderHud._lastPot = potNow;
   const combo = el("comboChip");
   combo.style.display = game.streak >= 2 ? "" : "none";
-  if (game.streak >= 2) combo.textContent = "COMBO ×" + Math.min(game.streak, 5);
+  if (game.streak >= 2) combo.textContent = "🥓 ×" + game.streak;
   el("countBest").textContent = highScore(game.mode);
 }
 
