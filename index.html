@@ -195,7 +195,10 @@ body::before{
 }
 .card-body{ padding:10px 14px 8px; }
 .card-topline{ display:flex; gap:6px; align-items:center; margin-bottom:2px; }
-.cat-chip{ font-size:9px; font-weight:900; letter-spacing:.08em; color:#8a7a5c; border:1px solid var(--line); border-radius:4px; padding:1px 5px; }
+.cat-chip{ font-family:inherit; font-size:9px; font-weight:900; letter-spacing:.08em; color:#8a7a5c; background:transparent; border:1px solid var(--line); border-radius:4px; padding:2px 6px; cursor:pointer; }
+button.cat-chip:hover{ color:var(--ink); background:var(--cream); border-color:var(--gold); }
+button.cat-chip:active{ background:var(--gold); }
+button.cat-chip:focus-visible{ outline:2px solid var(--gold); outline-offset:1px; }
 .diet-chip{ font-size:9px; font-weight:900; border-radius:4px; padding:1px 5px; background:#2f6b3a; color:#dff3d2; }
 .diet-chip.v{ background:#8a6a1f; color:#fff6d8; }
 .card-name{ font-family:var(--font-display); font-size:17px; line-height:1.1; margin-bottom:8px; }
@@ -1151,10 +1154,21 @@ function cardFaceHTML(card, opts){
   return '<article class="card' + deal + '">' +
     '<div class="card-art">' + card.art + "</div>" +
     '<div class="card-body">' +
-      '<div class="card-topline"><span class="cat-chip">' + (CAT_LABEL[card.cat] || card.cat) + "</span>" + diet + "</div>" +
+      '<div class="card-topline"><button class="cat-chip" data-cat="' + card.cat + '">' + (CAT_LABEL[card.cat] || card.cat) + "</button>" + diet + "</div>" +
       '<h3 class="card-name">' + card.name + "</h3>" +
       '<div class="stats' + (opts.locked ? " stats-locked" : "") + '">' + rows + "</div>" +
     "</div></article>";
+}
+function cardChipOpenBrowser(e){
+  const chip = e.target.closest("button.cat-chip");
+  if (!chip) return;
+  browserCat = chip.dataset.cat;
+  const chips = el("catChips");
+  if (chips.dataset.built){
+    const target = chips.querySelector('button[data-cat="' + browserCat + '"]');
+    if (target) chips.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === target));
+  }
+  openBrowser();
 }
 function renderPlayerCard(opts){
   el("playerCard").innerHTML = cardFaceHTML(game.playerCard, {
@@ -1263,6 +1277,8 @@ function openDetail(name){
     cardFaceHTML(card, { locked: true }) +
     '<div style="text-align:center;margin-top:10px;"><button class="btn btn-cream" id="btnDetailClose">CLOSE</button></div></div>';
   det.classList.add("open");
+  const detailChip = det.querySelector("button.cat-chip");
+  if (detailChip) detailChip.addEventListener("click", cardChipOpenBrowser);
   el("btnDetailClose").addEventListener("click", () => det.classList.remove("open"));
   det.addEventListener("click", e => { if (e.target === det) det.classList.remove("open"); }, { once: true });
 }
@@ -1279,8 +1295,18 @@ el("btnPauseBrowser").addEventListener("click", openBrowser);
 el("btnBrowserClose").addEventListener("click", closeBrowser);
 el("btnHowTitle").addEventListener("click", () => { const d = el("howto"); d.open = !d.open; });
 el("playerCard").addEventListener("click", e => {
+  const chip = e.target.closest("button.cat-chip");
+  if (chip){ cardChipOpenBrowser(e); return; }
   const btn = e.target.closest("button.stat");
   if (btn) playerPick(btn.dataset.stat);
+});
+el("aiCard").addEventListener("click", e => {
+  const chip = e.target.closest("button.cat-chip");
+  if (chip){ cardChipOpenBrowser(e); return; }
+});
+el("attract").addEventListener("click", e => {
+  const chip = e.target.closest("button.cat-chip");
+  if (chip){ cardChipOpenBrowser(e); return; }
 });
 el("browserSearch").addEventListener("input", renderBrowserGrid);
 el("browserGrid").addEventListener("click", e => {
