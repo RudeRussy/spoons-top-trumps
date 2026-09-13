@@ -137,6 +137,7 @@ body::before{
 .b-arcade{ background:var(--red); box-shadow:0 5px 0 var(--red-deep); }
 .b-classic{ background:#1f5c57; box-shadow:0 5px 0 #123a37; }
 .b-endless{ background:#4a2547; box-shadow:0 5px 0 #2c152a; }
+.b-pvp{ background:#2b3a6b; box-shadow:0 5px 0 #1a2650; }
 .modebtn:hover{ filter:brightness(1.12); }
 .modebtn:active{ transform:translateY(3px); box-shadow:0 2px 0 rgba(0,0,0,.4); }
 .modebtn:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
@@ -371,7 +372,7 @@ footer{ text-align:center; color:#7b7264; font-size:11px; padding:12px 16px 18px
     <span id="scoreChip">0</span>
     <span class="chip combo" id="comboChip">COMBO ×2</span>
     <span class="chip round" id="waveChip">WAVE <b id="countWave">1</b></span>
-    <span class="chip">YOU <b id="countPlayer">—</b></span>
+    <span id="chipPlayer">YOU <b id="countPlayer">—</b></span>
     <span class="chip pot" id="potChip">POT <b id="countPot">0</b></span>
     <span class="chip" id="aiChip">SPOONS <b id="countAi">—</b></span>
     <span class="chip round">BEST <b id="countBest">0</b></span>
@@ -397,6 +398,7 @@ footer{ text-align:center; color:#7b7264; font-size:11px; padding:12px 16px 18px
       <button class="modebtn b-arcade" id="btnArcade">ARCADE<small id="bestArcade">BEST 0</small></button>
       <button class="modebtn b-classic" id="btnClassic">CLASSIC 9v9<small id="bestClassic">BEST 0</small></button>
       <button class="modebtn b-endless" id="btnEndless">ENDLESS<small id="bestEndless">BEST 0</small></button>
+      <button class="modebtn b-pvp" id="btnPvp">PVP PASS &amp; PLAY<small>FIRST TO 25 CAPTURES</small></button>
     </div>
     <div class="title-tools">
       <button class="btn btn-ghost" id="btnBrowser">☰ BROWSE THE MENU</button>
@@ -422,11 +424,11 @@ footer{ text-align:center; color:#7b7264; font-size:11px; padding:12px 16px 18px
   <section id="screen-table" class="screen hidden">
     <div class="table">
       <div class="side">
-        <div class="side-label">YOUR CARD</div>
+        <div class="side-label" id="sideLabelPlayer">YOUR CARD</div>
         <div id="playerCard"></div>
       </div>
       <div class="side">
-        <div class="side-label">THE SPOONS</div>
+        <div class="side-label" id="sideLabelAi">THE SPOONS</div>
         <div id="aiCard"></div>
       </div>
     </div>
@@ -818,6 +820,7 @@ const MODES = {
   arcade:  { label:"ARCADE",        startPlayer:6, waves:true,  endless:false, winPts:100 },
   classic: { label:"CLASSIC 9V9",   startPlayer:0, waves:false, endless:false, winPts:100 }, // startPlayer 0 → split whole menu
   endless: { label:"ENDLESS",       startPlayer:6, waves:false, endless:true,  winPts:150 },
+  pvp:     { label:"PVP PASS & PLAY", startPlayer:0, waves:false, endless:false, winPts:0 },
 };
 const game = {
   mode:"arcade", phase:"title", paused:false,
@@ -826,6 +829,7 @@ const game = {
   round:0, wave:1, busy:false, aiLevel:1,
   score:0, streak:0, bestStreak:0, biggestPot:0, roundsPlayed:0, statWins:{},
   pickHistory:{}, // stat -> times player picked it (Landlord reads this)
+  pvp:{ picker:"p1", captures:{ p1:0, p2:0 }, matchWinner:null },
 };
 
 function refillBag(){
@@ -853,6 +857,9 @@ function startGame(mode){
   game.score = 0; game.streak = 0; game.bestStreak = 0; game.biggestPot = 0;
   game.roundsPlayed = 0; game.statWins = {}; game.pickHistory = {};
   game.wave = 1; game.aiLevel = M.waves ? 0 : 1;
+  game.pvp.picker = "p1";
+  game.pvp.captures = { p1:0, p2:0 };
+  game.pvp.matchWinner = null;
   if (M.endless || M.waves){
     game.playerDeck = drawFromBag(M.startPlayer);
     game.aiDeck = M.waves ? drawFromBag(Math.min(4 + game.wave, 12)) : [];
@@ -867,16 +874,28 @@ function startGame(mode){
 }
 
 function beginRound(){
+  if (game.mode === "endless"){
+    if (!game.playerDeck.length){ endGame(); return; }
+  } else if (!game.playerDeck.length || !game.aiDeck.length){ endGame(); return; }
   game.phase = "play";
   game.playerCard = game.playerDeck.shift();
   game.aiCard = game.mode === "endless"
     ? drawFromBag(1)[0]
     : game.aiDeck.shift();
+  const pvp = game.mode === "pvp";
   renderHud();
-  renderPlayerCard({ pickable: game.turnOwner === "player", deal: true });
+  if (pvp){
+    el("sideLabelPlayer").textContent = game.pvp.picker === "p1" ? "PLAYER 1 — PICK A STAT" : "PLAYER 2 — PICK A STAT";
+    el("sideLabelAi").textContent = game.pvp.picker === "p1" ? "PLAYER 2 — FACE DOWN" : "PLAYER 1 — FACE DOWN";
+  } else {
+    el("sideLabelPlayer").textContent = "YOUR CARD";
+    el("sideLabelAi").textContent = "THE SPOONS";
+  }
+  renderPlayerCard({ pickable: pvp || game.turnOwner === "player", deal: true });
   renderAiBack();
   setVerdict(game.turnOwner === "player"
-    ? '<div class="verdict-sub" style="font-family:\'Press Start 2P\',monospace;font-size:9px;color:#ffc94d;">PICK YOUR STAT — KEYS 1-9 WORK TOO</div>'
+    ? '<div class="verdict-sub" style="font-family:\'Press Start 2P\',monospace;font-size:9px;color:#ffc94d;">' +
+      (pvp ? (game.pvp.picker === "p1" ? "PLAYER 1" : "PLAYER 2") + " — PICK YOUR STAT (1-9)" : "PICK YOUR STAT — KEYS 1-9 WORK TOO") + "</div>"
     : '<div class="verdict-line">THE SPOONS IS LOOKING…</div>');
   clearActions();
   if (game.turnOwner === "ai") aiTurn();
@@ -902,6 +921,12 @@ function aiTurn(){
 
 function settle(statKey){
   const result = compareStat(game.playerCard, game.aiCard, statKey);
+  if (game.mode === "pvp"){
+    const taken = [game.playerCard, game.aiCard, ...game.pot.splice(0)];
+    if (result > 0){ game.playerDeck.push(...taken); game.pvp.picker = "p1"; game.pvp.captures.p1++; return "player"; }
+    if (result < 0){ game.aiDeck.push(...taken); game.pvp.picker = "p2"; game.pvp.captures.p2++; return "ai"; }
+    game.pot.push(...taken); return "draw";
+  }
   if (game.mode === "endless"){
     if (result > 0){ game.playerDeck.push(game.aiCard, ...game.pot.splice(0)); return "player"; }
     if (result < 0){ game.playerDeck.push(...game.pot.splice(0)); return "ai"; } // player's card is binned
@@ -920,7 +945,7 @@ function resolveRound(){
   const st = statByKey(game.statKey);
   const margin = Math.abs(st.get(game.playerCard) - st.get(game.aiCard));
 
-  if (winner === "player"){
+  if (winner === "player" && game.mode !== "pvp"){
     game.streak++;
     game.bestStreak = Math.max(game.bestStreak, game.streak);
     game.statWins[game.statKey] = (game.statWins[game.statKey] || 0) + 1;
@@ -942,7 +967,6 @@ function resolveRound(){
   highlightStats(game.statKey, winner);
   renderVerdict(winner, margin);
 
-  if (!game.playerDeck.length){ setTimeout(() => endGame(winner === "player" ? "sweep" : "out"), 1500); return; }
   if (MODES[game.mode].waves && !game.aiDeck.length){
     const bonus = 500 * game.wave;
     game.score += bonus;
@@ -956,6 +980,16 @@ function resolveRound(){
     renderNextButton();
     return;
   }
+  if (game.mode === "endless"){
+    if (!game.playerDeck.length){ setTimeout(endGame, 1500); return; }
+  } else if (!game.playerDeck.length || !game.aiDeck.length){
+    setTimeout(() => endGame(winner), 1500); return;
+  }
+  if (game.mode === "pvp" && (game.pvp.captures.p1 >= 25 || game.pvp.captures.p2 >= 25)){
+    game.pvp.matchWinner = game.pvp.captures.p1 >= 25 ? "p1" : "p2";
+    setTimeout(endGame, 1400);
+    return;
+  }
   renderNextButton();
 }
 
@@ -966,10 +1000,18 @@ function endGame(){
   const you = game.playerDeck.length;
   const ai = game.aiDeck.length;
   const title = document.getElementById("overTitle");
-  if (mode === "endless"){
+  if (mode === "pvp"){
+    if (game.pvp.matchWinner){
+      title.textContent = game.pvp.matchWinner === "p1" ? "PLAYER 1 WINS THE MATCH" : "PLAYER 2 WINS THE MATCH";
+      title.className = game.pvp.matchWinner === "p1" ? "win" : "lose";
+    } else {
+      title.textContent = you > ai ? "PLAYER 1 HOLDS THE MENU" : you < ai ? "PLAYER 2 HOLDS THE MENU" : "DEAD HEAT — THE POT WINS";
+      title.className = you > ai ? "win" : you < ai ? "lose" : "";
+    }
+  } else if (mode === "endless"){
     title.textContent = "CUT OFF AT " + game.roundsPlayed + " ROUNDS";
     title.className = "lose";
-  } else if (you > ai || (mode === "arcade")){
+  } else if (you > ai || mode === "arcade"){
     title.textContent = mode === "arcade" ? "WAVE " + game.wave + " — LAST ORDERS" : "LAST ORDERS ARE YOURS";
     title.className = "win";
   } else {
@@ -1053,14 +1095,23 @@ function renderHud(){
   el("modeLabel").textContent = MODES[game.mode].label;
   el("countPlayer").textContent = game.playerDeck.length;
   el("countPot").textContent = game.pot.length;
+  const chipPlayer = el("chipPlayer"), aiChip = el("aiChip"), waveChip = el("waveChip");
+  if (game.mode === "pvp"){
+    chipPlayer.innerHTML = "P1 <b>" + game.playerDeck.length + "</b>";
+    aiChip.innerHTML = "P2 <b>" + game.aiDeck.length + "</b>";
+    aiChip.style.display = ""; waveChip.style.display = "none";
+  } else {
+    chipPlayer.innerHTML = "YOU <b>" + game.playerDeck.length + "</b>";
+    aiChip.innerHTML = "SPOONS <b>" + game.aiDeck.length + "</b>";
+    if (MODES[game.mode].waves){ waveChip.style.display = ""; el("countWave").textContent = game.wave; aiChip.style.display = ""; }
+    else if (MODES[game.mode].endless){ waveChip.innerHTML = "STREAK <b>" + game.streak + "</b>"; waveChip.style.display = ""; aiChip.style.display = "none"; }
+    else { waveChip.style.display = "none"; aiChip.style.display = ""; }
+  }
+  el("scoreChip").style.display = game.mode === "pvp" ? "none" : "";
   el("potChip").style.display = game.pot.length ? "" : "none";
   const combo = el("comboChip");
   combo.style.display = game.streak >= 2 ? "" : "none";
   if (game.streak >= 2) combo.textContent = "COMBO ×" + Math.min(game.streak, 5);
-  const waveChip = el("waveChip"), aiChip = el("aiChip");
-  if (MODES[game.mode].waves){ waveChip.style.display = ""; el("countWave").textContent = game.wave; aiChip.style.display = ""; el("countAi").textContent = game.aiDeck.length; }
-  else if (MODES[game.mode].endless){ waveChip.innerHTML = "STREAK <b>" + game.streak + "</b>"; waveChip.style.display = ""; aiChip.style.display = "none"; }
-  else { waveChip.style.display = "none"; aiChip.style.display = ""; el("countAi").textContent = game.aiDeck.length; }
   el("countBest").textContent = highScore(game.mode);
 }
 
@@ -1127,7 +1178,10 @@ function renderVerdict(winner, margin){
     ? game.playerCard.name + " " + st.fmt(st.get(game.playerCard)) + " — same as " + game.aiCard.name + ". The pot grows to " + game.pot.length + "."
     : game.playerCard.name + " " + st.fmt(st.get(game.playerCard)) + " vs " + game.aiCard.name + " " + st.fmt(st.get(game.aiCard)) +
       (winner === "player" ? " · +" + Math.floor(margin / PERC[game.statKey].range * 100) + " margin bonus" : "");
-  setVerdict('<div class="verdict-line ' + cls + '">' + line + "</div><div class=\"verdict-sub\">" + sub + "</div>");
+  const pvpLine = game.mode === "pvp"
+    ? '<div class="verdict-sub" style="font-family:\'Press Start 2P\',monospace;font-size:9px;color:#ffc94d;">CAPTURES — P1: ' +
+      game.pvp.captures.p1 + " · P2: " + game.pvp.captures.p2 + " · FIRST TO 25</div>" : "";
+  setVerdict('<div class="verdict-line ' + cls + '">' + line + "</div><div class=\"verdict-sub\">" + sub + "</div>" + pvpLine);
 }
 function setVerdict(html){ el("verdict").innerHTML = html; }
 function clearActions(){ el("roundActions").innerHTML = ""; }
@@ -1206,6 +1260,7 @@ function openDetail(name){
 el("btnArcade").addEventListener("click", () => { AudioFX.unlock(); startGame("arcade"); });
 el("btnClassic").addEventListener("click", () => { AudioFX.unlock(); startGame("classic"); });
 el("btnEndless").addEventListener("click", () => { AudioFX.unlock(); startGame("endless"); });
+el("btnPvp").addEventListener("click", () => { AudioFX.unlock(); startGame("pvp"); });
 el("btnRematch").addEventListener("click", () => startGame(game.mode));
 el("btnOverMenu").addEventListener("click", () => { refreshBests(); showScreen("title"); });
 el("btnBrowser").addEventListener("click", openBrowser);
