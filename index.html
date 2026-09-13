@@ -398,11 +398,17 @@ button.stat .keyhint{ display:inline; }
 @keyframes comboPop{ 0%{ transform:scale(.4) rotate(-6deg); opacity:0; } 60%{ transform:scale(1.25) rotate(3deg); opacity:1; } 100%{ transform:scale(1) rotate(0); opacity:1; } }
 #comboPop{
   position:absolute; left:50%; top:38%; transform:translate(-50%,-50%);
-  font-family:var(--font-arcade); font-size:clamp(18px,4vw,30px); color:var(--gold);
-  text-shadow:0 0 16px rgba(255,201,77,.8), 3px 3px 0 rgba(0,0,0,.6);
+  font-family:var(--font-arcade); font-size:clamp(22px,5.5vw,44px); color:var(--gold);
+  text-shadow:0 0 18px rgba(255,201,77,.9), 3px 3px 0 rgba(0,0,0,.6);
   pointer-events:none; z-index:30; display:none;
+  background:rgba(20,25,32,.88); border:2px solid var(--gold); border-radius:12px;
+  padding:14px 22px; box-shadow:0 0 30px rgba(255,201,77,.35);
 }
-#comboPop.show{ display:block; animation:comboPop .45s var(--ease-spring); }
+#comboPop.show{ display:block; animation:comboPop .6s var(--ease-spring); }
+@keyframes comboPop{ 0%{ transform:scale(.3) rotate(-8deg); opacity:0; }
+  55%{ transform:scale(1.35) rotate(4deg); opacity:1; }
+  75%{ transform:scale(.98) rotate(-1deg); opacity:1; }
+  100%{ transform:scale(1) rotate(0); opacity:1; } }
 #roundActions{ display:flex; justify-content:center; margin-top:10px; min-height:52px; }
 .btn-cream{ background:var(--cream); color:var(--ink); box-shadow:0 4px 0 #b3a488; }
 .btn-cream:active{ transform:translateY(2px); box-shadow:0 2px 0 #b3a488; }
@@ -651,6 +657,7 @@ footer{ text-align:center; color:#7b7264; font-size:11px; padding:12px 16px 18px
     <h3>ORDER TO PLAY</h3>
     <p>Order at the bar or the Wetherspoon app, then scan the QR on your receipt to play.</p>
     <div class="order-bar">HONOUR SYSTEM · TAP BELOW</div>
+      <div id="soundHint" style="display:none;color:#e07a6a;font-size:11px;font-weight:700;">🔇 Sound is muted — tap 🔊 (top right) to hear the game</div>
     <div class="order-actions">
       <button class="btn btn-cream" id="btnHaveOrdered">I HAVE ORDERED</button>
       <button class="btn btn-ghost" id="btnPlayDemo" style="color:#f2e8d5;">PLAY DEMO</button>
@@ -1640,6 +1647,7 @@ function percentile(statKey, value){
 
 // AI levels: 0 Punter (random) · 1 Regular (own best stat, 20% noise) · 2 Landlord (counters player's favourite stats)
 const AI_NAMES = ["PUNTER", "REGULAR", "THE LANDLORD"];
+const AI_THINKING = ["THE SPOONS IS LOOKING…", "THE SPOONS SQUINTS AT ITS CARD…", "THE SPOONS STROKES ITS CHIN…", "THE SPOONS TAKES ITS TIME…", "THE SPOONS ENJOYS THIS…"];
 function aiChooseStat(aiCard, level){
   const rng = game && game.rng ? game.rng : Math.random;
   if (level === 0 || rng() < 0.08) return STATS[Math.floor(rng() * STATS.length)].key;
@@ -1789,7 +1797,7 @@ function beginRound(){
   setVerdict(game.turnOwner === "player"
     ? '<div class="verdict-sub" style="font-family:\'Press Start 2P\',monospace;font-size:9px;color:#ffc94d;">' +
       (pvp ? (game.pvp.picker === "p1" ? "PLAYER 1" : "PLAYER 2") + " — PICK YOUR STAT" : "TAP A STAT TO PLAY") + "</div>"
-    : '<div class="verdict-line">THE SPOONS IS LOOKING…</div>');
+    : '<div class="verdict-line" id="aiThinking">' + pick(AI_THINKING) + '</div>');
   clearActions();
   if (game.turnOwner === "ai") aiTurn();
 
@@ -1809,13 +1817,18 @@ function playerPick(statKey){
 
 function aiTurn(){
   game.busy = true;
+  // Anticipation delay: "thinking" window before the Spoons picks.
+  // Scales with AI level (Punter is quick, the Landlord makes you sweat) + a little randomness.
+  const base = [450, 750, 1150][Math.min(game.aiLevel, 2)];
+  const jitter = 150 + Math.floor(Math.random() * 350);
+  const delay = base + (game.aiLevel >= 1 ? jitter : jitter / 3);
   setTimeout(() => {
     if (game.phase !== "play") { game.busy = false; return; }
     if (game.paused){ setTimeout(aiTurn, 300); return; } // hold the AI's turn while paused
     game.statKey = aiChooseStat(game.aiCard, game.aiLevel);
     game.busy = false;
     resolveRound();
-  }, 420);
+  }, delay);
 }
 
 function settle(statKey){
@@ -2068,9 +2081,11 @@ function shake(cls){
 }
 function showCombo(mult){
   const c = el("comboPop");
-  c.textContent = "🥓 STREAK ×" + mult;
+  const strips = "🥓".repeat(Math.min(mult, 5));
+  c.textContent = strips + " STREAK ×" + mult;
+  c.style.fontSize = "clamp(" + (18 + mult * 3) + "px," + (4 + mult) + "vw," + (30 + mult * 5) + "px)";
   c.classList.remove("show"); void c.offsetWidth; c.classList.add("show");
-  setTimeout(() => c.classList.remove("show"), 900);
+  setTimeout(() => c.classList.remove("show"), 2000);
 }
 
 function renderHud(){
@@ -2410,6 +2425,10 @@ function updateOrderHint(){
   if (h) h.style.display = (REWARDS.unlocksOnOrder && !hasOrdered()) ? "" : "none";
 }
 function openOrderPanel(show){
+  if (show && typeof AudioFX !== "undefined" && AudioFX.isMuted()){
+    const hint = document.getElementById("soundHint");
+    if (hint) hint.style.display = "";
+  }
   const p = el("orderPanel");
   if (p) p.classList.toggle("open", show);
 }
