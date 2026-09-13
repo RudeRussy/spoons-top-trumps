@@ -424,10 +424,10 @@ footer{ text-align:center; color:#7b7264; font-size:11px; padding:12px 16px 18px
   <div class="score">
     <span id="scoreChip">0</span>
     <span class="chip combo" id="comboChip">COMBO ×2</span>
-    <span class="chip round" id="waveChip">WAVE <b id="countWave">1</b></span>
-    <span id="chipPlayer">YOU <b id="countPlayer">—</b></span>
+    <span class="chip round" id="waveChip"><span id="waveChipLabel">WAVE</span> <b id="countWave">1</b></span>
+    <span id="chipPlayer"><span id="chipPlayerLabel">YOU</span> <b id="countPlayer">—</b></span>
     <span class="chip pot" id="potChip">POT <b id="countPot">0</b></span>
-    <span class="chip" id="aiChip">SPOONS <b id="countAi">—</b></span>
+    <span class="chip" id="aiChip"><span id="chipAiLabel">SPOONS</span> <b id="countAi">—</b></span>
     <span class="chip round">BEST <b id="countBest">0</b></span>
   </div>
   <div style="display:flex;gap:6px;">
@@ -1692,16 +1692,16 @@ function renderHud(){
   el("modeLabel").textContent = MODES[game.mode].label;
   el("countPlayer").textContent = game.playerDeck.length;
   el("countPot").textContent = game.pot.length;
-  const chipPlayer = el("chipPlayer"), aiChip = el("aiChip"), waveChip = el("waveChip");
+  const chipPlayerLabel = el("chipPlayerLabel"), chipAiLabel = el("chipAiLabel"), waveChip = el("waveChip");
   if (game.mode === "pvp"){
-    chipPlayer.innerHTML = "P1 <b>" + game.playerDeck.length + "</b>";
-    aiChip.innerHTML = "P2 <b>" + game.aiDeck.length + "</b>";
+    chipPlayerLabel.textContent = "P1";
+    chipAiLabel.textContent = "P2";
     aiChip.style.display = ""; waveChip.style.display = "none";
   } else {
-    chipPlayer.innerHTML = "YOU <b>" + game.playerDeck.length + "</b>";
-    aiChip.innerHTML = "SPOONS <b>" + game.aiDeck.length + "</b>";
+    chipPlayerLabel.textContent = "YOU";
+    chipAiLabel.textContent = "SPOONS";
     if (MODES[game.mode].waves){ waveChip.style.display = ""; el("countWave").textContent = game.wave; aiChip.style.display = ""; }
-    else if (MODES[game.mode].endless){ waveChip.innerHTML = "STREAK <b>" + game.streak + "</b>"; waveChip.style.display = ""; aiChip.style.display = "none"; }
+    else if (MODES[game.mode].endless){ el("waveChipLabel").textContent = "STREAK"; el("countWave").textContent = game.streak; waveChip.style.display = ""; aiChip.style.display = "none"; }
     else { waveChip.style.display = "none"; aiChip.style.display = ""; }
   }
   el("scoreChip").style.display = game.mode === "pvp" ? "none" : "";
