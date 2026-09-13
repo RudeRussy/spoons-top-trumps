@@ -529,6 +529,7 @@ footer{ text-align:center; color:#7b7264; font-size:11px; padding:12px 16px 18px
     <span class="chip demo" id="demoChip" style="display:none;">DEMO</span>
   </div>
   <div style="display:flex;gap:6px;">
+    <button class="hudbtn" id="btnMusic" title="Music (N)">🎵</button>
     <button class="hudbtn" id="btnMute" title="Mute (M)">🔊</button>
     <button class="hudbtn" id="btnPause" title="Pause (P)">⏸</button>
   </div>
@@ -988,6 +989,8 @@ const statByKey = key => STATS.find(s => s.key === key);
 const AudioFX = (() => {
   let ctx = null;
   let muted = localStorage.getItem("spoons.mute") === "1";
+  let musicOn = localStorage.getItem("spoons.music") !== "0"; // on by default
+  let musicTimer = null, musicStep = 0;
   function ac(){
     if (!ctx){ try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } }
     if (ctx && ctx.state === "suspended") ctx.resume().catch(() => {});
@@ -1003,16 +1006,56 @@ const AudioFX = (() => {
     o.connect(g); g.connect(c.destination);
     o.start(t); o.stop(t + dur + 0.02);
   }
+  function noise(dur, vol, when){
+    const c = ac(); if (!c || muted) return;
+    const t = c.currentTime + (when || 0);
+    const len = Math.max(1, Math.floor(c.sampleRate * dur));
+    const buf = c.createBuffer(1, len, c.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    const s = c.createBufferSource(); s.buffer = buf;
+    const g = c.createGain(); g.gain.setValueAtTime(vol || 0.05, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    s.connect(g); g.connect(c.destination);
+    s.start(t);
+  }
+  /* --- 8-bit overlay tune: 16-step bassline + sparse lead, bar loops via setInterval.
+         Pub-carpet vibe: minor key bounce, nothing intrusive, sits under SFX. --- */
+  const BASS = [110, 110, 0, 110, 0, 110, 130.8, 0, 98, 98, 0, 98, 0, 130.8, 146.8, 0]; // A2 A2 C3 G2 G2 C3 D3
+  const LEAD = [0, 0, 440, 0, 392, 0, 440, 523, 0, 0, 392, 0, 440, 0, 0, 0];            // sparse blips
+  function musicTick(){
+    if (!musicOn || muted) return;
+    const i = musicStep % 16;
+    if (BASS[i]) tone(BASS[i], 0.12, "triangle", 0.028);
+    if (LEAD[i]) tone(LEAD[i], 0.08, "square", 0.018);
+    if (i % 4 === 0) noise(0.03, 0.012); // soft tick
+    musicStep++;
+  }
+  function startMusic(){
+    if (musicTimer || !musicOn) return;
+    const c = ac(); if (!c) return;
+    musicTimer = setInterval(musicTick, 220);
+  }
+  function stopMusic(){ if (musicTimer){ clearInterval(musicTimer); musicTimer = null; } }
   return {
     unlock(){ ac(); },
     click(){ tone(220, 0.06, "square", 0.045); },
+    deal(){ noise(0.09, 0.04); tone(160, 0.05, "triangle", 0.03, 0.02); },
+    flip(){ tone(520, 0.05, "triangle", 0.04); tone(700, 0.05, "triangle", 0.035, 0.05); },
     win(streak){ streak = streak || 0; const base = 523 + Math.min(streak, 6) * 35; [base, base*1.26, base*1.5].forEach((f, i) => tone(f, 0.09, "square", 0.055, i * 0.07)); },
     lose(){ tone(196, 0.12, "square", 0.055); tone(131, 0.16, "square", 0.055, 0.1); },
     draw(){ tone(330, 0.1, "triangle", 0.055); },
+    bacon(step){ const f = [659, 784, 880, 988, 1175][Math.min(step - 2, 4)] || 659; tone(f, 0.1, "square", 0.05); tone(f * 1.5, 0.12, "square", 0.04, 0.06); },
     coin(){ tone(988, 0.07, "square", 0.055); tone(1319, 0.18, "square", 0.055, 0.07); },
     wave(){ [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.1, "square", 0.055, i * 0.09)); },
+    boss(){ tone(82, 0.3, "sawtooth", 0.06); tone(78, 0.35, "sawtooth", 0.055, 0.25); },
     over(){ [392, 330, 262, 196].forEach((f, i) => tone(f, 0.14, "square", 0.055, i * 0.12)); },
-    toggleMute(){ muted = !muted; localStorage.setItem("spoons.mute", muted ? "1" : "0"); return muted; },
+    reward(){ [659, 784, 988, 1319, 1568].forEach((f, i) => tone(f, 0.12, "square", 0.055, i * 0.09)); },
+    startMusic(){ startMusic(); },
+    stopMusic(){ stopMusic(); },
+    musicEnabled(){ return musicOn; },
+    toggleMusic(){ musicOn = !musicOn; localStorage.setItem("spoons.music", musicOn ? "1" : "0"); if (!musicOn) stopMusic(); else startMusic(); return musicOn; },
+    toggleMute(){ muted = !muted; localStorage.setItem("spoons.mute", muted ? "1" : "0"); if (muted) stopMusic(); else startMusic(); return muted; },
     isMuted(){ return muted; },
   };
 })();
@@ -1669,6 +1712,7 @@ function startGame(mode){
     game.aiDeck = sh.slice(half);
   }
   showScreen("table");
+  AudioFX.startMusic();
   beginRound();
 }
 
@@ -1703,6 +1747,7 @@ function startArcadeRunForPlayer(player){
   el("sideLabelPlayer").textContent = "PLAYER " + player + " — PICK A STAT";
   el("sideLabelAi").textContent = "THE SPOONS";
   showScreen("table");
+  AudioFX.startMusic();
   beginRound();
 }
 
@@ -1738,6 +1783,8 @@ function beginRound(){
   renderPlayerCard({ pickable: pvp || duel || game.turnOwner === "player", deal: true });
   const bossNow = MODES[game.mode].waves && isBossWave(game.wave);
   renderAiBack({ boss: bossNow });
+  AudioFX.deal();
+  if (bossNow) AudioFX.boss();
   setVerdict(game.turnOwner === "player"
     ? '<div class="verdict-sub" style="font-family:\'Press Start 2P\',monospace;font-size:9px;color:#ffc94d;">' +
       (pvp ? (game.pvp.picker === "p1" ? "PLAYER 1" : "PLAYER 2") + " — PICK YOUR STAT" : "TAP A STAT TO PLAY") + "</div>"
@@ -1805,6 +1852,7 @@ function resolveRound(){
     const pts = (MODES[game.mode].winPts + Math.floor(margin / PERC[game.statKey].range * 100)) * mult;
     game.score += pts;
     if (game.streak >= 2) showCombo(mult);
+    if (game.streak >= 2) AudioFX.bacon(game.streak);
     AudioFX.win(game.streak); shake("shake-soft");
   } else if (winner === "ai"){
     game.streak = 0;
@@ -2117,6 +2165,7 @@ function renderAiBack(opts){
 }
 function renderAiReveal(){
   el("aiCard").innerHTML = cardFaceHTML(game.aiCard, { locked: true, selectedKey: game.statKey });
+  AudioFX.flip();
   const card = el("aiCard").querySelector(".card");
   if (card){
     card.classList.add("reveal");
@@ -2290,6 +2339,13 @@ el("btnMute").addEventListener("click", () => {
   const m = AudioFX.toggleMute();
   el("btnMute").textContent = m ? "🔇" : "🔊";
 });
+el("btnMusic").addEventListener("click", () => {
+  const on = AudioFX.toggleMusic();
+  el("btnMusic").textContent = on ? "🎵" : "🎵̸";
+  el("btnMusic").style.opacity = on ? "1" : "0.45";
+});
+el("btnMusic").textContent = AudioFX.musicEnabled() ? "🎵" : "🎵̸";
+el("btnMusic").style.opacity = AudioFX.musicEnabled() ? "1" : "0.45";
 el("btnMute").textContent = AudioFX.isMuted() ? "🔇" : "🔊";
 el("btnPause").addEventListener("click", togglePause);
 el("btnResume").addEventListener("click", togglePause);
@@ -2403,7 +2459,8 @@ function showReward(winner){
   el("rewardMeta").textContent = pub === "national" ? "SPOONS NATIONAL" : pub.replace(/-/g, " ").toUpperCase();
   const rs = el("rewardScreen");
   rs.classList.add("open");
-  AudioFX.coin();
+  AudioFX.stopMusic();
+  AudioFX.reward();
 }
 function onModeStartRequested(mode){
   if (!REWARDS.unlocksOnOrder || hasOrdered() || mode === "pvp" || game.demo){
