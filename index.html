@@ -182,6 +182,11 @@ body::before{
 #roomCode:disabled{ opacity:.6; }
 .online-link{ font-family:var(--font-arcade); color:var(--gold); font-size:8px; word-break:break-all; margin-bottom:8px; }
 .online-status{ min-height:18px; font-size:12px; color:var(--red); text-align:center; margin-bottom:4px; }
+#spoonsPanel .online-status{ color:var(--cream); }
+#spoonsSearch{ width:100%; background:#141920; border:1px solid rgba(242,232,213,.25); color:var(--cream); border-radius:8px; padding:10px 12px; font:inherit; font-size:14px; min-height:44px; }
+#spoonsList{ max-height:360px; overflow-y:auto; display:flex; flex-direction:column; gap:4px; margin-top:8px; }
+.spoons-item{ width:100%; text-align:left; background:#141920; color:var(--cream); border:1px solid rgba(242,232,213,.2); border-radius:8px; padding:10px 12px; font:inherit; font-size:13px; cursor:pointer; min-height:44px; }
+.spoons-item:hover{ background:rgba(242,232,213,.12); }
 
 /* ---------- Handoff ---------- */
 .handoff{ text-align:center; padding-top:24vh; }
@@ -450,7 +455,9 @@ footer{ text-align:center; color:#7b7264; font-size:11px; padding:12px 16px 18px
       <button class="modebtn b-arcade hero" id="btnArcade">PLAY<small id="bestArcade">ARCADE · BEST 0</small></button>
       <button class="modebtn b-pvp duel" id="btnPvp">DUEL<small>PASS &amp; PLAY · SAME DECK</small></button>
     </div>
+    <div id="playingAt" class="title-tag" style="display:none;margin-top:8px;"></div>
     <div class="title-links">
+      <button class="linkbtn" id="btnSpoons">CHOOSE YOUR SPOONS</button> ·
       <button class="linkbtn" id="btnOnline">ONLINE</button> ·
       <button class="linkbtn" id="btnBrowser">BROWSE</button> ·
       <button class="linkbtn" id="btnHowTitle">HOW TO PLAY</button>
@@ -555,6 +562,22 @@ footer{ text-align:center; color:#7b7264; font-size:11px; padding:12px 16px 18px
       <div id="onlineStatus" class="online-status"></div>
       <div class="online-row">
         <button class="btn btn-ghost" id="btnOnlineBack" style="color:#f2e8d5;">BACK</button>
+      </div>
+    </div>
+
+    <div id="spoonsPanel" class="online-panel hidden">
+      <div class="online-row">
+        <div id="spoonsStatus" class="online-status" style="color:var(--cream);">CHOOSE YOUR SPOONS</div>
+      </div>
+      <div class="online-row">
+        <input id="spoonsSearch" placeholder="Search pubs…" autocomplete="off" inputmode="text">
+      </div>
+      <div class="online-row" style="justify-content:flex-start;">
+        <span id="spoonsCount" class="count"></span>
+      </div>
+      <div id="spoonsList"></div>
+      <div class="online-row">
+        <button class="btn btn-ghost" id="btnSpoonsBack" style="color:#f2e8d5;">BACK</button>
       </div>
     </div>
 <footer>
@@ -989,6 +1012,164 @@ function copyRoomLink(){
   if (link) navigator.clipboard.writeText(link).catch(() => {});
 }
 
+/* ==================== 2c. YOUR SPOONS pub overlay ==================== */
+function escapeHtml(t){ return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+const Spoons = (() => {
+  const LS_MY_PUB = "spoons.myPub";
+  const LS_RECENT = "spoons.recentPubs";
+  let pubsCache = null;
+  let pubsPromise = null;
+  let chunkMem = {};
+  function myPub(){
+    try { const v = localStorage.getItem(LS_MY_PUB); return v ? JSON.parse(v) : null; }
+    catch(e){ return null; }
+  }
+  function recentPubs(){
+    try { const v = localStorage.getItem(LS_RECENT); return v ? JSON.parse(v) : []; }
+    catch(e){ return []; }
+  }
+  function setRecent(list){
+    try { localStorage.setItem(LS_RECENT, JSON.stringify(list.slice(0, 3))); } catch(e){}
+  }
+  function pickPub(pub){
+    try { localStorage.setItem(LS_MY_PUB, JSON.stringify(pub)); } catch(e){}
+    const r = recentPubs().filter(p => p.s !== pub.s);
+    r.unshift({s:pub.s, n:pub.n, f:pub.f});
+    setRecent(r);
+  }
+  async function preloadMyPub(){
+    const pub = myPub(); if (!pub) return;
+    await loadChunk(pub.f);
+  }
+  function clearPub(){
+    try { localStorage.removeItem(LS_MY_PUB); } catch(e){}
+  }
+  function loadPubs(){
+    if (pubsCache) return pubsCache;
+    if (pubsPromise) return pubsPromise;
+    pubsPromise = (async () => {
+      try {
+        if (typeof fetch !== "function") throw new Error("no fetch");
+        const r = await fetch("data/pubs.json");
+        if (!r.ok) throw new Error("status " + r.status);
+        pubsCache = await r.json();
+      } catch(e){ pubsCache = []; }
+      return pubsCache;
+    })();
+    return pubsPromise;
+  }
+  async function loadChunk(file){
+    const cached = getChunkSync(file);
+    if (cached) return cached;
+    try {
+      if (typeof fetch !== "function") throw new Error("no fetch");
+      const r = await fetch("data/" + file);
+      if (!r.ok) throw new Error("status " + r.status);
+      const data = await r.json();
+      chunkMem[file] = data;
+      try { sessionStorage.setItem("spoons.chunk." + file, JSON.stringify(data)); } catch(e){}
+      return data;
+    } catch(e){
+      if (!chunkMem[file]) chunkMem[file] = {};
+      return {};
+    }
+  }
+  function getChunkSync(file){
+    if (chunkMem[file]) return chunkMem[file];
+    try {
+      const v = sessionStorage.getItem("spoons.chunk." + file);
+      if (v){ const d = JSON.parse(v); chunkMem[file] = d; return d; }
+    } catch(e){}
+    return null;
+  }
+  function setChunkCache(file, data){ chunkMem[file] = data; }
+  function restoreNational(){
+    for (const c of CARDS){
+      if (c.__orig){ c.price = c.__orig.price; c.kcal = c.__orig.kcal; }
+    }
+  }
+  function applyOverlaySync(){
+    const pub = myPub();
+    if (!pub){ restoreNational(); return; }
+    const chunk = getChunkSync(pub.f);
+    if (!chunk || !chunk[pub.s]){ restoreNational(); return; }
+    const map = chunk[pub.s];
+    restoreNational();
+    for (const c of CARDS){
+      const o = map[c.name];
+      if (o){
+        if (c.__orig === undefined) c.__orig = { price:c.price, kcal:c.kcal };
+        c.price = o[0]; c.kcal = o[1];
+      }
+    }
+  }
+  return { myPub, pickPub, clearPub, recentPubs, loadPubs, loadChunk, getChunkSync, setChunkCache, restoreNational, applyOverlaySync, preloadMyPub };
+})();
+
+let spoonsPubs = null;
+function openSpoonsPanel(){
+  const panel = el("spoonsPanel");
+  if (!panel) return;
+  panel.classList.remove("hidden");
+  updateSpoonsHeader();
+  if (!spoonsPubs){
+    Spoons.loadPubs().then(list => { spoonsPubs = list; renderSpoonsList(); });
+  }
+  renderSpoonsList();
+  const pub = Spoons.myPub();
+  if (pub) Spoons.loadChunk(pub.f);
+}
+function closeSpoonsPanel(){ const p = el("spoonsPanel"); if (p) p.classList.add("hidden"); }
+function updateSpoonsHeader(){
+  const pub = Spoons.myPub();
+  const st = el("spoonsStatus");
+  if (!st) return;
+  if (pub) st.innerHTML = 'YOUR SPOONS <b style="color:var(--gold);">' + escapeHtml(pub.n) + '</b> · <button class="linkbtn" id="btnSpoonsClear" style="color:var(--red);">CLEAR</button>';
+  else st.textContent = "CHOOSE YOUR SPOONS";
+}
+function renderSpoonsList(){
+  const q = (el("spoonsSearch").value || "").trim().toLowerCase();
+  let recent = Spoons.recentPubs();
+  let list = [];
+  let countLabel = "";
+  if (!q){
+    const all = (spoonsPubs || []);
+    const rset = new Set(recent.map(p => p.s));
+    const rest = all.filter(p => !rset.has(p.s)).slice(0, Math.max(0, 50 - recent.length));
+    list = recent.map(p => Object.assign({}, p, { recent:true })).concat(rest);
+    countLabel = list.length + " PUBS";
+  } else {
+    const matches = (spoonsPubs || []).filter(p => p.n.toLowerCase().includes(q));
+    const rset = new Set(matches.map(p => p.s));
+    const rrecent = recent.filter(p => p.n.toLowerCase().includes(q) && !rset.has(p.s));
+    list = rrecent.map(p => Object.assign({}, p, { recent:true })).concat(matches.slice(0, 50 - rrecent.length));
+    countLabel = matches.length + " MATCHES";
+  }
+  el("spoonsCount").textContent = countLabel;
+  el("spoonsList").innerHTML = list.map(p =>
+    '<button class="spoons-item" data-slug="' + escapeHtml(p.s) + '" data-file="' + escapeHtml(p.f) + '" data-name="' + escapeHtml(p.n) + '">' +
+    (p.recent ? '<span style="color:var(--gold);margin-right:4px;">★</span>' : '') + escapeHtml(p.n) +
+    "</button>").join("");
+}
+function onSpoonsItemClick(e){
+  const b = e.target.closest(".spoons-item");
+  if (!b) return;
+  const pub = { s:b.dataset.slug, n:b.dataset.name, f:b.dataset.file };
+  Spoons.pickPub(pub);
+  updateSpoonsHeader();
+  updatePlayingAt();
+  closeSpoonsPanel();
+  AudioFX.click();
+  Spoons.loadChunk(pub.f);
+}
+function updatePlayingAt(){
+  const pub = Spoons.myPub();
+  const line = el("playingAt");
+  if (!line) return;
+  if (pub){ line.textContent = "PLAYING AT " + pub.n.toUpperCase(); line.style.display = ""; }
+  else { line.style.display = "none"; }
+}
+
 function startRemoteGame(){
   game.mode = "pvp";
   startGame("pvp");
@@ -1310,6 +1491,7 @@ function isBossWave(w){ return w > 1 && (w % 4) === 0; }
 
 function startGame(mode){
   game.mode = mode;
+  Spoons.applyOverlaySync();
   const M = MODES[mode];
   game.playerDeck = []; game.aiDeck = []; game.pot = []; game.bag = [];
   game.turnOwner = "player"; game.statKey = null;
@@ -1672,7 +1854,7 @@ const BANTER = {
 };
 function showScreen(name){
   for (const s of ["title", "table", "over", "handoff"]) el("screen-" + s).classList.toggle("hidden", s !== name);
-  if (name === "title"){ openOnlinePanel(false); stopAttract(); }
+  if (name === "title"){ openOnlinePanel(false); closeSpoonsPanel(); Spoons.restoreNational(); stopAttract(); }
 }
 function shake(cls){
   const st = el("stage");
@@ -1692,7 +1874,7 @@ function renderHud(){
   el("modeLabel").textContent = MODES[game.mode].label;
   el("countPlayer").textContent = game.playerDeck.length;
   el("countPot").textContent = game.pot.length;
-  const chipPlayerLabel = el("chipPlayerLabel"), chipAiLabel = el("chipAiLabel"), waveChip = el("waveChip");
+  const chipPlayerLabel = el("chipPlayerLabel"), chipAiLabel = el("chipAiLabel"), waveChip = el("waveChip"), aiChip = el("aiChip");
   if (game.mode === "pvp"){
     chipPlayerLabel.textContent = "P1";
     chipAiLabel.textContent = "P2";
@@ -1869,6 +2051,8 @@ el("btnArcade").addEventListener("click", () => { AudioFX.unlock(); startGame("a
 // el("btnEndless").addEventListener("click", () => { AudioFX.unlock(); startGame("endless"); });
 el("btnPvp").addEventListener("click", () => { AudioFX.unlock(); startGame("duel"); });
 el("btnOnline").addEventListener("click", () => { AudioFX.unlock(); openOnlinePanel(true); });
+el("btnSpoons").addEventListener("click", () => { AudioFX.click(); openSpoonsPanel(); });
+el("btnSpoonsBack").addEventListener("click", () => { AudioFX.click(); closeSpoonsPanel(); });
 el("btnHost").addEventListener("click", () => { AudioFX.click(); startHost(); });
 el("btnJoin").addEventListener("click", () => { AudioFX.click(); startJoin(el("roomCode").value); });
 el("btnOnlineBack").addEventListener("click", () => { openOnlinePanel(false); Net.close(); });
@@ -1903,6 +2087,12 @@ function suddenDeathDuel(){
 el("btnOverMenu").addEventListener("click", () => { refreshBests(); showScreen("title"); });
 el("btnBrowser").addEventListener("click", openBrowser);
 el("btnPauseBrowser").addEventListener("click", openBrowser);
+el("spoonsSearch").addEventListener("input", renderSpoonsList);
+el("spoonsList").addEventListener("click", onSpoonsItemClick);
+el("spoonsStatus").addEventListener("click", e => {
+  const b = e.target.closest("#btnSpoonsClear");
+  if (b){ Spoons.clearPub(); updateSpoonsHeader(); updatePlayingAt(); renderSpoonsList(); }
+});
 el("btnBrowserClose").addEventListener("click", closeBrowser);
 el("btnHowTitle").addEventListener("click", () => { const d = el("howto"); d.open = !d.open; });
 el("playerCard").addEventListener("click", e => {
@@ -1976,6 +2166,7 @@ document.addEventListener("keydown", e => {
 /* ==================== 8. DEBUG ==================== */
 function countActiveCards(){ return CARDS.length; }
 window.__game = game;
+window.__spoons = Spoons;
 window.__errs = [];
 window.addEventListener("error", e => window.__errs.push(String(e.message)));
 window.addEventListener("unhandledrejection", e => window.__errs.push("rejection: " + String(e.reason)));
@@ -2016,6 +2207,8 @@ if (__roomParam){
   openOnlinePanel(true);
 }
 refreshBests();
+updatePlayingAt();
+Spoons.preloadMyPub();
 
 
 
