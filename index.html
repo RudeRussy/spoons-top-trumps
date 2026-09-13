@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#0b0e12">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Spoons Top Trumps ARCADE">
-<meta property="og:description" content="201 real Wetherspoons menu items. 9 stats. Arcade modes, combos, Landlord AI. Highest wins — except Price and Regret, where lower wins.">
+<meta property="og:description" content="201 real Wetherspoons menu items. 6 stats. Arcade waves, combos, the Landlord. Highest wins — except Price and Regret, where lower wins.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -144,7 +144,14 @@ body::before{
 .modebtn:hover{ filter:brightness(1.12); }
 .modebtn:active{ transform:translateY(3px); box-shadow:0 2px 0 rgba(0,0,0,.4); }
 .modebtn:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
-.title-tools{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom:10px; }
+.modebtn.hero{ font-size:15px; padding:22px 28px 16px; min-width:220px; }
+.modebtn.duel{ background:#2b3a6b; box-shadow:0 5px 0 #1a2650; min-width:220px; }
+.title-main{ flex-direction:column; align-items:center; }
+.title-links{ display:flex; gap:10px; justify-content:center; align-items:center; flex-wrap:wrap; margin:16px 0 10px; }
+.linkbtn{ font:inherit; background:transparent; border:0; color:var(--muted); font-size:12px; font-weight:800; letter-spacing:.1em; cursor:pointer; padding:4px 6px; }
+.linkbtn:hover{ color:var(--gold); }
+.linkbtn:focus-visible{ outline:2px solid var(--gold); outline-offset:1px; }
+
 .btn{
   font:inherit; border:0; cursor:pointer; border-radius:10px;
   padding:12px 22px; min-height:44px; font-weight:800; letter-spacing:.05em;
@@ -156,12 +163,6 @@ body::before{
 .howto summary{ cursor:pointer; color:var(--gold); font-weight:800; text-align:center; padding:8px; }
 .howto ul{ margin:10px 0 0 20px; }
 .howto li{ margin-bottom:6px; }
-#attract{ perspective:900px; height:150px; margin-top:8px; }
-#attractCard{ width:210px; margin:0 auto; }
-#attract .card{ box-shadow:0 12px 30px rgba(0,0,0,.55); }
-@keyframes attractFlip{ 0%{ transform:rotateY(90deg); opacity:.2; } 100%{ transform:rotateY(0); opacity:1; } }
-#attract .card{ animation:attractFlip .35s ease-out; }
-@media (prefers-reduced-motion:reduce){ #attract .card{ animation:none; } }
 
 
 /* ---------- Online PvP ---------- */
@@ -181,6 +182,12 @@ body::before{
 #roomCode:disabled{ opacity:.6; }
 .online-link{ font-family:var(--font-arcade); color:var(--gold); font-size:8px; word-break:break-all; margin-bottom:8px; }
 .online-status{ min-height:18px; font-size:12px; color:var(--red); text-align:center; margin-bottom:4px; }
+
+/* ---------- Handoff ---------- */
+.handoff{ text-align:center; padding-top:24vh; }
+.handoff h2{ font-family:var(--font-arcade); color:var(--cream); font-size:clamp(18px,4.5vw,32px); margin-bottom:14px; text-shadow:0 0 14px rgba(255,201,77,.45); }
+.handoff p{ color:var(--muted); font-size:14px; margin-bottom:22px; }
+.over-tag{ font-family:var(--font-arcade); color:var(--gold); font-size:11px; letter-spacing:.1em; margin-bottom:8px; }
 
 /* ---------- Table ---------- */
 .table{
@@ -208,12 +215,12 @@ body::before{
 .card.defeat{ animation:defeat .5s forwards; }
 @media (prefers-reduced-motion:reduce){ .card.deal,.card.award,.card.defeat{ animation:none; } }
 .card-art{
-  height:88px; display:grid; place-items:center;
-  font-size:52px;
+  height:56px; display:grid; place-items:center;
+  font-size:40px;
   background:radial-gradient(circle at 50% 35%, #fdf8ec, #eee0c4);
   border-bottom:1px solid var(--line);
 }
-.card-body{ padding:10px 14px 8px; }
+.card-body{ padding:6px 12px 4px; }
 .card-topline{ display:flex; gap:6px; align-items:center; margin-bottom:2px; }
 .cat-chip{ font-family:inherit; font-size:9px; font-weight:900; letter-spacing:.08em; color:#8a7a5c; background:transparent; border:1px solid var(--line); border-radius:4px; padding:2px 6px; cursor:pointer; }
 button.cat-chip:hover{ color:var(--ink); background:var(--cream); border-color:var(--gold); }
@@ -221,13 +228,13 @@ button.cat-chip:active{ background:var(--gold); }
 button.cat-chip:focus-visible{ outline:2px solid var(--gold); outline-offset:1px; }
 .diet-chip{ font-size:9px; font-weight:900; border-radius:4px; padding:1px 5px; background:#2f6b3a; color:#dff3d2; }
 .diet-chip.v{ background:#8a6a1f; color:#fff6d8; }
-.card-name{ font-family:var(--font-display); font-size:17px; line-height:1.1; margin-bottom:8px; }
+.card-name{ font-family:var(--font-display); font-size:15px; line-height:1.12; margin-bottom:4px; }
 .stat{
   display:flex; justify-content:space-between; align-items:center; gap:8px;
   width:100%; border:0; border-top:1px solid var(--line);
-  background:transparent; padding:5px 4px; font:inherit; text-align:left; position:relative;
+  background:transparent; padding:3px 4px; font:inherit; text-align:left; position:relative;
 }
-button.stat{ cursor:pointer; border-radius:0; min-height:44px; }
+button.stat{ cursor:pointer; border-radius:0; min-height:28px; }
 button.stat:hover{ background:rgba(226,43,60,.1); }
 button.stat:focus-visible{ outline:2px solid var(--red); outline-offset:-2px; }
 .stats-locked button.stat{ cursor:default; }
@@ -251,7 +258,7 @@ button.stat .keyhint{ display:inline; }
 
 /* card back */
 .card-back{
-  height:452px;
+  height:316px;
   display:grid; place-items:center;
   background:
     radial-gradient(circle at 15% 15%, rgba(122,31,61,.55) 0 9%, transparent 9.5%),
@@ -268,9 +275,17 @@ button.stat .keyhint{ display:inline; }
   box-shadow:0 8px 22px rgba(0,0,0,.5);
 }
 .diamond-text{ transform:rotate(-45deg); text-align:center; font-family:var(--font-display); color:var(--cream); font-size:13px; line-height:1.35; }
+@keyframes bossPulse{ 0%,100%{ box-shadow:inset 0 0 0 0 rgba(226,43,60,0), 0 0 0 0 rgba(226,43,60,0); } 50%{ box-shadow:inset 0 0 0 4px rgba(226,43,60,.45), 0 0 22px rgba(226,43,60,.55); } }
+.card-back.boss{ animation:bossPulse 1.1s infinite; border-radius:var(--radius); }
+@media (prefers-reduced-motion:reduce){ .card-back.boss{ animation:none; box-shadow:inset 0 0 0 3px rgba(226,43,60,.45), 0 0 16px rgba(226,43,60,.5); } }
+
 .diamond-text .red{ color:var(--red); }
 @keyframes flipIn{ 0%{ transform:rotateY(180deg); opacity:.3; } 100%{ transform:rotateY(0deg); opacity:1; } }
 .card.reveal{ animation:flipIn .45s ease-out; }
+@keyframes flameGlow{ 0%,100%{ box-shadow:0 18px 40px rgba(0,0,0,.5), 0 0 0 rgba(255,107,53,0); } 50%{ box-shadow:0 18px 40px rgba(0,0,0,.5), 0 0 18px rgba(255,107,53,.35); } }
+.card.flame{ animation:flameGlow 1.2s infinite; }
+@media (prefers-reduced-motion:reduce){ .card.flame{ animation:none; box-shadow:0 18px 40px rgba(0,0,0,.5), 0 0 12px rgba(255,107,53,.25); } }
+
 @media (prefers-reduced-motion:reduce){ .card.reveal{ animation:none; } }
 
 /* ---------- Verdict ---------- */
@@ -286,6 +301,8 @@ button.stat .keyhint{ display:inline; }
 .verdict-line.lose{ color:#e07a6a; text-shadow:0 0 12px rgba(224,122,106,.4); }
 .verdict-line.draw{ color:var(--gold); }
 .verdict-line.wave{ color:var(--gold); }
+@keyframes waveSlam{ 0%{ transform:scale(1.4); opacity:0; letter-spacing:.3em; } 60%{ transform:scale(1.06); opacity:1; letter-spacing:.06em; } 100%{ transform:scale(1); opacity:1; letter-spacing:.02em; } }
+.verdict-line.wave-clear{ color:var(--red); text-shadow:0 0 16px rgba(226,43,60,.55); animation:waveSlam .45s ease-out; }
 .verdict-sub{ color:var(--muted); font-size:13px; margin-top:6px; }
 @keyframes comboPop{ 0%{ transform:scale(.4) rotate(-6deg); opacity:0; } 60%{ transform:scale(1.25) rotate(3deg); opacity:1; } 100%{ transform:scale(1) rotate(0); opacity:1; } }
 #comboPop{
@@ -360,6 +377,10 @@ button.stat .keyhint{ display:inline; }
 }
 .leader .me{ color:var(--gold); }
 #initialsForm{ display:none; margin:8px 0 18px; }
+@keyframes coinPulse{ 0%,100%{ transform:scale(1); box-shadow:0 5px 0 #b3a488, 0 0 12px rgba(255,201,77,.4);} 50%{ transform:scale(1.04); box-shadow:0 5px 0 #b3a488, 0 0 22px rgba(255,201,77,.75);} }
+.insert-coin{ animation:coinPulse 1.2s infinite; }
+@media (prefers-reduced-motion:reduce){ .insert-coin{ animation:none; } }
+
 #initialsForm.open{ display:flex; gap:8px; justify-content:center; align-items:center; }
 #initialsInput{
   font-family:var(--font-arcade); font-size:18px; letter-spacing:.3em; text-transform:uppercase;
@@ -420,53 +441,40 @@ footer{ text-align:center; color:#7b7264; font-size:11px; padding:12px 16px 18px
   <!-- TITLE -->
   <section id="screen-title" class="screen">
     <h1>SPOONS<br><span class="red">TOP TRUMPS</span></h1>
-    <p class="title-tag">★ 201 CARDS · THE ENTIRE MENU · 9 STATS ★</p>
+    <p class="title-tag">★ 201 CARDS · THE ENTIRE MENU · 6 STATS ★</p>
     <p class="title-sub">
-      Every item on the current Spoons menu — <b>fry-ups to the Empire State</b> —
-      with real prices &amp; calories and house-vibe stats.
-      Pick your stat. <b>Highest wins</b> — except <b>Price</b> &amp; <b>Regret</b>, where <b>lower wins</b>.
+      <b>201 real Spoons menu items.</b> Pick a stat. Highest wins — except <b>Price</b> &amp; <b>Regret</b>, where lower wins.
+      Survive the waves, beat the Landlord, brag to your mate.
     </p>
-    <div class="modes">
-      <button class="modebtn b-arcade" id="btnArcade">ARCADE<small id="bestArcade">BEST 0</small></button>
-      <button class="modebtn b-classic" id="btnClassic">CLASSIC 9v9<small id="bestClassic">BEST 0</small></button>
-      <button class="modebtn b-endless" id="btnEndless">ENDLESS<small id="bestEndless">BEST 0</small></button>
-      <button class="modebtn b-pvp" id="btnPvp">PVP PASS &amp; PLAY<small>FIRST TO 25 CAPTURES</small></button>
-      <button class="modebtn b-online" id="btnOnline">ONLINE PVP<small>FIRST TO 25 · ROOM CODE</small></button>
+    <div class="modes title-main">
+      <button class="modebtn b-arcade hero" id="btnArcade">PLAY<small id="bestArcade">ARCADE · BEST 0</small></button>
+      <button class="modebtn b-pvp duel" id="btnPvp">DUEL<small>PASS &amp; PLAY · SAME DECK</small></button>
     </div>
-    <div id="onlinePanel" class="online-panel hidden">
-      <div class="online-row">
-        <button class="btn btn-cream" id="btnHost">HOST</button>
-        <button class="btn btn-ghost" id="btnJoin" style="color:#f2e8d5;">JOIN</button>
-      </div>
-      <div class="online-row">
-        <label for="roomCode">ROOM</label>
-        <input id="roomCode" maxlength="4" placeholder="AB23" autocomplete="off" inputmode="text">
-        <button class="btn btn-cream" id="btnCopyLink" title="Copy link">COPY LINK</button>
-      </div>
-      <div id="onlineLink" class="online-link"></div>
-      <div id="onlineStatus" class="online-status"></div>
-      <div class="online-row">
-        <button class="btn btn-ghost" id="btnOnlineBack" style="color:#f2e8d5;">BACK</button>
-      </div>
+    <div class="title-links">
+      <button class="linkbtn" id="btnOnline">ONLINE</button> ·
+      <button class="linkbtn" id="btnBrowser">BROWSE</button> ·
+      <button class="linkbtn" id="btnHowTitle">HOW TO PLAY</button>
     </div>
-    <div class="title-tools">
-      <button class="btn btn-ghost" id="btnBrowser">☰ BROWSE THE MENU</button>
-      <button class="btn btn-ghost" id="btnHowTitle">? HOW TO PLAY</button>
-    </div>
+    
     <details class="howto" id="howto">
       <summary>How to play</summary>
       <ul>
-        <li>You get a hand of cards; THE SPOONS gets theirs. Your top card is up; theirs is face down.</li>
-        <li>Tap a stat. Higher wins — except <b>PRICE</b> and <b>REGRET</b>, where lower wins.</li>
+        <li>Your card is face up; THE SPOONS is face down. Tap a stat to play.</li>
+        <li>Higher wins — except <b>PRICE</b> and <b>REGRET</b>, where lower wins.</li>
         <li>Winner takes both cards. Draws stack the <b>pot</b>; the next winner hoovers it.</li>
         <li>Win rounds in a row for a <b>combo multiplier</b>. Chain 3+ and the points get silly.</li>
-        <li><b>ARCADE</b>: clear waves, the AI gets bigger and meaner (Punter → Regular → Landlord).</li>
-        <li><b>CLASSIC 9v9</b>: half the menu each, winner of a round picks the next stat.</li>
-        <li><b>ENDLESS</b>: your deck starts at 6. Win = steal their card. Lose = lose yours. Survive.</li>
-        <li>On a computer: <b>1–9</b> pick stat · <b>ENTER</b> next · <b>M</b> mute · <b>P</b> pause. On a phone, everything is a tap.</li>
+        <li>On a computer: <b>1–6</b> pick stat · <b>ENTER</b> next · <b>M</b> mute · <b>P</b> pause. On a phone, everything is a tap.</li>
       </ul>
     </details>
-    <div id="attract" aria-hidden="true"></div>
+  </section>
+
+  <!-- HANDOFF -->
+  <section id="screen-handoff" class="screen hidden">
+    <div class="handoff">
+      <h2 id="handoffTitle">PLAYER 2 — YOUR GO</h2>
+      <p id="handoffSub">Same deck. Beat the score.</p>
+      <button class="btn btn-cream" id="btnHandoffGo">START</button>
+    </div>
   </section>
 
   <!-- TABLE -->
@@ -488,6 +496,7 @@ footer{ text-align:center; color:#7b7264; font-size:11px; padding:12px 16px 18px
 
   <!-- GAME OVER -->
   <section id="screen-over" class="screen hidden">
+    <p class="over-tag" id="overTag"></p>
     <h2 id="overTitle"></h2>
     <p class="over-score" id="overScore"></p>
     <p class="over-stats" id="overStats"></p>
@@ -532,6 +541,22 @@ footer{ text-align:center; color:#7b7264; font-size:11px; padding:12px 16px 18px
   </div>
 </div>
 
+<div id="onlinePanel" class="online-panel hidden">
+      <div class="online-row">
+        <button class="btn btn-cream" id="btnHost">HOST</button>
+        <button class="btn btn-ghost" id="btnJoin" style="color:#f2e8d5;">JOIN</button>
+      </div>
+      <div class="online-row">
+        <label for="roomCode">ROOM</label>
+        <input id="roomCode" maxlength="4" placeholder="AB23" autocomplete="off" inputmode="text">
+        <button class="btn btn-cream" id="btnCopyLink" title="Copy link">COPY LINK</button>
+      </div>
+      <div id="onlineLink" class="online-link"></div>
+      <div id="onlineStatus" class="online-status"></div>
+      <div class="online-row">
+        <button class="btn btn-ghost" id="btnOnlineBack" style="color:#f2e8d5;">BACK</button>
+      </div>
+    </div>
 <footer>
   Real menu data (Sep 2026 — prices &amp; calories approximate, vary per pub) · vibe stats are house opinion · unofficial, unaffiliated, unbothered.
 </footer>
@@ -781,12 +806,9 @@ const STATS = [
   { key:"kcal",   label:"KCAL",         higherWins:true,  max:1900, fmt:v => v + " kcal",           get:c => c.kcal },
   { key:"price",  label:"PRICE",        higherWins:false, max:13,   fmt:v => v === 0 ? "FREE" : "£" + v.toFixed(2), get:c => c.price },
   { key:"grease", label:"GREASE",       higherWins:true,  max:10,   fmt:v => v + "/10",             get:c => c.grease },
-  { key:"dodge",  label:"DODGINESS",    higherWins:true,  max:10,   fmt:v => v + "/10",             get:c => c.dodge },
   { key:"hang",   label:"HANGOVER CURE",higherWins:true,  max:10,   fmt:v => v + "/10",             get:c => c.hang },
   { key:"regret", label:"REGRET",       higherWins:false, max:10,   fmt:v => v + "/10",             get:c => c.regret },
   { key:"carpet", label:"CARPET MATCH", higherWins:true,  max:10,   fmt:v => v + "/10",             get:c => c.carpet },
-  { key:"mess",   label:"MESSINESS",    higherWins:true,  max:10,   fmt:v => v + "/10",             get:c => c.mess },
-  { key:"speed",  label:"SPEED",        higherWins:true,  max:13,   fmt:v => v + " min",            get:c => c.speed },
 ];
 const statByKey = key => STATS.find(s => s.key === key);
 
@@ -812,7 +834,7 @@ const AudioFX = (() => {
   return {
     unlock(){ ac(); },
     click(){ tone(220, 0.06, "square", 0.045); },
-    win(){ [523, 659, 784].forEach((f, i) => tone(f, 0.09, "square", 0.055, i * 0.07)); },
+    win(streak){ streak = streak || 0; const base = 523 + Math.min(streak, 6) * 35; [base, base*1.26, base*1.5].forEach((f, i) => tone(f, 0.09, "square", 0.055, i * 0.07)); },
     lose(){ tone(196, 0.12, "square", 0.055); tone(131, 0.16, "square", 0.055, 0.1); },
     draw(){ tone(330, 0.1, "triangle", 0.055); },
     coin(){ tone(988, 0.07, "square", 0.055); tone(1319, 0.18, "square", 0.055, 0.07); },
@@ -1180,12 +1202,43 @@ function onDisconnect(){
 
 
 /* ==================== 3. ENGINE ==================== */
+function mulberry32(seed){
+  return function(){
+    let t = seed += 0x6D2B79F5;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function seedForDuel(){ return Math.floor(Date.now() / 60000); }
 function shuffle(arr){
+  const rng = game && game.rng ? game.rng : Math.random;
   for (let i = arr.length - 1; i > 0; i--){
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(rng() * (i + 1));
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
   return arr;
+}
+function drawFromBagRng(n, rng){
+  rng = rng || (game && game.rng ? game.rng : Math.random);
+  const out = [];
+  for (let i = 0; i < n; i++){
+    if (!game.bag.length) refillBagRng(rng);
+    if (!game.bag.length) break;
+    out.push(game.bag.pop());
+  }
+  return out;
+}
+function refillBagRng(rng){
+  rng = rng || (game && game.rng ? game.rng : Math.random);
+  const inPlay = new Set([...game.playerDeck, ...game.aiDeck, ...game.pot]);
+  let fresh = CARDS.filter(c => !inPlay.has(c)).slice();
+  for (let i = fresh.length - 1; i > 0; i--){
+    const j = Math.floor(rng() * (i + 1));
+    [fresh[i], fresh[j]] = [fresh[j], fresh[i]];
+  }
+  if (!fresh.length){ fresh = CARDS.slice(); for (let i = fresh.length - 1; i > 0; i--){ const j = Math.floor(rng() * (i + 1)); [fresh[i], fresh[j]] = [fresh[j], fresh[i]]; } }
+  game.bag = fresh;
 }
 // +1 player, -1 ai, 0 draw
 function compareStat(playerCard, aiCard, statKey){
@@ -1214,15 +1267,16 @@ function percentile(statKey, value){
 // AI levels: 0 Punter (random) · 1 Regular (own best stat, 20% noise) · 2 Landlord (counters player's favourite stats)
 const AI_NAMES = ["PUNTER", "REGULAR", "THE LANDLORD"];
 function aiChooseStat(aiCard, level){
-  if (level === 0 || Math.random() < 0.08) return STATS[Math.floor(Math.random() * STATS.length)].key;
-  if (level === 2 && game.pickHistory.length){
+  const rng = game && game.rng ? game.rng : Math.random;
+  if (level === 0 || rng() < 0.08) return STATS[Math.floor(rng() * STATS.length)].key;
+  if (level === 2 && Object.keys(game.pickHistory).length){
     const fav = Object.entries(game.pickHistory).sort((a, b) => b[1] - a[1])[0];
     if (fav && fav[1] >= 3 && percentile(fav[0], statByKey(fav[0]).get(aiCard)) >= 0.45) return fav[0];
   }
   let best = STATS[0], bestP = -1;
   for (const st of STATS){
     const p = percentile(st.key, st.get(aiCard));
-    const eff = st.higherWins ? p : 1 - p; // strength of this stat on this card
+    const eff = st.higherWins ? p : 1 - p;
     if (eff > bestP){ bestP = eff; best = st; }
   }
   return best.key;
@@ -1233,7 +1287,8 @@ const MODES = {
   arcade:  { label:"ARCADE",        startPlayer:6, waves:true,  endless:false, winPts:100 },
   classic: { label:"CLASSIC 9V9",   startPlayer:0, waves:false, endless:false, winPts:100 }, // startPlayer 0 → split whole menu
   endless: { label:"ENDLESS",       startPlayer:6, waves:false, endless:true,  winPts:150 },
-  pvp:     { label:"PVP PASS & PLAY", startPlayer:0, waves:false, endless:false, winPts:0 },
+  pvp:     { label:"PVP",           startPlayer:0, waves:false, endless:false, winPts:0 },
+  duel:    { label:"DUEL",          startPlayer:0, waves:false, endless:false, winPts:0, duel:true },
 };
 const game = {
   mode:"arcade", phase:"title", paused:false,
@@ -1243,24 +1298,15 @@ const game = {
   score:0, streak:0, bestStreak:0, biggestPot:0, roundsPlayed:0, statWins:{},
   pickHistory:{}, // stat -> times player picked it (Landlord reads this)
   pvp:{ picker:"p1", captures:{ p1:0, p2:0 }, matchWinner:null, remote:false, role:null, room:null, ready:false },
+  duel:{ seed:null, bag:[], p1Score:0, p2Score:0, player:1, bagBuilt:false },
+  rng:Math.random,
 };
 
-function refillBag(){
-  const inPlay = new Set([...game.playerDeck, ...game.aiDeck, ...game.pot]);
-  let fresh = shuffle(CARDS.filter(c => !inPlay.has(c)));
-  if (!fresh.length) fresh = shuffle(CARDS.slice());
-  game.bag = fresh;
-}
-function drawFromBag(n){
-  const out = [];
-  for (let i = 0; i < n; i++){
-    if (!game.bag.length) refillBag();
-    if (!game.bag.length) break;
-    out.push(game.bag.pop());
-  }
-  return out;
-}
+function refillBag(){ refillBagRng(); }
+function drawFromBag(n){ return drawFromBagRng(n); }
 function aiLevelForWave(w){ return w <= 2 ? 0 : (w <= 5 ? 1 : 2); }
+function isBossWave(w){ return w > 1 && (w % 4) === 0; }
+
 
 function startGame(mode){
   game.mode = mode;
@@ -1274,6 +1320,12 @@ function startGame(mode){
   game.pvp.captures = { p1:0, p2:0 };
   game.pvp.matchWinner = null;
   game.pvp.remote = false; game.pvp.role = null; game.pvp.room = null; game.pvp.ready = false;
+  if (mode === "duel" || M.duel){
+    startDuel();
+    return;
+  }
+  game.duel.seed = null; game.duel.bag = []; game.duel.bagBuilt = false; game.duel.player = 1;
+  game.duel.p1Score = 0; game.duel.p2Score = 0; game.rng = Math.random;
   if (M.endless || M.waves){
     game.playerDeck = drawFromBag(M.startPlayer);
     game.aiDeck = M.waves ? drawFromBag(Math.min(4 + game.wave, 12)) : [];
@@ -1283,6 +1335,40 @@ function startGame(mode){
     game.playerDeck = sh.slice(0, half);
     game.aiDeck = sh.slice(half);
   }
+  showScreen("table");
+  beginRound();
+}
+
+function buildDuelBag(seed){
+  const rng = mulberry32(seed);
+  let bag = CARDS.slice();
+  for (let i = bag.length - 1; i > 0; i--){
+    const j = Math.floor(rng() * (i + 1));
+    [bag[i], bag[j]] = [bag[j], bag[i]];
+  }
+  return bag;
+}
+
+function startDuel(){
+  const seed = seedForDuel();
+  game.duel.seed = seed; game.duel.bag = buildDuelBag(seed); game.duel.bagBuilt = true;
+  game.duel.p1Score = 0; game.duel.p2Score = 0; game.duel.player = 1;
+  game.rng = mulberry32(seed);
+  startArcadeRunForPlayer(1);
+}
+
+function startArcadeRunForPlayer(player){
+  game.playerDeck = []; game.aiDeck = []; game.pot = []; game.bag = [];
+  game.turnOwner = "player"; game.statKey = null;
+  game.score = 0; game.streak = 0; game.bestStreak = 0; game.biggestPot = 0;
+  game.roundsPlayed = 0; game.statWins = {}; game.pickHistory = {};
+  game.wave = 1; game.aiLevel = 0;
+  game.duel.player = player;
+  // draw from the pre-shuffled duel bag using seeded rng
+  game.playerDeck = drawFromBagRng(6, game.rng);
+  game.aiDeck = drawFromBagRng(Math.min(4 + game.wave, 12), game.rng);
+  el("sideLabelPlayer").textContent = "PLAYER " + player + " — PICK A STAT";
+  el("sideLabelAi").textContent = "THE SPOONS";
   showScreen("table");
   beginRound();
 }
@@ -1298,8 +1384,12 @@ function beginRound(){
     ? drawFromBag(1)[0]
     : game.aiDeck.shift();
   const pvp = game.mode === "pvp";
+  const duel = MODES[game.mode].duel;
   renderHud();
-  if (pvp){
+  if (duel){
+    el("sideLabelPlayer").textContent = "PLAYER " + game.duel.player + " — PICK A STAT";
+    el("sideLabelAi").textContent = isBossWave(game.wave) ? "THE LANDLORD" : "THE SPOONS";
+  } else if (pvp){
     if (game.pvp.remote){
       const guestPicker = game.pvp.picker === "p2";
       el("sideLabelPlayer").textContent = guestPicker ? "PICK A STAT" : "YOUR CARD";
@@ -1312,8 +1402,9 @@ function beginRound(){
     el("sideLabelPlayer").textContent = "YOUR CARD";
     el("sideLabelAi").textContent = "THE SPOONS";
   }
-  renderPlayerCard({ pickable: pvp || game.turnOwner === "player", deal: true });
-  renderAiBack();
+  renderPlayerCard({ pickable: pvp || duel || game.turnOwner === "player", deal: true });
+  const bossNow = MODES[game.mode].waves && isBossWave(game.wave);
+  renderAiBack({ boss: bossNow });
   setVerdict(game.turnOwner === "player"
     ? '<div class="verdict-sub" style="font-family:\'Press Start 2P\',monospace;font-size:9px;color:#ffc94d;">' +
       (pvp ? (game.pvp.picker === "p1" ? "PLAYER 1" : "PLAYER 2") + " — PICK YOUR STAT" : "TAP A STAT TO PLAY") + "</div>"
@@ -1343,7 +1434,7 @@ function aiTurn(){
     game.statKey = aiChooseStat(game.aiCard, game.aiLevel);
     game.busy = false;
     resolveRound();
-  }, 850);
+  }, 420);
 }
 
 function settle(statKey){
@@ -1381,7 +1472,7 @@ function resolveRound(){
     const pts = (MODES[game.mode].winPts + Math.floor(margin / PERC[game.statKey].range * 100)) * mult;
     game.score += pts;
     if (game.streak >= 2) showCombo(mult);
-    AudioFX.win(); shake("shake-soft");
+    AudioFX.win(game.streak); shake("shake-soft");
   } else if (winner === "ai"){
     game.streak = 0;
     AudioFX.lose(); shake("shake-hard");
@@ -1397,14 +1488,17 @@ function resolveRound(){
 
   if (MODES[game.mode].waves && !game.aiDeck.length){
     const bonus = 500 * game.wave;
+    const oldWave = game.wave;
     game.score += bonus;
     game.wave++;
     game.aiLevel = aiLevelForWave(game.wave);
     game.aiDeck = drawFromBag(Math.min(4 + game.wave, 12));
     renderHud();
     AudioFX.wave();
-    setVerdict('<div class="verdict-line wave">WAVE ' + (game.wave - 1) + ' CLEARED +' + bonus + '</div>' +
-      '<div class="verdict-sub">NEXT UP: ' + AI_NAMES[game.aiLevel] + ' · ' + game.aiDeck.length + ' CARDS</div>');
+    const boss = isBossWave(game.wave);
+    setVerdict('<div class="verdict-line wave-clear">WAVE ' + oldWave + ' CLEARED</div>' +
+      '<div class="verdict-sub">+' + bonus + ' · NEXT: ' + (boss ? 'BOSS — THE LANDLORD' : AI_NAMES[game.aiLevel]) + ' · ' + game.aiDeck.length + ' CARDS</div>');
+    if (boss) shake("shake-hard");
     renderNextButton();
     return;
   }
@@ -1445,9 +1539,14 @@ function endGame(){
   if (game.pvp.remote && game.pvp.role === "host"){ endRemoteGame(); return; }
   AudioFX.over();
   const mode = game.mode, M = MODES[mode];
+  const duel = M.duel;
   const you = game.playerDeck.length;
   const ai = game.aiDeck.length;
   const title = document.getElementById("overTitle");
+  const tag = document.getElementById("overTag");
+  const rematchBtn = document.getElementById("btnRematch");
+  if (tag) tag.textContent = "";
+  if (rematchBtn){ rematchBtn.textContent = "PLAY AGAIN"; rematchBtn.className = "btn btn-cream"; }
   if (mode === "pvp"){
     if (game.pvp.matchWinner){
       title.textContent = game.pvp.matchWinner === "p1" ? "PLAYER 1 WINS THE MATCH" : "PLAYER 2 WINS THE MATCH";
@@ -1456,27 +1555,76 @@ function endGame(){
       title.textContent = you > ai ? "PLAYER 1 HOLDS THE MENU" : you < ai ? "PLAYER 2 HOLDS THE MENU" : "DEAD HEAT — THE POT WINS";
       title.className = you > ai ? "win" : you < ai ? "lose" : "";
     }
+  } else if (duel){
+    finishDuelTurn();
+    return;
   } else if (mode === "endless"){
     title.textContent = "CUT OFF AT " + game.roundsPlayed + " ROUNDS";
     title.className = "lose";
   } else if (you > ai || mode === "arcade"){
-    title.textContent = mode === "arcade" ? "WAVE " + game.wave + " — LAST ORDERS" : "LAST ORDERS ARE YOURS";
+    title.textContent = mode === "arcade" ? "GAME OVER — SCORE " + game.score : "LAST ORDERS ARE YOURS";
     title.className = "win";
   } else {
     title.textContent = "YOU'VE BEEN CUT OFF";
     title.className = "lose";
   }
+  const isArcade = mode === "arcade";
   document.getElementById("overScore").textContent =
-    "SCORE " + game.score + " · BEST " + highScore(mode);
+    isArcade ? "HIGH SCORE " + highScore("arcade") : "SCORE " + game.score + " · BEST " + highScore(mode);
   document.getElementById("overStats").innerHTML =
     "ROUNDS " + game.roundsPlayed + " · LONGEST STREAK " + game.bestStreak +
     " · BIGGEST POT " + game.biggestPot +
     "<br>GO-TO WEAPON: " + topStatLine();
-  renderLeaderboard(mode);
-  const isHigh = game.score > 0 && game.score > highScore(mode);
+  if (isArcade){
+    if (tag) tag.textContent = "INSERT COIN";
+    if (rematchBtn){ rematchBtn.textContent = "INSERT COIN"; rematchBtn.className = "btn btn-cream insert-coin"; }
+    if (game.score > highScore("arcade")) localStorage.setItem("spoons.high.arcade", String(game.score));
+  }
+  renderLeaderboard(isArcade ? "arcade" : mode);
+  const isHigh = !isArcade && game.score > 0 && game.score > highScore(mode);
   document.getElementById("initialsForm").classList.toggle("open", isHigh);
   if (isHigh){ el("initialsInput").focus(); el("initialsInput").select(); }
   showScreen("over");
+}
+
+function finishDuelTurn(){
+  if (game.duel.player === 1){
+    game.duel.p1Score = game.score;
+    showHandoff(2);
+  } else {
+    game.duel.p2Score = game.score;
+    const p1 = game.duel.p1Score, p2 = game.duel.p2Score;
+    const title = document.getElementById("overTitle");
+    const tag = document.getElementById("overTag");
+    const rematchBtn = document.getElementById("btnRematch");
+    title.className = p1 > p2 ? "win" : p1 < p2 ? "lose" : "";
+    if (p1 > p2){ title.textContent = "PLAYER 1 WINS " + p1.toLocaleString() + " - " + p2.toLocaleString(); if (tag) tag.textContent = "MATCH"; }
+    else if (p2 > p1){ title.textContent = "PLAYER 2 WINS " + p2.toLocaleString() + " - " + p1.toLocaleString(); if (tag) tag.textContent = "MATCH"; }
+    else {
+      title.textContent = "DRAW — SUDDEN DEATH";
+      if (tag) tag.textContent = "REPLAY WAVE 1";
+      if (rematchBtn){ rematchBtn.textContent = "SUDDEN DEATH"; rematchBtn.className = "btn btn-cream"; }
+      showScreen("over");
+      return;
+    }
+    document.getElementById("overScore").textContent = "P1 " + p1.toLocaleString() + " · P2 " + p2.toLocaleString();
+    document.getElementById("overStats").textContent = "BEST STREAK P1 " + game.bestStreak;
+    document.getElementById("leaderboard").textContent = "";
+    document.getElementById("initialsForm").classList.remove("open");
+    if (rematchBtn){ rematchBtn.textContent = "REMATCH"; rematchBtn.className = "btn btn-cream"; }
+    showScreen("over");
+  }
+}
+
+function showHandoff(player){
+  game.phase = "handoff";
+  document.getElementById("handoffTitle").textContent = "PLAYER " + player + " — YOUR GO";
+  document.getElementById("handoffSub").textContent = game.duel.p1Score.toLocaleString() + " TO BEAT";
+  const btn = document.getElementById("btnHandoffGo");
+  const newBtn = btn.cloneNode(true);
+  btn.parentNode.replaceChild(newBtn, btn);
+  newBtn.addEventListener("click", () => { startArcadeRunForPlayer(player); });
+  showScreen("handoff");
 }
 function topStatLine(){
   const entries = Object.entries(game.statWins).sort((a, b) => b[1] - a[1]);
@@ -1491,6 +1639,7 @@ function highScore(mode){
   return v ? parseInt(v, 10) || 0 : 0;
 }
 function saveScore(mode, initials, score){
+  if (mode !== "arcade") return;
   const key = "spoons.board." + mode;
   let board = [];
   try { board = JSON.parse(localStorage.getItem(key)) || []; } catch (e) { board = []; }
@@ -1508,10 +1657,9 @@ function renderLeaderboard(mode){
     board.map((b, i) => (i + 1) + ". " + b.ini + " — " + b.sc).join("<br>");
 }
 function refreshBests(){
-  document.getElementById("bestArcade").textContent = "BEST " + highScore("arcade");
-  document.getElementById("bestClassic").textContent = "BEST " + highScore("classic");
-  document.getElementById("bestEndless").textContent = "BEST " + highScore("endless");
-  document.getElementById("countBest").textContent = highScore(game.mode);
+  const ba = document.getElementById("bestArcade");
+  if (ba) ba.textContent = "ARCADE · BEST " + highScore("arcade");
+  document.getElementById("countBest").textContent = highScore("arcade");
 }
 
 /* ==================== 5. UI ==================== */
@@ -1523,9 +1671,8 @@ const BANTER = {
   draw:["DEAD HEAT. TO THE POT.","SPLIT DECISION. POT GROWS."],
 };
 function showScreen(name){
-  for (const s of ["title", "table", "over"]) el("screen-" + s).classList.toggle("hidden", s !== name);
-  if (name === "title"){ openOnlinePanel(false); startAttract(); }
-  else stopAttract();
+  for (const s of ["title", "table", "over", "handoff"]) el("screen-" + s).classList.toggle("hidden", s !== name);
+  if (name === "title"){ openOnlinePanel(false); stopAttract(); }
 }
 function shake(cls){
   const st = el("stage");
@@ -1607,15 +1754,22 @@ function cardChipOpenBrowser(e){
   openBrowser();
 }
 function renderPlayerCard(opts){
+  opts = opts || {};
   const remoteGuest = game.pvp.remote && game.pvp.role === "guest";
-  const pickable = (opts && opts.pickable) || (remoteGuest && game.phase === "play" && game.pvp.picker === "p2");
+  const pickable = opts.pickable || (remoteGuest && game.phase === "play" && game.pvp.picker === "p2");
+  const onFire = game.streak >= 3 && game.phase === "reveal";
   el("playerCard").innerHTML = cardFaceHTML(game.playerCard, {
-    asButton: pickable, locked: !pickable, deal: opts && opts.deal,
+    asButton: pickable, locked: !pickable, deal: opts.deal,
   });
+  const pc = el("playerCard").querySelector(".card");
+  if (pc && onFire) pc.classList.add("flame");
 }
-function renderAiBack(){
+function renderAiBack(opts){
+  opts = opts || {};
+  const boss = opts.boss ? ' boss' : '';
+  const label = opts.boss ? 'THE LANDLORD' : 'SPOONS<br><span class="red">TOP</span><br>TRUMPS';
   el("aiCard").innerHTML =
-    '<article class="card"><div class="card-back"><div class="diamond"><div class="diamond-text">SPOONS<br><span class="red">TOP</span><br>TRUMPS</div></div></div></article>';
+    '<article class="card"><div class="card-back' + boss + '"><div class="diamond"><div class="diamond-text">' + label + '</div></div></div></article>';
 }
 function renderAiReveal(){
   el("aiCard").innerHTML = cardFaceHTML(game.aiCard, { locked: true, selectedKey: game.statKey });
@@ -1623,6 +1777,7 @@ function renderAiReveal(){
   if (card) card.classList.add("reveal");
 }
 function highlightStats(statKey, winner){
+  const onFire = game.streak >= 3 && winner === "player";
   el("playerCard").innerHTML = cardFaceHTML(game.playerCard, {
     locked: true, selectedKey: statKey, slam: true,
   });
@@ -1631,6 +1786,7 @@ function highlightStats(statKey, winner){
   if (winner === "ai" && pc) pc.classList.add("defeat");
   if (winner === "player" && pc) pc.classList.add("award");
   if (winner === "ai" && ac) ac.classList.add("award");
+  if (onFire && pc) pc.classList.add("flame");
 }
 function renderVerdict(winner, margin){
   const line = winner === "player" ? pick(BANTER.player)
@@ -1653,24 +1809,9 @@ function renderNextButton(){
   el("btnNext").addEventListener("click", () => { if (game.phase === "reveal") beginRound(); });
 }
 
-/* ---------- attract mode ---------- */
-let attractTimer = null, attractIdx = 0;
-const ATTRACT_CARDS = ["The Empire State", "Pint of Guinness", "Salted Caramel Sticky Toffee Pudding",
-  "Chicken Spice Bag", "Large Breakfast", "The Big Smoke", "Warm Chocolate Fudge Cake", "Pint of Best Bitter"];
-function startAttract(){
-  stopAttract();
-  const host = el("attract");
-  const render = () => {
-    const card = CARDS.find(c => c.name === ATTRACT_CARDS[attractIdx % ATTRACT_CARDS.length]) || CARDS[0];
-    attractIdx++;
-    host.innerHTML = cardFaceHTML(card, { locked: true });
-  };
-  render();
-  if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches){
-    attractTimer = setInterval(render, 2400);
-  }
-}
-function stopAttract(){ if (attractTimer){ clearInterval(attractTimer); attractTimer = null; } }
+/* ---------- attract mode removed ---------- */
+function startAttract(){ }
+function stopAttract(){ }
 
 /* ==================== 6. MENU BROWSER ==================== */
 let browserCat = "ALL";
@@ -1723,9 +1864,10 @@ function openDetail(name){
 
 /* ==================== 7. WIRING ==================== */
 el("btnArcade").addEventListener("click", () => { AudioFX.unlock(); startGame("arcade"); });
-el("btnClassic").addEventListener("click", () => { AudioFX.unlock(); startGame("classic"); });
-el("btnEndless").addEventListener("click", () => { AudioFX.unlock(); startGame("endless"); });
-el("btnPvp").addEventListener("click", () => { AudioFX.unlock(); startGame("pvp"); });
+// Classic/Endless buttons removed from title; branches remain callable for tests.
+// el("btnClassic").addEventListener("click", () => { AudioFX.unlock(); startGame("classic"); });
+// el("btnEndless").addEventListener("click", () => { AudioFX.unlock(); startGame("endless"); });
+el("btnPvp").addEventListener("click", () => { AudioFX.unlock(); startGame("duel"); });
 el("btnOnline").addEventListener("click", () => { AudioFX.unlock(); openOnlinePanel(true); });
 el("btnHost").addEventListener("click", () => { AudioFX.click(); startHost(); });
 el("btnJoin").addEventListener("click", () => { AudioFX.click(); startJoin(el("roomCode").value); });
@@ -1742,7 +1884,22 @@ Net.onMessage(msg => {
 Net.onDisconnect(() => {
   if (game.phase !== "title") onDisconnect();
 });
-el("btnRematch").addEventListener("click", () => startGame(game.mode));
+el("btnRematch").addEventListener("click", () => {
+  if (game.mode === "arcade"){ startGame("arcade"); }
+  else if (game.mode === "pvp"){
+    const p1 = game.duel.p1Score, p2 = game.duel.p2Score;
+    if (p1 === p2 && game.duel.player === 2){ suddenDeathDuel(); }
+    else { startGame("pvp"); }
+  }
+  else { startGame(game.mode); }
+});
+function suddenDeathDuel(){
+  game.duel.p1Score = 0; game.duel.p2Score = 0; game.duel.player = 1;
+  game.duel.seed = seedForDuel();
+  game.duel.bag = buildDuelBag(game.duel.seed);
+  game.rng = mulberry32(game.duel.seed);
+  startArcadeRunForPlayer(1);
+}
 el("btnOverMenu").addEventListener("click", () => { refreshBests(); showScreen("title"); });
 el("btnBrowser").addEventListener("click", openBrowser);
 el("btnPauseBrowser").addEventListener("click", openBrowser);
@@ -1821,6 +1978,7 @@ document.addEventListener("keydown", e => {
 });
 
 /* ==================== 8. DEBUG ==================== */
+function countActiveCards(){ return CARDS.length; }
 window.__game = game;
 window.__errs = [];
 window.addEventListener("error", e => window.__errs.push(String(e.message)));
@@ -1848,6 +2006,13 @@ window.__autoplay = function(mode){
   return { mode: game.mode, score: game.score, you: game.playerDeck.length,
     ai: game.aiDeck.length, pot: game.pot.length, rounds: game.roundsPlayed, wave: game.wave };
 };
+window.__autoplayDuel = function(seed){
+  seed = seed || seedForDuel();
+  const rng = mulberry32(seed);
+  const bag = CARDS.slice();
+  for (let i = bag.length - 1; i > 0; i--){ const j = Math.floor(rng() * (i + 1)); [bag[i], bag[j]] = [bag[j], bag[i]]; }
+  return bag.slice(0, 12).map(c => c.name);
+};
 const __roomParam = (function(){ try { const p = new URLSearchParams(location.search); return p.get("room"); } catch(e){ return null; } })();
 if (__roomParam){
   const rc = document.getElementById("roomCode");
@@ -1855,7 +2020,6 @@ if (__roomParam){
   openOnlinePanel(true);
 }
 refreshBests();
-startAttract();
 
 
 
