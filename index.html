@@ -419,6 +419,10 @@ button.stat .keyhint{ display:inline; }
   padding:14px 22px; box-shadow:0 0 30px rgba(255,201,77,.35);
 }
 #comboPop.show{ display:block; animation:comboPop .6s var(--ease-spring); }
+#comboPop.farting{ color:#9fc57f; border-color:#9fc57f; box-shadow:0 0 30px rgba(159,197,127,.5);
+  animation:comboPop .6s var(--ease-spring), pigWobble .5s .3s ease-in-out 2; }
+@keyframes pigWobble{ 0%,100%{ transform:translate(-50%,-50%) rotate(0);} 25%{ transform:translate(-50%,-50%) rotate(-3deg) scale(1.04);} 75%{ transform:translate(-50%,-50%) rotate(3deg) scale(1.04);} }
+@media (prefers-reduced-motion:reduce){ #comboPop.farting{ animation:comboPop .6s var(--ease-spring); } }
 @keyframes comboPop{ 0%{ transform:scale(.3) rotate(-8deg); opacity:0; }
   55%{ transform:scale(1.35) rotate(4deg); opacity:1; }
   75%{ transform:scale(.98) rotate(-1deg); opacity:1; }
@@ -597,7 +601,7 @@ footer{ text-align:center; color:#7b7264; font-size:11px; padding:12px 16px 18px
         <li>Your card is face up; THE SPOONS is face down. Tap a stat to play.</li>
         <li>Higher wins — except <b>PRICE</b> and <b>REGRET</b>, where lower wins.</li>
         <li>Winner takes both cards. Draws stack the <b>pot</b>; the next winner hoovers it.</li>
-        <li>Win rounds in a row for a <b>streak multiplier</b> — stack the bacon 🥓🥓. Chain 3+ and the points get silly.</li>
+        <li>Win rounds in a row for a <b>streak multiplier</b> — stack the bacon 🥓🥓 — hit 4 and the pig shows up 🐖💨. Chain 3+ and the points get silly.</li>
         <li>On a computer: <b>1–6</b> pick stat · <b>ENTER</b> next · <b>M</b> mute · <b>P</b> pause. On a phone, everything is a tap.</li>
       </ul>
     </details>
@@ -1087,7 +1091,31 @@ const AudioFX = (() => {
     win(streak){ streak = streak || 0; const base = 523 + Math.min(streak, 6) * 35; [base, base*1.26, base*1.5].forEach((f, i) => tone(f, 0.09, "square", 0.055, i * 0.07)); },
     lose(){ tone(196, 0.12, "square", 0.055); tone(131, 0.16, "square", 0.055, 0.1); },
     draw(){ tone(330, 0.1, "triangle", 0.055); },
-    bacon(step){ const f = [659, 784, 880, 988, 1175][Math.min(step - 2, 4)] || 659; tone(f, 0.1, "square", 0.05); tone(f * 1.5, 0.12, "square", 0.04, 0.06); },
+    bacon(step){
+      if (step >= 4){ this.fart(); return; } // 4+ streaks: the pig takes over
+      const f = [659, 784, 880, 988][Math.min(step - 2, 3)] || 659; tone(f, 0.1, "square", 0.05); tone(f * 1.5, 0.12, "square", 0.04, 0.06);
+    },
+    fart(){
+      const c = ac(); if (!c || muted) return;
+      const t = c.currentTime;
+      // body: low sawtooth with pitch wobble (the classic brrip)
+      const o = c.createOscillator(), g = c.createGain();
+      o.type = "sawtooth";
+      o.frequency.setValueAtTime(95, t);
+      for (let i = 0; i < 6; i++){
+        o.frequency.linearRampToValueAtTime(70 + Math.random() * 60, t + 0.06 + i * 0.05);
+      }
+      o.frequency.linearRampToValueAtTime(50, t + 0.45);
+      g.gain.setValueAtTime(0.001, t);
+      g.gain.linearRampToValueAtTime(0.16, t + 0.03);
+      g.gain.setValueAtTime(0.14, t + 0.3);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+      o.connect(g); g.connect(c.destination);
+      o.start(t); o.stop(t + 0.52);
+      // sputter: two short noise bursts on top
+      noise(0.05, 0.09, 0.02);
+      noise(0.07, 0.07, 0.22);
+    },
     coin(){ tone(988, 0.07, "square", 0.055); tone(1319, 0.18, "square", 0.055, 0.07); },
     wave(){ [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.1, "square", 0.055, i * 0.09)); },
     boss(){ tone(82, 0.3, "sawtooth", 0.06); tone(78, 0.35, "sawtooth", 0.055, 0.25); },
@@ -2115,8 +2143,14 @@ function shake(cls){
 }
 function showCombo(mult){
   const c = el("comboPop");
-  const strips = "🥓".repeat(Math.min(mult, 5));
-  c.textContent = strips + " STREAK ×" + mult;
+  if (mult >= 4){
+    c.textContent = "🐖💨 STREAK ×" + mult + " 💨🐖";
+    c.classList.add("farting");
+  } else {
+    c.classList.remove("farting");
+    const strips = "🥓".repeat(Math.min(mult, 5));
+    c.textContent = strips + " STREAK ×" + mult;
+  }
   c.style.fontSize = "clamp(" + (18 + mult * 3) + "px," + (4 + mult) + "vw," + (30 + mult * 5) + "px)";
   c.classList.remove("show"); void c.offsetWidth; c.classList.add("show");
   setTimeout(() => c.classList.remove("show"), 2000);
@@ -2150,7 +2184,7 @@ function renderHud(){
   renderHud._lastPot = potNow;
   const combo = el("comboChip");
   combo.style.display = game.streak >= 2 ? "" : "none";
-  if (game.streak >= 2) combo.textContent = "🥓 ×" + game.streak;
+  if (game.streak >= 2) combo.textContent = game.streak >= 4 ? "🐖 ×" + game.streak : "🥓 ×" + game.streak;
   el("countBest").textContent = highScore(game.mode);
 }
 
