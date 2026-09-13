@@ -150,27 +150,6 @@ body::before{
 .boards-status{ text-align:center; color:var(--muted); font-family:var(--font-arcade); font-size:10px; min-height:14px; }
 .boards-close{ align-self:center; }
 
-/* ---------- Bonus: The Disabled Shitter ---------- */
-#screen-bonus{ padding:18px; max-width:560px; margin:0 auto; }
-.bonus-tag{ font-family:var(--font-arcade); color:var(--gold); font-size:11px; letter-spacing:.14em; margin-bottom:6px; }
-#screen-bonus h2{ font-family:var(--font-arcade); color:var(--cream); font-size:clamp(20px,5vw,30px); text-shadow:0 0 14px rgba(255,201,77,.4); }
-.bonus-sub{ color:var(--muted); font-size:13px; margin:8px 0 16px; }
-.bonus-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:14px; }
-.bonus-item{ background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); border-radius:12px; padding:14px 6px; text-align:center; cursor:pointer; transition:transform .12s var(--ease-spring), background .15s; }
-.bonus-item .bi-emoji{ font-size:30px; }
-.bonus-item .bi-name{ font-size:11px; color:var(--cream); margin-top:6px; letter-spacing:.04em; }
-.bonus-item:active{ transform:scale(.94); }
-.bonus-item.right.picked{ background:rgba(80,220,120,.18); border-color:rgba(80,220,120,.5); }
-.bonus-item.wrong.hit{ background:rgba(255,90,90,.2); border-color:rgba(255,90,90,.55); animation:bonus-fail .4s; }
-.bonus-item.dim{ opacity:.45; pointer-events:none; }
-@keyframes bonus-fail{ 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
-.bonus-status{ font-family:var(--font-arcade); color:var(--cream); font-size:13px; min-height:18px; margin-bottom:12px; }
-.bonus-status.win{ color:#5fdc78; }
-.bonus-status.lose{ color:#ff5a5a; }
-#screen-bonus.unlocked h2{ color:#ffd54d; animation:shitter-gold 1.2s infinite alternate; }
-@keyframes shitter-gold{ from{text-shadow:0 0 10px rgba(255,213,77,.4)} to{text-shadow:0 0 26px rgba(255,213,77,.9)} }
-.shitter-chip{ display:inline-block; background:rgba(255,213,77,.14); border:1px solid rgba(255,213,77,.4); border-radius:8px; padding:4px 10px; font-size:12px; color:var(--gold); margin-top:8px; }
-
 /* ---------- Title ---------- */
 #screen-title{ text-align:center; padding-top:4vh; position:relative; }
 #screen-title h1{
@@ -1085,7 +1064,6 @@ const AudioFX = (() => {
   try { musicOn = localStorage.getItem("spoons.music") !== "0"; } catch(e){}
   let musicTimer = null, musicStep = 0;
   let mediaAudio = null;
-  let shitterWinAudio = null, shitterLoseAudio = null;
   const FART_POOL = [];
   function preloadFarts(){
     if (FART_POOL.length || !FART_FILES.length) return;
@@ -1130,48 +1108,103 @@ const AudioFX = (() => {
     s.connect(g); g.connect(c.destination);
     s.start(t);
   }
-  /* --- 8-bit upbeat multichannel tune: G major, ~150 BPM feel.
-     4 channels data-driven, 32 steps (4 bars) with a B-section variation.
-     Each step creates short-lived nodes that stop automatically. --- */
+  /* --- 8-bit catchy pub-arcade theme: G major, 150 BPM.
+     4 channels data-driven, 128 steps (8 bars) in AABA form.
+     Real progression: G (I) -> D (V) -> C (IV) -> G, with a ii-V-I turn (Am7-D7-G).
+     Every step creates short-lived nodes that stop automatically. --- */
   const BPM = 150;
   const STEP_MS = Math.round((60 / BPM) * 1000 / 4); // 16th-note at 150 BPM = 100 ms
   // Note frequencies (A4 = 440)
   const N = {
-    G2: 98.00, A2: 110.00, B2: 123.47, C3: 130.81, D3: 146.83, E3: 164.81,
+    G2: 98.00, A2: 110.00, B2: 123.47, C3: 130.81, D3: 146.83, E3: 164.81, Fs3: 185.00,
     G3: 196.00, A3: 220.00, B3: 246.94, C4: 261.63, D4: 293.66, E4: 329.63,
     Fs4: 369.99, G4: 392.00, A4: 440.00, B4: 493.88, C5: 523.25, D5: 587.33,
-    E5: 659.25, Fs5: 739.99, G5: 783.99
+    E5: 659.25, Fs5: 739.99, G5: 783.99, A5: 880.00
   };
-  // 32-step loop. A-section = steps 0-15, B-section = steps 16-31 (variation).
+  // 128-step loop = 8 bars. Form: A (0-31), A (32-63), B (64-95), A' (96-127).
   const BASS = [
-    N.G2, 0, N.G2, N.D3, 0, N.G2, N.B2, 0,
-    N.D3, 0, N.D3, N.A2, 0, N.D3, N.Fs4, 0,
-    N.C3, 0, N.C3, N.G3, 0, N.C3, N.E3, 0,
-    N.D3, 0, N.B2, 0, N.G2, 0, N.D3, 0
+    N.G2, N.G2, N.B2, N.D3, 0, N.G2, N.B2, N.D3,
+    N.G2, N.G2, N.B2, N.D3, 0, N.D3, N.B2, N.G2,
+    N.D3, N.D3, N.Fs3, N.A3, 0, N.D3, N.Fs3, N.A3,
+    N.D3, N.D3, N.Fs3, N.A3, N.C3, N.B2, N.A2, N.G2,
+    N.C3, N.C3, N.E3, N.G3, 0, N.C3, N.E3, N.G3,
+    N.C3, N.C3, N.E3, N.G3, N.A2, N.B2, N.C3, N.D3,
+    N.G2, N.G2, N.B2, N.D3, 0, N.G2, N.B2, N.D3,
+    N.G2, N.A2, N.B2, N.C3, N.D3, N.G3, N.B2, N.G2,
+    N.G2, N.B2, N.D3, N.B2, N.G2, N.B2, N.D3, N.B2,
+    N.G2, N.B2, N.D3, N.B2, N.G2, N.D3, N.B2, N.G2,
+    N.D3, N.Fs3, N.A3, N.Fs3, N.D3, N.Fs3, N.A3, N.Fs3,
+    N.D3, N.Fs3, N.A3, N.C4, N.B3, N.A3, N.G3, N.Fs3,
+    N.C3, N.E3, N.G3, N.E3, N.C3, N.E3, N.G3, N.E3,
+    N.C3, N.E3, N.G3, N.E3, N.D3, N.C3, N.B2, N.A2,
+    N.G2, N.B2, N.D3, N.G3, N.D3, N.B2, N.G2, N.B2,
+    N.D3, N.G3, N.B3, N.D4, N.G2, N.B2, N.D3, N.G3
   ];
   const LEAD = [
     N.G4, 0, N.B4, 0, N.D5, 0, N.B4, N.G4,
-    N.A4, 0, N.C5, 0, N.E5, 0, N.C5, N.A4, 0,
     N.B4, 0, N.D5, 0, N.G5, 0, N.D5, N.B4,
-    N.C5, N.B4, N.A4, N.G4, N.Fs4, N.G4, N.A4, 0
+    N.A4, 0, N.C5, 0, N.E5, 0, N.C5, N.A4,
+    N.C5, 0, N.E5, 0, N.A5, 0, 0, 0,
+    N.B4, 0, N.D5, 0, N.G5, 0, N.D5, N.B4,
+    N.D5, 0, N.G5, 0, N.B5, 0, 0, 0,
+    N.C5, 0, N.B4, 0, N.A4, 0, N.G4, N.Fs4,
+    N.G4, N.A4, N.B4, N.C5, N.D5, N.B4, N.G4, 0,
+    N.G5, 0, N.G5, 0, N.Fs5, N.G5, N.A5, N.G5,
+    N.D5, 0, N.D5, 0, N.E5, N.D5, N.B4, N.G4,
+    N.A4, 0, N.A4, 0, N.B4, N.A4, N.Fs4, N.D4,
+    N.A4, 0, N.B4, 0, N.C5, N.B4, N.A4, N.G4,
+    N.G4, 0, N.G4, 0, N.Fs4, N.G4, N.A4, N.G4,
+    N.E4, 0, N.E4, 0, N.Fs4, N.E4, N.D4, N.B3,
+    N.D4, 0, N.G4, 0, N.B4, 0, N.G4, N.D4,
+    N.G4, N.A4, N.B4, N.C5, N.D5, N.G5, N.B4, N.G4
   ];
   const ARP = [
     N.G4, N.B4, N.D5, N.B4, N.G4, N.B4, N.D5, N.B4,
+    N.G4, N.B4, N.D5, N.B4, N.G4, N.D5, N.B4, N.G4,
+    N.A4, N.C5, N.E5, N.C5, N.A4, N.C5, N.E5, N.C5,
     N.A4, N.C5, N.E5, N.C5, N.A4, N.C5, N.E5, N.C5,
     N.B4, N.D5, N.G5, N.D5, N.B4, N.D5, N.G5, N.D5,
-    N.C5, N.E5, N.G5, N.E5, N.D5, N.C5, N.B4, N.A4
+    N.B4, N.D5, N.G5, N.D5, N.B4, N.D5, N.G5, N.D5,
+    N.C5, N.E5, N.G5, N.E5, N.C5, N.E5, N.G5, N.E5,
+    N.D5, N.C5, N.B4, N.A4, N.G4, N.Fs4, N.G4, N.A4,
+    N.G4, N.B4, N.D5, N.B4, N.G4, N.B4, N.D5, N.B4,
+    N.G4, N.B4, N.D5, N.B4, N.G4, N.B4, N.D5, N.B4,
+    N.A4, N.C5, N.E5, N.C5, N.A4, N.C5, N.E5, N.C5,
+    N.A4, N.C5, N.E5, N.C5, N.A4, N.C5, N.E5, N.C5,
+    N.B4, N.D5, N.G5, N.D5, N.B4, N.D5, N.G5, N.D5,
+    N.B4, N.D5, N.G5, N.D5, N.B4, N.D5, N.G5, N.D5,
+    N.C5, N.E5, N.G5, N.E5, N.C5, N.E5, N.G5, N.E5,
+    N.C5, N.E5, N.G5, N.E5, N.C5, N.D5, N.B4, N.G4
   ];
   const DRUMS = {
     kick:  [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
+            1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
+            1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
+            1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
+            1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
+            1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
+            1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
             1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0],
     hat:   [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0,
-            0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0],
+            0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0,
+            0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0,
+            0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0,
+            0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0,
+            0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0,
+            0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0,
+            0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1],
     snare: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+            0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+            0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+            0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+            0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+            0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+            0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
             0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0]
   };
   function musicTick(){
     if (!musicOn || muted) return;
-    const i = musicStep % 32;
+    const i = musicStep % 128;
     if (BASS[i]) tone(BASS[i], 0.18, "triangle", 0.05);
     if (LEAD[i]) tone(LEAD[i], 0.11, "square", 0.04);
     if (ARP[i])  tone(ARP[i],  0.08, "square", 0.018);
@@ -1180,7 +1213,7 @@ const AudioFX = (() => {
     if (DRUMS.snare[i]) noise(0.07, 0.035);
     musicStep++;
   }
-  function startMusic(){
+function startMusic(){
     stopMusic();
     if (!musicOn || muted) return;
     const c = ac(); if (!c) return;
@@ -1233,28 +1266,6 @@ const AudioFX = (() => {
         return;
       } catch (e) { /* fall through to synth */ }
       this.synthFart();
-    },
-    shitterWin(){
-      try {
-        if (!shitterWinAudio) shitterWinAudio = new Audio("sfx/shitter-win.mp3");
-        shitterWinAudio.currentTime = 0; shitterWinAudio.volume = 1.0;
-        const p = shitterWinAudio.play(); if (p && p.catch) p.catch(() => {});
-      } catch(e){}
-      // also rumble the synth under it for phones where the file lags
-      const c = ac(); if (!c || muted) return;
-      const t = c.currentTime;
-      const o = c.createOscillator(), g = c.createGain();
-      o.type = "sawtooth"; o.frequency.setValueAtTime(80, t);
-      o.frequency.linearRampToValueAtTime(45, t + 0.8);
-      g.gain.setValueAtTime(0.12, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.9);
-      o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + 0.95);
-    },
-    shitterLose(){
-      try {
-        if (!shitterLoseAudio) shitterLoseAudio = new Audio("sfx/shitter-lose.mp3");
-        shitterLoseAudio.currentTime = 0; shitterLoseAudio.volume = 0.9;
-        const p = shitterLoseAudio.play(); if (p && p.catch) p.catch(() => {});
-      } catch(e){}
     },
     synthFart(){
       const c = ac(); if (!c || muted) return;
@@ -2507,8 +2518,7 @@ const BANTER = {
 };
 function showScreen(name){
   for (const s of ["title", "table", "over", "handoff"]) el("screen-" + s).classList.toggle("hidden", s !== name);
-  if (name !== "bonus") closeBonus();
-  if (name === "title"){ AudioFX.stopMusic(); openOnlinePanel(false); closeSpoonsPanel(); closeRewardScreen(); updateShitterChip(); openOrderPanel(false); Spoons.restoreNational(); stopAttract(); }
+  if (name === "title"){ AudioFX.stopMusic(); openOnlinePanel(false); closeSpoonsPanel(); closeRewardScreen(); openOrderPanel(false); Spoons.restoreNational(); stopAttract(); }
 }
 function shake(cls){
   const st = el("stage");
@@ -2721,138 +2731,8 @@ function openDetail(name){
   det.addEventListener("click", e => { if (e.target === det) det.classList.remove("open"); }, { once: true });
 }
 
-/* ==================== 6b. BONUS: THE DISABLED SHITTER ==================== */
-const SHITTER_LS = "spoons.shitter";       // "1" = unlocked forever
-const SHITTER_PTS = 1000;                   // prize points
-const BONUS_ITEMS = [
-  // write items (select these)
-  { e:"🚽", n:"THE LOO",        ok:true  },
-  { e:"🧻", n:"THE ROLL",       ok:true  },
-  { e:"🪣", n:"THE MOP BUCKET", ok:true  },
-  { e:"🚿", n:"THE SHOWER",     ok:true  },
-  { e:"🧼", n:"THE SOAP",       ok:true  },
-  { e:"🪠", n:"THE PLUNGER",    ok:true  },
-  // decoys (one tap = bricked)
-  { e:"🍽️", n:"THE PLATE",      ok:false },
-  { e:"🍺", n:"THE PINT",       ok:false },
-  { e:"🥄", n:"BIG SPOON",      ok:false },
-  { e:"🍕", n:"THE PIZZA",      ok:false },
-  { e:"📱", n:"YOUR PHONE",     ok:false },
-  { e:"🦆", n:"THE DUCK",       ok:false },
-];
-let bonusPicked = 0, bonusNeeded = 0, bonusLive = false;
-
-function shitterUnlocked(){
-  let v = null;
-  try { v = localStorage.getItem(SHITTER_LS); } catch(e){}
-  return v === "1";
-}
-function updateShitterChip(){
-  const b = el("btnShitter");
-  if (!b) return;
-  if (shitterUnlocked()){
-    b.textContent = "🚽 THE DISABLED SHITTER";
-    b.style.opacity = "1";
-    b.title = "UNLOCKED — 1000 POINTS BANKED";
-  } else {
-    b.textContent = "🚽 ???";
-    b.style.opacity = ".55";
-  }
-}
-function shuffleBonus(){
-  const pool = BONUS_ITEMS.slice();
-  for (let i = pool.length - 1; i > 0; i--){
-    const j = Math.floor(Math.random() * (i + 1));
-    [pool[i], pool[j]] = [pool[j], pool[i]];
-  }
-  return pool;
-}
-function renderBonus(){
-  const grid = el("bonusGrid");
-  const items = shuffleBonus();
-  const rights = items.filter(i => i.ok);
-  bonusNeeded = rights.length; bonusPicked = 0; bonusLive = true;
-  grid.innerHTML = "";
-  items.forEach(item => {
-    const d = document.createElement("div");
-    d.className = "bonus-item";
-    d.innerHTML = '<div class="bi-emoji">' + item.e + '</div><div class="bi-name">' + item.n + '</div>';
-    d.addEventListener("click", () => {
-      if (!bonusLive) return;
-      AudioFX.unlock();
-      if (!item.ok){
-        // bricked: reveal all, play lose, reset
-        bonusLive = false;
-        d.classList.add("wrong", "hit");
-        [...grid.children].forEach(ch => ch.classList.add("dim"));
-        d.classList.remove("dim");
-        el("bonusStatus").textContent = "BRICKED. THAT'S NOT A BOG ITEM.";
-        el("bonusStatus").className = "bonus-status lose";
-        AudioFX.shitterLose();
-        shake("shake-hard");
-        setTimeout(() => { renderBonus(); el("bonusStatus").textContent = "AGAIN:"; el("bonusStatus").className = "bonus-status"; }, 1400);
-        return;
-      }
-      d.classList.add("right", "picked");
-      AudioFX.flip();
-      bonusPicked++;
-      el("bonusStatus").textContent = bonusPicked + " / " + bonusNeeded + "…";
-      if (bonusPicked === bonusNeeded){
-        bonusLive = false;
-        unlockShitter();
-      }
-    });
-    grid.appendChild(d);
-  });
-  el("bonusStatus").textContent = "TAP THE WRITE ONES";
-  el("bonusStatus").className = "bonus-status";
-}
-function unlockShitter(){
-  const first = !shitterUnlocked();
-  try { localStorage.setItem(SHITTER_LS, "1"); } catch(e){}
-  const scr = el("screen-bonus");
-  scr.classList.add("unlocked");
-  el("bonusStatus").textContent = first
-    ? "🔓 THE DISABLED SHITTER IS YOURS. +1000 POINTS. 🚽👑"
-    : "🚽👑 ALREADY UNLOCKED — 1000 POINTS AGAIN ANYWAY.";
-  el("bonusStatus").className = "bonus-status win";
-  AudioFX.shitterWin();
-  shake("shake-soft");
-  if (!first){
-    game.score += SHITTER_PTS;
-    try {
-      const hs = parseInt(localStorage.getItem("spoons.high") || "0", 10) || 0;
-      if (game.score > hs) localStorage.setItem("spoons.high", String(game.score));
-    } catch(e){}
-  }
-  updateShitterChip();
-  // celebratory splash text over the whole screen
-  const pop = document.createElement("div");
-  pop.style.cssText = "position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:60;pointer-events:none;font-size:64px;";
-  pop.textContent = "🚽💨🎉";
-  document.body.appendChild(pop);
-  setTimeout(() => pop.remove(), 1600);
-  setTimeout(() => { showScreen("title"); }, 2600);
-}
-function openBonus(){
-  AudioFX.unlock();
-  const scr = el("screen-bonus");
-  scr.classList.remove("hidden");
-  scr.classList.remove("unlocked");
-  if (shitterUnlocked()){
-    // replayable: score farm for the faithful
-    el("bonusStatus").textContent = "UNLOCKED — REPLAY FOR +1000";
-  }
-  renderBonus();
-}
-function closeBonus(){
-  el("screen-bonus").classList.add("hidden");
-}
-
 /* ==================== 7. WIRING ==================== */
 el("btnArcade").addEventListener("click", () => { onModeStartRequested("arcade"); });
-el("btnShitter").addEventListener("click", () => { openBonus(); });
-el("bonusBack").addEventListener("click", () => { AudioFX.click(); closeBonus(); });
 // Classic/Endless buttons removed from title; branches remain callable for tests.
 // el("btnClassic").addEventListener("click", () => { AudioFX.unlock(); startGame("classic"); });
 // el("btnEndless").addEventListener("click", () => { AudioFX.unlock(); startGame("endless"); });
