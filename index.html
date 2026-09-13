@@ -122,7 +122,7 @@ body::before{
   border-top:1px solid rgba(242,232,213,.18); border-bottom:1px solid rgba(242,232,213,.18);
   padding:6px 0; background:rgba(20,25,32,.55);
 }
-.duck-track{ display:inline-block; animation:duckscroll 22s linear infinite; }
+.duck-track{ display:inline-block; animation:duckscroll 22s linear infinite; will-change:transform; }
 .duck-unit{ display:inline-block; margin-right:60px; font-size:15px; }
 .duck-sign{ font-family:var(--font-arcade); font-size:10px; color:var(--gold); letter-spacing:.08em; vertical-align:2px; }
 @keyframes duckscroll{ 0%{ transform:translateX(0); } 100%{ transform:translateX(-50%); } }
@@ -1022,11 +1022,16 @@ const STATS = [
 const statByKey = key => STATS.find(s => s.key === key);
 
 /* ==================== 2. AUDIO (synthesized, no files) ==================== */
+/* 0.1s of silence as a data URI — keeps an <audio> media session alive on iOS,
+   bypassing the physical silent switch for WebAudio. */
+const SILENT_WAV = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
 const AudioFX = (() => {
   let ctx = null;
-  let muted = localStorage.getItem("spoons.mute") === "1";
-  let musicOn = localStorage.getItem("spoons.music") !== "0"; // on by default
+  let muted = false, musicOn = true;
+  try { muted = localStorage.getItem("spoons.mute") === "1"; } catch(e){}
+  try { musicOn = localStorage.getItem("spoons.music") !== "0"; } catch(e){}
   let musicTimer = null, musicStep = 0;
+  let mediaAudio = null;
   function ac(){
     if (!ctx){ try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } }
     if (ctx && ctx.state === "suspended") ctx.resume().catch(() => {});
@@ -1083,8 +1088,30 @@ const AudioFX = (() => {
     musicTimer = setInterval(musicTick, 220);
   }
   function stopMusic(){ if (musicTimer){ clearInterval(musicTimer); musicTimer = null; } }
+  function resumeMusic(){ if (musicOn && !muted && !musicTimer) startMusic(); }
   return {
-    unlock(){ ac(); silentKick(); },
+    unlock(){
+      ac(); silentKick();
+      // iOS: the physical silent switch silences WebAudio unless the page holds an
+      // active <audio> media session. Open a silent looping one inside the first gesture.
+      try {
+        if (!mediaAudio || mediaAudio.__failed){
+          const a = document.createElement("audio");
+          a.src = SILENT_WAV;
+          a.loop = true; a.volume = 0.001; a.muted = false;
+          a.setAttribute("playsinline", "");
+          a.addEventListener("playing", function once(){
+            a.removeEventListener("playing", arguments.callee);
+            mediaAudio = a;
+          });
+          const p = a.play();
+          if (p && p.catch) p.catch(() => { mediaAudio = { __failed: true }; });
+          mediaAudio = a;
+        } else if (mediaAudio.paused){
+          mediaAudio.play().catch(() => {});
+        }
+      } catch (e) {}
+    },
     click(){ tone(220, 0.06, "square", 0.045); },
     deal(){ noise(0.09, 0.04); tone(160, 0.05, "triangle", 0.03, 0.02); },
     flip(){ tone(520, 0.05, "triangle", 0.04); tone(700, 0.05, "triangle", 0.035, 0.05); },
@@ -1123,9 +1150,10 @@ const AudioFX = (() => {
     reward(){ [659, 784, 988, 1319, 1568].forEach((f, i) => tone(f, 0.12, "square", 0.055, i * 0.09)); },
     startMusic(){ startMusic(); },
     stopMusic(){ stopMusic(); },
+    resumeMusic(){ resumeMusic(); },
     musicEnabled(){ return musicOn; },
-    toggleMusic(){ musicOn = !musicOn; localStorage.setItem("spoons.music", musicOn ? "1" : "0"); if (!musicOn) stopMusic(); else startMusic(); return musicOn; },
-    toggleMute(){ muted = !muted; localStorage.setItem("spoons.mute", muted ? "1" : "0"); if (muted) stopMusic(); else startMusic(); return muted; },
+    toggleMusic(){ musicOn = !musicOn; try { localStorage.setItem("spoons.music", musicOn ? "1" : "0"); } catch(e){} if (!musicOn) stopMusic(); else { silentKick(); startMusic(); } return musicOn; },
+    toggleMute(){ muted = !muted; try { localStorage.setItem("spoons.mute", muted ? "1" : "0"); } catch(e){} if (muted) stopMusic(); else { silentKick(); startMusic(); } return muted; },
     isMuted(){ return muted; },
   };
 })();
@@ -1494,6 +1522,8 @@ function broadcastRound(){
     verdictText: document.getElementById("verdict").innerHTML,
     phase: game.phase,
     statKey: game.statKey,
+    streak: game.streak,
+    winner: game.lastRemoteWinner,
   });
 }
 
