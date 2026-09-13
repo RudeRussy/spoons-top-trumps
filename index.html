@@ -841,8 +841,7 @@ footer{ text-align:center; color:#7b7264; font-size:11px; padding:12px 16px 18px
       </div>
     </div>
 <footer>
-  Real menu data (Sep 2026 — prices &amp; calories approximate, vary per pub) · vibe stats are house opinion · unofficial, unaffiliated, unbothered.
-</footer>
+  Real menu data (Sep 2026 — prices &amp; calories approximate, vary per pub) · vibe stats are house opinion · unofficial, unaffiliated, unbothered. · build <span id="buildChip">—</span></footer>
 
 <section id="screen-bonus" class="screen hidden">
     <div class="bonus-wrap">
@@ -900,6 +899,15 @@ const REWARDS = {
     { rounds: 8, code: 'CLUB', label: 'FREE CLUB DEAL ON YOUR CLUB NIGHT' }
   ]
 };
+
+  /* ---------- build stamp: self-heal stale phone cache ---------- */
+  const BUILD_STAMP = "europop-128-20260913";
+  try {
+    const seen = localStorage.getItem("spoons_build");
+    if (seen && seen !== BUILD_STAMP){ localStorage.setItem("spoons_build", BUILD_STAMP); location.reload(true); }
+    else localStorage.setItem("spoons_build", BUILD_STAMP);
+  } catch(e){}
+  try { document.getElementById("buildChip").textContent = BUILD_STAMP.slice(0, 12); } catch(e){}
 
 /* ==================== 1. DATA ==================== */
 // AUTO-GENERATED menu data — real prices/kcal from the 2026 Spoons menu
