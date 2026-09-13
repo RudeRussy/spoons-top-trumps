@@ -3,132 +3,173 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SPOONS TOP TRUMPS</title>
-<meta name="theme-color" content="#12161b">
+<title>SPOONS TOP TRUMPS ARCADE</title>
+<meta name="theme-color" content="#0b0e12">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Spoons Top Trumps">
-<meta property="og:description" content="Battle Wetherspoons menu items. Pick your stat — highest wins, except Price and Regret, where lower wins. The loser buys the next round.">
+<meta property="og:title" content="Spoons Top Trumps ARCADE">
+<meta property="og:description" content="201 real Wetherspoons menu items. 9 stats. Arcade modes, combos, Landlord AI. Highest wins — except Price and Regret, where lower wins.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
 /* ============================================================
-   SPOONS TOP TRUMPS — scaffold
-   One file, no build step. Vibe-code friendly:
-   - CARDS + STATS arrays are the whole data model (bottom of file)
-   - Engine functions are pure-ish and separate from UI
-   - Phases: title -> play -> reveal -> gameover
+   SPOONS TOP TRUMPS — ARCADE EDITION
+   Sections: DATA / AUDIO / ENGINE / STATE+MODES / UI / BROWSER /
+             INPUT / DEBUG   (see labels in the script)
    ============================================================ */
 :root{
   --cream:#f2e8d5;
   --paper:#faf3e3;
   --ink:#221a12;
   --ink-soft:#5c5140;
-  --red:#b8232f;
+  --red:#e22b3c;
   --red-deep:#7e161f;
-  --gold:#c99a3c;
+  --gold:#ffc94d;
+  --gold-deep:#c99a3c;
+  --green:#9fc57f;
   --line:#d8c9a8;
-  --muted-on-dark:#cdbfa6;
+  --muted:#cdbfa6;
   --radius:14px;
+  --font-arcade:"Press Start 2P",monospace;
+  --font-display:"Alfa Slab One",serif;
 }
 *{ box-sizing:border-box; margin:0; padding:0; }
 html,body{ min-height:100%; }
 body{
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
   color:var(--ink);
-  background:#12161b;
+  background:#0b0f13;
   line-height:1.45;
   min-height:100vh;
   display:flex; flex-direction:column;
   -webkit-font-smoothing:antialiased;
 }
-/* The carpet. You know the one. */
+/* The carpet, arcade-lit */
 body::before{
-  content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+  content:""; position:fixed; inset:0; z-index:-2; pointer-events:none;
   background:
     radial-gradient(circle at 12% 12%, #7a1f3d 0 7%, transparent 7.5%),
     radial-gradient(circle at 62% 18%, #1f5c57 0 7%, transparent 7.5%),
     radial-gradient(circle at 30% 62%, #b07b2a 0 7%, transparent 7.5%),
     radial-gradient(circle at 82% 80%, #2b3a6b 0 7%, transparent 7.5%),
     radial-gradient(circle at 50% 45%, #4a2547 0 5%, transparent 5.5%),
-    repeating-linear-gradient(45deg, #101418 0 26px, #171c22 26px 52px);
+    repeating-linear-gradient(45deg, #0e1216 0 26px, #141920 26px 52px);
   background-size:104px 104px,104px 104px,104px 104px,104px 104px,104px 104px,auto;
-  filter:saturate(.9);
-  opacity:.9;
+  filter:saturate(.85);
 }
-body::after{ /* keep the carpet loud but the cards readable */
-  content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
-  background:radial-gradient(ellipse at 50% 40%, rgba(0,0,0,0) 30%, rgba(8,10,13,.55) 100%);
-}
+#vign{ position:fixed; inset:0; z-index:-1; pointer-events:none;
+  background:radial-gradient(ellipse at 50% 38%, rgba(0,0,0,0) 26%, rgba(4,6,9,.72) 100%); }
+/* CRT scanlines */
+#crt{ position:fixed; inset:0; z-index:60; pointer-events:none; opacity:.5;
+  background:repeating-linear-gradient(0deg, rgba(0,0,0,.16) 0 1px, transparent 1px 3px);
+  mix-blend-mode:multiply; }
+@keyframes crtflick{ 0%,100%{opacity:.5} 92%{opacity:.5} 93%{opacity:.28} 94%{opacity:.5} 97%{opacity:.36} 98%{opacity:.5} }
+#crt{ animation:crtflick 9s infinite; }
 
 /* ---------- HUD ---------- */
 #hud{
-  position:sticky; top:0; z-index:10;
-  display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;
-  padding:10px 20px;
-  background:rgba(14,17,21,.85);
+  position:sticky; top:0; z-index:20;
+  display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;
+  padding:10px 16px;
+  background:rgba(9,12,16,.92);
   border-bottom:1px solid rgba(242,232,213,.14);
 }
 .brand{
-  font-family:"Alfa Slab One",serif;
-  color:var(--cream); font-size:17px; letter-spacing:.04em; white-space:nowrap;
+  font-family:var(--font-display); color:var(--cream);
+  font-size:16px; letter-spacing:.04em; white-space:nowrap;
 }
 .brand em{ font-style:normal; color:var(--red); }
+.brand small{ font-family:var(--font-arcade); font-size:7px; color:var(--gold); display:block; letter-spacing:.2em; margin-top:2px; }
+#scoreChip{ font-family:var(--font-arcade); font-size:12px; color:var(--gold); text-shadow:0 0 8px rgba(255,201,77,.6); }
 .score{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
 .chip{
   background:var(--cream); color:var(--ink);
-  border-radius:999px; padding:5px 12px;
+  border-radius:999px; padding:5px 11px;
   font-size:11px; font-weight:800; letter-spacing:.06em;
 }
 .chip b{ font-size:13px; margin-left:4px; }
 .chip.pot{ background:var(--gold); }
-.chip.round{ background:transparent; color:var(--muted-on-dark); border:1px solid rgba(242,232,213,.3); }
+.chip.round{ background:transparent; color:var(--muted); border:1px solid rgba(242,232,213,.3); }
+.chip.combo{ background:var(--red); color:#fff; font-family:var(--font-arcade); font-size:10px; display:none; }
+.chip.wave{ background:var(--gold-deep); color:#161000; }
+.hudbtn{
+  background:transparent; border:1px solid rgba(242,232,213,.3); color:var(--cream);
+  border-radius:8px; min-width:44px; min-height:34px; font-size:15px; cursor:pointer;
+}
+.hudbtn:hover{ background:rgba(242,232,213,.12); }
+.hudbtn:focus-visible{ outline:2px solid var(--gold); }
 
 /* ---------- Screens ---------- */
-#stage{ flex:1; width:100%; max-width:1040px; margin:0 auto; padding:26px 20px 36px; }
+#stage{ flex:1; width:100%; max-width:1080px; margin:0 auto; padding:24px 18px 34px; position:relative; }
 .screen.hidden{ display:none; }
+@keyframes shakeS{ 0%,100%{transform:translate(0,0)} 25%{transform:translate(-4px,2px)} 50%{transform:translate(4px,-2px)} 75%{transform:translate(-2px,-2px)} }
+@keyframes shakeH{ 0%,100%{transform:translate(0,0)} 20%{transform:translate(-8px,4px)} 40%{transform:translate(8px,-4px)} 60%{transform:translate(-6px,2px)} 80%{transform:translate(6px,-2px)} }
+#stage.shake-soft{ animation:shakeS .25s; }
+#stage.shake-hard{ animation:shakeH .4s; }
+@media (prefers-reduced-motion:reduce){
+  #stage.shake-soft,#stage.shake-hard,#crt{ animation:none; }
+}
 
-#screen-title{ text-align:center; padding-top:7vh; }
+/* ---------- Title ---------- */
+#screen-title{ text-align:center; padding-top:4vh; position:relative; }
 #screen-title h1{
-  font-family:"Alfa Slab One",serif;
-  color:var(--cream);
-  font-size:clamp(46px,9vw,96px);
-  line-height:.92;
-  text-shadow:0 5px 0 rgba(0,0,0,.45);
-  margin-bottom:14px;
+  font-family:var(--font-display); color:var(--cream);
+  font-size:clamp(40px,8vw,86px); line-height:.92;
+  text-shadow:0 0 18px rgba(226,43,60,.55), 0 5px 0 rgba(0,0,0,.5);
+  margin-bottom:10px;
+  animation:neonpulse 3.2s infinite;
 }
+@keyframes neonpulse{ 0%,100%{ text-shadow:0 0 14px rgba(226,43,60,.45), 0 5px 0 rgba(0,0,0,.5);} 50%{ text-shadow:0 0 26px rgba(226,43,60,.8), 0 5px 0 rgba(0,0,0,.5);} }
+@media (prefers-reduced-motion:reduce){ #screen-title h1{ animation:none; } }
 #screen-title h1 .red{ color:var(--red); }
-.title-tag{
-  color:var(--gold); font-weight:700; letter-spacing:.18em;
-  text-transform:uppercase; font-size:13px; margin-bottom:18px;
-}
-.rules{
-  color:var(--muted-on-dark); max-width:560px; margin:0 auto 26px; font-size:15px;
-}
-.rules b{ color:var(--cream); }
+.title-tag{ font-family:var(--font-arcade); color:var(--gold); font-size:10px; letter-spacing:.14em; margin-bottom:6px; }
+.title-sub{ color:var(--muted); max-width:600px; margin:0 auto 22px; font-size:14px; }
+.title-sub b{ color:var(--cream); }
 
+.modes{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-bottom:16px; }
+.modebtn{
+  font-family:var(--font-arcade); font-size:11px; letter-spacing:.06em;
+  border:0; cursor:pointer; border-radius:10px; padding:16px 20px 12px; min-height:44px;
+  color:#fff; display:flex; flex-direction:column; gap:6px; align-items:center;
+}
+.modebtn small{ font-family:-apple-system,Arial,sans-serif; font-size:10px; font-weight:700; letter-spacing:.03em; opacity:.85; }
+.modebtn small b{ color:var(--gold); }
+.b-arcade{ background:var(--red); box-shadow:0 5px 0 var(--red-deep); }
+.b-classic{ background:#1f5c57; box-shadow:0 5px 0 #123a37; }
+.b-endless{ background:#4a2547; box-shadow:0 5px 0 #2c152a; }
+.modebtn:hover{ filter:brightness(1.12); }
+.modebtn:active{ transform:translateY(3px); box-shadow:0 2px 0 rgba(0,0,0,.4); }
+.modebtn:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
+.title-tools{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom:10px; }
 .btn{
   font:inherit; border:0; cursor:pointer; border-radius:10px;
-  padding:14px 28px; min-height:44px; font-weight:800; letter-spacing:.05em;
+  padding:12px 22px; min-height:44px; font-weight:800; letter-spacing:.05em;
 }
-.btn-red{ background:var(--red); color:#fff; box-shadow:0 4px 0 var(--red-deep); }
-.btn-red:hover{ background:#c72c38; }
-.btn-red:active{ transform:translateY(2px); box-shadow:0 2px 0 var(--red-deep); }
+.btn-ghost{ background:transparent; color:var(--cream); border:1px solid rgba(242,232,213,.35); }
+.btn-ghost:hover{ background:rgba(242,232,213,.1); }
 .btn:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
-.btn-cream{ background:var(--cream); color:var(--ink); box-shadow:0 4px 0 #b3a488; }
-.btn-cream:active{ transform:translateY(2px); box-shadow:0 2px 0 #b3a488; }
+.howto{ color:var(--muted); max-width:640px; margin:6px auto 0; font-size:13px; text-align:left; }
+.howto summary{ cursor:pointer; color:var(--gold); font-weight:800; text-align:center; padding:8px; }
+.howto ul{ margin:10px 0 0 20px; }
+.howto li{ margin-bottom:6px; }
+#attract{ perspective:900px; height:150px; margin-top:8px; }
+#attractCard{ width:210px; margin:0 auto; }
+#attract .card{ box-shadow:0 12px 30px rgba(0,0,0,.55); }
+@keyframes attractFlip{ 0%{ transform:rotateY(90deg); opacity:.2; } 100%{ transform:rotateY(0); opacity:1; } }
+#attract .card{ animation:attractFlip .35s ease-out; }
+@media (prefers-reduced-motion:reduce){ #attract .card{ animation:none; } }
 
 /* ---------- Table ---------- */
 .table{
-  display:grid; grid-template-columns:1fr 1fr; gap:22px;
+  display:grid; grid-template-columns:1fr 1fr; gap:20px;
   justify-items:center; align-items:start;
 }
 .side-label{
-  color:var(--muted-on-dark); letter-spacing:.18em; font-size:11px; font-weight:800;
-  text-align:center; margin-bottom:10px; text-transform:uppercase;
+  font-family:var(--font-arcade); color:var(--muted); letter-spacing:.1em; font-size:9px;
+  text-align:center; margin-bottom:10px;
 }
 .card{
-  width:min(320px,44vw);
+  width:min(330px,44vw);
   background:var(--paper);
   border-radius:var(--radius);
   border:1px solid rgba(0,0,0,.25);
@@ -136,45 +177,55 @@ body::after{ /* keep the carpet loud but the cards readable */
   overflow:hidden;
   perspective:900px;
 }
+@keyframes dealIn{ 0%{ transform:translateY(-26px) rotate(-4deg); opacity:0; } 100%{ transform:none; opacity:1; } }
+.card.deal{ animation:dealIn .3s ease-out; }
+@keyframes bounce{ 0%,100%{ transform:translateY(0);} 35%{ transform:translateY(-12px) scale(1.03);} 60%{ transform:translateY(3px);} }
+.card.award{ animation:bounce .5s ease-out; }
+@keyframes defeat{ 0%,100%{ transform:none; filter:none; } 100%{ transform:rotate(4deg) translateY(6px); filter:grayscale(.6) brightness(.8); } }
+.card.defeat{ animation:defeat .5s forwards; }
+@media (prefers-reduced-motion:reduce){ .card.deal,.card.award,.card.defeat{ animation:none; } }
 .card-art{
-  height:110px; display:grid; place-items:center;
-  font-size:60px;
+  height:88px; display:grid; place-items:center;
+  font-size:52px;
   background:radial-gradient(circle at 50% 35%, #fdf8ec, #eee0c4);
   border-bottom:1px solid var(--line);
 }
-.card-body{ padding:12px 16px 10px; }
-.card-name{
-  font-family:"Alfa Slab One",serif; font-size:18px; line-height:1.12; margin-bottom:4px;
-}
-.card-line{
-  font-size:12px; font-style:italic; color:var(--ink-soft);
-  margin-bottom:10px; min-height:2.5em;
-}
-.stats{ display:block; }
+.card-body{ padding:10px 14px 8px; }
+.card-topline{ display:flex; gap:6px; align-items:center; margin-bottom:2px; }
+.cat-chip{ font-size:9px; font-weight:900; letter-spacing:.08em; color:#8a7a5c; border:1px solid var(--line); border-radius:4px; padding:1px 5px; }
+.diet-chip{ font-size:9px; font-weight:900; border-radius:4px; padding:1px 5px; background:#2f6b3a; color:#dff3d2; }
+.diet-chip.v{ background:#8a6a1f; color:#fff6d8; }
+.card-name{ font-family:var(--font-display); font-size:17px; line-height:1.1; margin-bottom:8px; }
 .stat{
   display:flex; justify-content:space-between; align-items:center; gap:8px;
   width:100%; border:0; border-top:1px solid var(--line);
-  background:transparent; padding:8px 4px; font:inherit; text-align:left;
+  background:transparent; padding:5px 4px; font:inherit; text-align:left; position:relative;
 }
 button.stat{ cursor:pointer; border-radius:0; }
-button.stat:hover{ background:rgba(184,35,47,.1); }
+button.stat:hover{ background:rgba(226,43,60,.1); }
 button.stat:focus-visible{ outline:2px solid var(--red); outline-offset:-2px; }
-.stats-locked button.stat, .stats-locked div.stat{ cursor:default; }
+.stats-locked button.stat{ cursor:default; }
 .stats-locked button.stat:hover{ background:transparent; }
-.stat-label{
-  display:flex; align-items:center; gap:6px;
-  font-size:11px; font-weight:800; letter-spacing:.07em; color:var(--ink-soft);
-}
-.stat-val{ font-weight:900; font-size:14px; white-space:nowrap; }
-.tag{ font-size:10px; color:#8a7a5c; line-height:1; }
+.stat-label{ display:flex; align-items:center; gap:5px; font-size:10px; font-weight:800; letter-spacing:.05em; color:var(--ink-soft); flex:0 0 96px; }
+.stat-bar{ flex:1; height:5px; border-radius:3px; background:rgba(0,0,0,.08); overflow:hidden; }
+.stat-bar i{ display:block; height:100%; border-radius:3px; background:var(--gold-deep); }
+.stat-val{ font-weight:900; font-size:12px; white-space:nowrap; flex:0 0 auto; min-width:52px; text-align:right; }
+.keyhint{ font-size:8px; color:#a08f6d; border:1px solid var(--line); border-radius:3px; padding:0 3px; margin-left:auto; }
+button.stat .keyhint{ display:inline; }
+.tag{ font-size:9px; color:#8a7a5c; line-height:1; flex:0 0 auto; }
 .stat.selected{ background:var(--red); }
-.stat.selected .stat-label, .stat.selected .stat-val{ color:#fff; }
+.stat.selected .stat-label,.stat.selected .stat-val{ color:#fff; }
 .stat.selected .tag{ color:#f2c9cc; }
-.stat.dim{ opacity:.55; }
+.stat.selected .stat-bar{ background:rgba(255,255,255,.3); }
+.stat.selected .stat-bar i{ background:#ffd76e; }
+.stat.dim{ opacity:.5; }
+@keyframes slam{ 0%{ transform:scaleX(1); background:var(--gold);} 50%{ transform:scaleX(1.04);} 100%{ transform:scaleX(1);} }
+.stat.selected.slam{ animation:slam .3s ease-out; }
+@media (prefers-reduced-motion:reduce){ .stat.selected.slam{ animation:none; } }
 
-/* ---------- Card back ---------- */
+/* card back */
 .card-back{
-  height:378px;
+  height:452px;
   display:grid; place-items:center;
   background:
     radial-gradient(circle at 15% 15%, rgba(122,31,61,.55) 0 9%, transparent 9.5%),
@@ -185,66 +236,149 @@ button.stat:focus-visible{ outline:2px solid var(--red); outline-offset:-2px; }
   background-size:88px 88px,88px 88px,88px 88px,88px 88px,auto;
 }
 .diamond{
-  width:150px; height:150px;
-  transform:rotate(45deg);
+  width:150px; height:150px; transform:rotate(45deg);
   border:3px solid var(--gold); border-radius:10px;
-  background:rgba(10,12,15,.55);
-  display:grid; place-items:center;
+  background:rgba(10,12,15,.55); display:grid; place-items:center;
   box-shadow:0 8px 22px rgba(0,0,0,.5);
 }
-.diamond-text{
-  transform:rotate(-45deg); text-align:center;
-  font-family:"Alfa Slab One",serif; color:var(--cream);
-  font-size:13px; line-height:1.35; letter-spacing:.06em;
-}
+.diamond-text{ transform:rotate(-45deg); text-align:center; font-family:var(--font-display); color:var(--cream); font-size:13px; line-height:1.35; }
 .diamond-text .red{ color:var(--red); }
-@keyframes flipIn{
-  0%{ transform:rotateY(180deg); opacity:.3; }
-  100%{ transform:rotateY(0deg); opacity:1; }
-}
+@keyframes flipIn{ 0%{ transform:rotateY(180deg); opacity:.3; } 100%{ transform:rotateY(0deg); opacity:1; } }
 .card.reveal{ animation:flipIn .45s ease-out; }
-@media (prefers-reduced-motion:reduce){
-  .card.reveal{ animation:none; }
-  .btn-red:active{ transform:none; }
-}
+@media (prefers-reduced-motion:reduce){ .card.reveal{ animation:none; } }
 
-/* ---------- Verdict + actions ---------- */
-#verdict{ min-height:84px; margin-top:22px; text-align:center; }
+/* ---------- Verdict ---------- */
+#verdict{ min-height:92px; margin-top:18px; text-align:center; }
+@keyframes verdictIn{ 0%{ transform:scale(.6); opacity:0; } 70%{ transform:scale(1.08); } 100%{ transform:scale(1); opacity:1; } }
 .verdict-line{
-  font-family:"Alfa Slab One",serif;
-  color:var(--cream); font-size:clamp(20px,4vw,32px); letter-spacing:.02em;
+  font-family:var(--font-arcade); color:var(--cream);
+  font-size:clamp(13px,2.6vw,20px); line-height:1.5; letter-spacing:.02em;
 }
-.verdict-line.win{ color:#9fc57f; }
-.verdict-line.lose{ color:#e07a6a; }
+.verdict-line{ animation:verdictIn .25s ease-out; }
+@media (prefers-reduced-motion:reduce){ .verdict-line{ animation:none; } }
+.verdict-line.win{ color:var(--green); text-shadow:0 0 12px rgba(159,197,127,.5); }
+.verdict-line.lose{ color:#e07a6a; text-shadow:0 0 12px rgba(224,122,106,.4); }
 .verdict-line.draw{ color:var(--gold); }
-.verdict-sub{ color:var(--muted-on-dark); font-size:13px; margin-top:6px; }
-#roundActions{ display:flex; justify-content:center; margin-top:12px; min-height:52px; }
+.verdict-line.wave{ color:var(--gold); }
+.verdict-sub{ color:var(--muted); font-size:13px; margin-top:6px; }
+@keyframes comboPop{ 0%{ transform:scale(.4) rotate(-6deg); opacity:0; } 60%{ transform:scale(1.25) rotate(3deg); opacity:1; } 100%{ transform:scale(1) rotate(0); opacity:1; } }
+#comboPop{
+  position:absolute; left:50%; top:38%; transform:translate(-50%,-50%);
+  font-family:var(--font-arcade); font-size:clamp(18px,4vw,30px); color:var(--gold);
+  text-shadow:0 0 16px rgba(255,201,77,.8), 3px 3px 0 rgba(0,0,0,.6);
+  pointer-events:none; z-index:30; display:none;
+}
+#comboPop.show{ display:block; animation:comboPop .45s ease-out; }
+#roundActions{ display:flex; justify-content:center; margin-top:10px; min-height:52px; }
+.btn-cream{ background:var(--cream); color:var(--ink); box-shadow:0 4px 0 #b3a488; }
+.btn-cream:active{ transform:translateY(2px); box-shadow:0 2px 0 #b3a488; }
+
+/* ---------- Menu browser ---------- */
+#browser{
+  position:fixed; inset:0; z-index:80; display:none;
+  background:rgba(6,8,11,.9);
+}
+#browser.open{ display:block; }
+.browser-inner{
+  max-width:1000px; height:100%; margin:0 auto; padding:18px 16px;
+  display:flex; flex-direction:column; gap:12px;
+}
+.browser-head{ display:flex; justify-content:space-between; align-items:center; gap:10px; }
+.browser-head h2{ font-family:var(--font-display); color:var(--cream); font-size:22px; }
+.browser-head .count{ font-family:var(--font-arcade); font-size:9px; color:var(--gold); }
+.browser-tools{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+#browserSearch{
+  flex:1; min-width:200px; background:#141920; border:1px solid rgba(242,232,213,.25);
+  color:var(--cream); border-radius:8px; padding:10px 12px; font:inherit; font-size:14px; min-height:44px;
+}
+.cat-chips{ display:flex; gap:6px; flex-wrap:wrap; }
+.cat-chips button{
+  background:#141920; color:var(--muted); border:1px solid rgba(242,232,213,.2);
+  border-radius:999px; padding:7px 12px; font-size:11px; font-weight:800; cursor:pointer; min-height:32px;
+}
+.cat-chips button.on{ background:var(--red); color:#fff; border-color:var(--red); }
+.cat-chips button:hover{ filter:brightness(1.2); }
+#browserGrid{
+  overflow-y:auto; display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
+  gap:10px; padding-bottom:30px;
+}
+.bcard{
+  background:var(--paper); border-radius:10px; padding:10px 12px; cursor:pointer;
+  display:flex; gap:10px; align-items:center; border:1px solid rgba(0,0,0,.2);
+}
+.bcard:hover{ outline:2px solid var(--gold); }
+.bcard .art{ font-size:30px; flex:0 0 auto; }
+.bcard .nm{ font-weight:800; font-size:13px; line-height:1.2; }
+.bcard .meta{ font-size:11px; color:var(--ink-soft); margin-top:2px; }
+#browserDetail{
+  position:fixed; inset:0; z-index:90; display:none; place-items:center;
+  background:rgba(4,6,9,.8);
+}
+#browserDetail.open{ display:grid; }
 
 /* ---------- Game over ---------- */
-#screen-over{ text-align:center; padding-top:9vh; }
+#screen-over{ text-align:center; padding-top:6vh; }
 #screen-over h2{
-  font-family:"Alfa Slab One",serif; color:var(--cream);
-  font-size:clamp(34px,7vw,64px); line-height:1; margin-bottom:12px;
+  font-family:var(--font-arcade); color:var(--cream);
+  font-size:clamp(20px,5vw,40px); line-height:1.4; margin-bottom:14px;
+  text-shadow:0 0 16px rgba(255,201,77,.4);
 }
-#screen-over h2.win{ color:#9fc57f; }
+#screen-over h2.win{ color:var(--green); }
 #screen-over h2.lose{ color:#e07a6a; }
-#screen-over .over-line{ color:var(--muted-on-dark); font-size:16px; max-width:520px; margin:0 auto 10px; }
-#screen-over .over-score{ color:var(--gold); font-weight:800; letter-spacing:.1em; font-size:13px; margin-bottom:24px; }
+.over-score{ font-family:var(--font-arcade); color:var(--gold); font-size:13px; margin:10px 0 4px; }
+.over-stats{ color:var(--muted); font-size:13px; margin-bottom:16px; line-height:1.7; }
+.leader{
+  display:inline-block; text-align:left; color:var(--cream); font-family:var(--font-arcade);
+  font-size:10px; line-height:2; margin:6px 0 18px; padding:12px 18px;
+  background:rgba(20,25,32,.8); border:1px solid rgba(242,232,213,.2); border-radius:10px;
+}
+.leader .me{ color:var(--gold); }
+#initialsForm{ display:none; margin:8px 0 18px; }
+#initialsForm.open{ display:flex; gap:8px; justify-content:center; align-items:center; }
+#initialsInput{
+  font-family:var(--font-arcade); font-size:18px; letter-spacing:.3em; text-transform:uppercase;
+  width:110px; text-align:center; background:#141920; color:var(--gold);
+  border:1px solid var(--gold); border-radius:8px; padding:10px 6px;
+}
+#initialsForm label{ color:var(--muted); font-size:13px; font-weight:700; }
 
-footer{
-  text-align:center; color:#7b7264; font-size:11px; padding:14px 16px 20px;
+/* ---------- Pause ---------- */
+#pause{
+  position:fixed; inset:0; z-index:70; display:none; place-items:center;
+  background:rgba(4,6,9,.85);
+}
+#pause.open{ display:grid; }
+#pause .panel{
+  background:#141920; border:1px solid rgba(242,232,213,.25); border-radius:14px;
+  padding:26px 30px; text-align:center; display:flex; flex-direction:column; gap:10px;
+}
+#pause h3{ font-family:var(--font-arcade); color:var(--cream); font-size:14px; letter-spacing:.1em; }
+
+footer{ text-align:center; color:#7b7264; font-size:11px; padding:12px 16px 18px; }
+@media (max-width:560px){
+  .stat-label{ flex-basis:78px; }
+  .card{ width:min(330px,46vw); }
 }
 </style>
 </head>
 <body>
+<div id="crt" aria-hidden="true"></div>
+<div id="vign" aria-hidden="true"></div>
 
 <header id="hud">
-  <div class="brand">SPOONS <em>TOP TRUMPS</em></div>
+  <div class="brand">SPOONS <em>TOP TRUMPS</em><small id="modeLabel">ARCADE</small></div>
   <div class="score">
-    <span class="chip round">ROUND <b id="countRound">—</b></span>
-    <span class="chip">YOU <b id="countPlayer">18</b></span>
-    <span class="chip pot">POT <b id="countPot">0</b></span>
-    <span class="chip">SPOONS <b id="countAi">18</b></span>
+    <span id="scoreChip">0</span>
+    <span class="chip combo" id="comboChip">COMBO ×2</span>
+    <span class="chip round" id="waveChip">WAVE <b id="countWave">1</b></span>
+    <span class="chip">YOU <b id="countPlayer">—</b></span>
+    <span class="chip pot" id="potChip">POT <b id="countPot">0</b></span>
+    <span class="chip" id="aiChip">SPOONS <b id="countAi">—</b></span>
+    <span class="chip round">BEST <b id="countBest">0</b></span>
+  </div>
+  <div style="display:flex;gap:6px;">
+    <button class="hudbtn" id="btnMute" title="Mute (M)">🔊</button>
+    <button class="hudbtn" id="btnPause" title="Pause (P)">⏸</button>
   </div>
 </header>
 
@@ -253,14 +387,35 @@ footer{
   <!-- TITLE -->
   <section id="screen-title" class="screen">
     <h1>SPOONS<br><span class="red">TOP TRUMPS</span></h1>
-    <p class="title-tag">The great pub-menu showdown</p>
-    <p class="rules">
-      You and the Spoons split the menu — 9 cards each. Pick a stat off your top card
-      and take on theirs. <b>Highest wins</b> — except <b>Price</b> and <b>Regret</b>,
-      where <b>lower wins</b> (cheap and sensible is mighty). Winner takes the cards.
-      Draws build the pot — next winner hoovers it. Hold the whole menu to win.
+    <p class="title-tag">★ 201 CARDS · THE ENTIRE MENU · 9 STATS ★</p>
+    <p class="title-sub">
+      Every item on the current Spoons menu — <b>fry-ups to the Empire State</b> —
+      with real prices &amp; calories and house-vibe stats.
+      Pick your stat. <b>Highest wins</b> — except <b>Price</b> &amp; <b>Regret</b>, where <b>lower wins</b>.
     </p>
-    <button id="btnStart" class="btn btn-red">DEAL ME IN</button>
+    <div class="modes">
+      <button class="modebtn b-arcade" id="btnArcade">ARCADE<small id="bestArcade">BEST 0</small></button>
+      <button class="modebtn b-classic" id="btnClassic">CLASSIC 9v9<small id="bestClassic">BEST 0</small></button>
+      <button class="modebtn b-endless" id="btnEndless">ENDLESS<small id="bestEndless">BEST 0</small></button>
+    </div>
+    <div class="title-tools">
+      <button class="btn btn-ghost" id="btnBrowser">☰ BROWSE THE MENU</button>
+      <button class="btn btn-ghost" id="btnHowTitle">? HOW TO PLAY</button>
+    </div>
+    <details class="howto" id="howto">
+      <summary>How to play</summary>
+      <ul>
+        <li>You get a hand of cards; THE SPOONS gets theirs. Your top card is up; theirs is face down.</li>
+        <li>Tap a stat. Higher wins — except <b>PRICE</b> and <b>REGRET</b>, where lower wins.</li>
+        <li>Winner takes both cards. Draws stack the <b>pot</b>; the next winner hoovers it.</li>
+        <li>Win rounds in a row for a <b>combo multiplier</b>. Chain 3+ and the points get silly.</li>
+        <li><b>ARCADE</b>: clear waves, the AI gets bigger and meaner (Punter → Regular → Landlord).</li>
+        <li><b>CLASSIC 9v9</b>: half the menu each, winner of a round picks the next stat.</li>
+        <li><b>ENDLESS</b>: your deck starts at 6. Win = steal their card. Lose = lose yours. Survive.</li>
+        <li>Keys: <b>1–9</b> pick stat · <b>ENTER</b> next · <b>M</b> mute · <b>P</b> pause.</li>
+      </ul>
+    </details>
+    <div id="attract" aria-hidden="true"></div>
   </section>
 
   <!-- TABLE -->
@@ -275,6 +430,7 @@ footer{
         <div id="aiCard"></div>
       </div>
     </div>
+    <div id="comboPop">COMBO ×2</div>
     <div id="verdict" aria-live="polite"></div>
     <div id="roundActions"></div>
   </section>
@@ -282,76 +438,333 @@ footer{
   <!-- GAME OVER -->
   <section id="screen-over" class="screen hidden">
     <h2 id="overTitle"></h2>
-    <p class="over-line" id="overLine"></p>
     <p class="over-score" id="overScore"></p>
-    <button id="btnRematch" class="btn btn-red">REMATCH</button>
+    <p class="over-stats" id="overStats"></p>
+    <div class="leader" id="leaderboard"></div>
+    <div id="initialsForm">
+      <label>NEW HIGH SCORE — YOUR INITIALS:</label>
+      <input id="initialsInput" maxlength="3" value="RUS" inputmode="text" autocomplete="off">
+      <button class="btn btn-cream" id="btnSaveInitials">SAVE</button>
+    </div>
+    <div>
+      <button id="btnRematch" class="btn btn-cream">PLAY AGAIN</button>
+      <button id="btnOverMenu" class="btn btn-ghost" style="color:#f2e8d5;">CHANGE MODE</button>
+    </div>
   </section>
 
 </main>
 
+<!-- MENU BROWSER -->
+<div id="browser" role="dialog" aria-label="Menu browser">
+  <div class="browser-inner">
+    <div class="browser-head">
+      <h2>THE FULL MENU</h2>
+      <span class="count" id="browserCount"></span>
+      <button class="btn btn-ghost" id="btnBrowserClose" style="color:#f2e8d5;">✕ CLOSE</button>
+    </div>
+    <div class="browser-tools">
+      <input id="browserSearch" placeholder="Search 201 items… (e.g. katsu, guinness, porridge)">
+    </div>
+    <div class="cat-chips" id="catChips"></div>
+    <div id="browserGrid"></div>
+  </div>
+</div>
+<div id="browserDetail"></div>
+
+<!-- PAUSE -->
+<div id="pause">
+  <div class="panel">
+    <h3>⏸ PAUSED</h3>
+    <button class="btn btn-cream" id="btnResume">RESUME</button>
+    <button class="btn btn-ghost" id="btnPauseBrowser" style="color:#f2e8d5;">☰ BROWSE THE MENU</button>
+    <button class="btn btn-ghost" id="btnQuit" style="color:#f2e8d5;">QUIT TO TITLE</button>
+  </div>
+</div>
+
 <footer>
-  Vibe data — prices &amp; calories approximate. Unofficial. Unaffiliated. Unbothered.
+  Real menu data (Sep 2026 — prices &amp; calories approximate, vary per pub) · vibe stats are house opinion · unofficial, unaffiliated, unbothered.
 </footer>
 
 <script>
 "use strict";
-
-/* ==================== 1. DATA — edit these two and you're done ==================== */
-
-// A stat: higherWins=true → big number wins; false → small number wins.
-// fmt controls how the value shows on a card.
-const STATS = [
-  { key:"calories", label:"CALORIES",     higherWins:true,  fmt:v => v + " kcal" },
-  { key:"price",    label:"PRICE",        higherWins:false, fmt:v => "£" + v.toFixed(2) },
-  { key:"grease",   label:"GREASE",       higherWins:true,  fmt:v => v + "/10" },
-  { key:"hangover", label:"HANGOVER CURE",higherWins:true,  fmt:v => v + "/10" },
-  { key:"regret",   label:"REGRET",       higherWins:false, fmt:v => v + "/10" },
-];
-
-// Add menu items here. Keep grease/hangover/regret as 0–10; calories/price any number.
+/* ==================== 1. DATA ==================== */
+// AUTO-GENERATED menu data — real prices/kcal from the 2026 Spoons menu
+// (compiled from wetherspoonsmenus.com). Vibe stats are house opinion.
 const CARDS = [
-  { name:"Full English Breakfast",  art:"🍳", line:"Opens at 8am for people who closed at 4am.",
-    stats:{ calories:1094, price:6.49,  grease:8, hangover:9, regret:3 } },
-  { name:"Large Mixed Grill",       art:"🥩", line:"Less a meal, more a challenge.",
-    stats:{ calories:1280, price:11.49, grease:9, hangover:8, regret:2 } },
-  { name:"Fish & Chips",            art:"🐟", line:"The Friday institution.",
-    stats:{ calories:1330, price:9.99,  grease:9, hangover:5, regret:4 } },
-  { name:"Chicken Stack Burger",    art:"🍔", line:"Architecture you can eat.",
-    stats:{ calories:980,  price:8.79,  grease:7, hangover:6, regret:4 } },
-  { name:"Chicken Katsu Curry",     art:"🍛", line:"What everyone actually orders.",
-    stats:{ calories:850,  price:8.99,  grease:5, hangover:4, regret:3 } },
-  { name:"Punters' Pie & Mash",     art:"🥧", line:"Comfort in pastry form.",
-    stats:{ calories:1150, price:9.19,  grease:7, hangover:7, regret:3 } },
-  { name:"All-Day Brunch Muffin",   art:"🥪", line:"A breakfast you can eat standing up.",
-    stats:{ calories:720,  price:5.49,  grease:7, hangover:7, regret:2 } },
-  { name:"Garlic Pizza Bread",      art:"🧄", line:"Fights hunger and vampires at once.",
-    stats:{ calories:730,  price:4.19,  grease:8, hangover:3, regret:2 } },
-  { name:"Chicken Wings (12)",      art:"🍗", line:"Twelve wings, no cutlery, no fear.",
-    stats:{ calories:890,  price:7.49,  grease:9, hangover:4, regret:3 } },
-  { name:"Halloumi Fries",          art:"🧀", line:"The squeaky one.",
-    stats:{ calories:610,  price:5.29,  grease:8, hangover:2, regret:2 } },
-  { name:"Chips (Large)",           art:"🍟", line:"The reliable one.",
-    stats:{ calories:560,  price:3.49,  grease:8, hangover:3, regret:2 } },
-  { name:"Onion Rings (8)",         art:"🧅", line:"Eight rings. Zero regrets.",
-    stats:{ calories:390,  price:3.29,  grease:9, hangover:2, regret:2 } },
-  { name:"Jacket Potato & Beans",   art:"🥔", line:"Technically a balanced meal.",
-    stats:{ calories:520,  price:4.59,  grease:2, hangover:2, regret:1 } },
-  { name:"Vegan Sausage & Mash",    art:"🌱", line:"The mash is carrying this.",
-    stats:{ calories:640,  price:6.99,  grease:4, hangover:3, regret:2 } },
-  { name:"Sticky Toffee Pudding",   art:"🍮", line:"A custard delivery system.",
-    stats:{ calories:610,  price:2.89,  grease:5, hangover:2, regret:2 } },
-  { name:"Chocolate Fudge Cake",    art:"🍰", line:"Dense. Like the carpet's history.",
-    stats:{ calories:580,  price:2.99,  grease:4, hangover:2, regret:2 } },
-  { name:"Vanilla Ice Cream (3)",   art:"🍨", line:"The freezer section never misses.",
-    stats:{ calories:320,  price:1.69,  grease:2, hangover:1, regret:1 } },
-  { name:"Pint of Best Bitter",     art:"🍺", line:"The cause of and solution to all of this.",
-    stats:{ calories:210,  price:2.29,  grease:0, hangover:8, regret:1 } },
+  {name:"Large Breakfast",art:"🍳",cat:"BREAKFAST",price:6.79,kcal:1312,grease:7,dodge:4,hang:8,regret:2,carpet:4},
+  {name:"Traditional Breakfast",art:"🍳",cat:"BREAKFAST",price:5.19,kcal:770,grease:7,dodge:4,hang:8,regret:2,carpet:5},
+  {name:"Small Breakfast",art:"🍳",cat:"BREAKFAST",price:3.19,kcal:435,grease:6,dodge:4,hang:8,regret:3,carpet:5},
+  {name:"Freedom Breakfast",art:"🍳",cat:"BREAKFAST",price:3.40,kcal:581,grease:7,dodge:3,hang:8,regret:3,carpet:5},
+  {name:"Large Vegetarian Breakfast",art:"🍳",cat:"BREAKFAST",diet:"V",price:6.79,kcal:1067,grease:7,dodge:4,hang:8,regret:3,carpet:5},
+  {name:"Vegetarian Breakfast",art:"🍳",cat:"BREAKFAST",diet:"V",price:5.19,kcal:725,grease:7,dodge:4,hang:8,regret:3,carpet:5},
+  {name:"Small Vegetarian Breakfast",art:"🍳",cat:"BREAKFAST",diet:"V",price:3.19,kcal:281,grease:5,dodge:4,hang:8,regret:3,carpet:5},
+  {name:"Vegan Breakfast",art:"🌱",cat:"BREAKFAST",diet:"VG",price:3.19,kcal:612,grease:6,dodge:4,hang:8,regret:3,carpet:5},
+  {name:"Eggs Benedict",art:"🥚",cat:"BREAKFAST",price:5.92,kcal:774,grease:6,dodge:2,hang:8,regret:3,carpet:3},
+  {name:"Mushroom Benedict",art:"🍄",cat:"BREAKFAST",diet:"V",price:5.92,kcal:667,grease:6,dodge:2,hang:8,regret:3,carpet:3},
+  {name:"Miner's Benedict",art:"🥚",cat:"BREAKFAST",price:5.92,kcal:749,grease:6,dodge:6,hang:8,regret:3,carpet:9},
+  {name:"American Breakfast",art:"🥞",cat:"BREAKFAST",price:7.44,kcal:1258,grease:7,dodge:4,hang:8,regret:3,carpet:4},
+  {name:"Small American Breakfast",art:"🥞",cat:"BREAKFAST",price:5.57,kcal:629,grease:7,dodge:4,hang:8,regret:3,carpet:5},
+  {name:"Pancakes (Four)",art:"🥞",cat:"BREAKFAST",diet:"V",price:3.59,kcal:554,grease:4,dodge:4,hang:5,regret:3,carpet:5},
+  {name:"Pancakes (Two)",art:"🥞",cat:"BREAKFAST",diet:"V",price:2.45,kcal:277,grease:4,dodge:4,hang:4,regret:3,carpet:5},
+  {name:"Egg & Cheese Muffin",art:"🥪",cat:"BREAKFAST",diet:"V",price:2.89,kcal:286,grease:7,dodge:4,hang:5,regret:3,carpet:5},
+  {name:"Egg & Bacon Muffin",art:"🥪",cat:"BREAKFAST",price:3.09,kcal:351,grease:7,dodge:4,hang:6,regret:3,carpet:5},
+  {name:"Egg & Sausage Muffin",art:"🥪",cat:"BREAKFAST",price:3.09,kcal:454,grease:7,dodge:4,hang:6,regret:3,carpet:5},
+  {name:"Egg & Veg Sausage Muffin",art:"🥪",cat:"BREAKFAST",diet:"V",price:3.09,kcal:357,grease:7,dodge:4,hang:5,regret:3,carpet:5},
+  {name:"Breakfast Muffin",art:"🥪",cat:"BREAKFAST",price:3.29,kcal:520,grease:7,dodge:4,hang:7,regret:3,carpet:5},
+  {name:"Smashed Avocado Muffin",art:"🥑",cat:"BREAKFAST",diet:"VG",price:3.29,kcal:302,grease:3,dodge:4,hang:3,regret:1,carpet:2},
+  {name:"Bacon Butty",art:"🥓",cat:"BREAKFAST",price:2.89,kcal:565,grease:7,dodge:3,hang:7,regret:3,carpet:5},
+  {name:"Sausage Butty",art:"🌭",cat:"BREAKFAST",price:2.89,kcal:706,grease:7,dodge:4,hang:7,regret:3,carpet:5},
+  {name:"Veg Sausage Butty",art:"🌭",cat:"BREAKFAST",diet:"V",price:2.89,kcal:512,grease:7,dodge:4,hang:6,regret:3,carpet:5},
+  {name:"Breakfast Wrap",art:"🌯",cat:"BREAKFAST",price:4.94,kcal:750,grease:7,dodge:4,hang:7,regret:3,carpet:5},
+  {name:"Veg Breakfast Wrap",art:"🌯",cat:"BREAKFAST",diet:"V",price:4.94,kcal:742,grease:7,dodge:4,hang:7,regret:3,carpet:5},
+  {name:"Scrambled Egg on Toast",art:"🍳",cat:"BREAKFAST",diet:"V",price:3.19,kcal:568,grease:5,dodge:4,hang:6,regret:3,carpet:5},
+  {name:"Beans on Toast",art:"🍞",cat:"BREAKFAST",diet:"V",price:3.19,kcal:558,grease:3,dodge:4,hang:6,regret:3,carpet:5},
+  {name:"Fresh Fruit",art:"🍓",cat:"BREAKFAST",diet:"VG",price:2.99,kcal:186,grease:0,dodge:0,hang:1,regret:0,carpet:0},
+  {name:"Fresh Fruit & Yoghurt",art:"🍓",cat:"BREAKFAST",diet:"V",price:3.49,kcal:320,grease:0,dodge:0,hang:1,regret:0,carpet:1},
+  {name:"Porridge",art:"🥣",cat:"BREAKFAST",diet:"V",price:1.99,kcal:188,grease:0,dodge:0,hang:3,regret:0,carpet:1},
+  {name:"Tea & Toast",art:"🍞",cat:"BREAKFAST",diet:"V",price:2.15,kcal:450,grease:2,dodge:4,hang:4,regret:1,carpet:2},
+  {name:"American Burger",art:"🍔",cat:"BURGER",price:6.99,kcal:1131,grease:7,dodge:5,hang:8,regret:4,carpet:6},
+  {name:"American Cheese Burger",art:"🍔",cat:"BURGER",price:7.49,kcal:1211,grease:7,dodge:5,hang:8,regret:4,carpet:6},
+  {name:"Crunchy Chicken Burger",art:"🍔",cat:"BURGER",price:5.99,kcal:1042,grease:7,dodge:5,hang:8,regret:4,carpet:6},
+  {name:"Korean Fried Chicken Burger",art:"🍔",cat:"BURGER",price:5.99,kcal:978,grease:8,dodge:6,hang:8,regret:4,carpet:6},
+  {name:"The Classic Burger",art:"🍔",cat:"BURGER",price:6.22,kcal:1143,grease:7,dodge:5,hang:8,regret:4,carpet:6},
+  {name:"Grilled Chicken Breast Burger",art:"🐔",cat:"BURGER",price:6.22,kcal:993,grease:4,dodge:5,hang:7,regret:4,carpet:6},
+  {name:"Fried Buttermilk Chicken Burger",art:"🍔",cat:"BURGER",price:8.39,kcal:1062,grease:8,dodge:5,hang:8,regret:4,carpet:6},
+  {name:"The Plant Burger",art:"🌱",cat:"BURGER",diet:"VG",price:6.22,kcal:1213,grease:7,dodge:6,hang:8,regret:3,carpet:6},
+  {name:"Halloumi & Sweet Chilli Burger",art:"🧀",cat:"BURGER",diet:"V",price:6.22,kcal:1265,grease:8,dodge:5,hang:8,regret:4,carpet:6},
+  {name:"The Big Smoke",art:"🍖",cat:"BURGER",price:10.89,kcal:1679,grease:7,dodge:5,hang:9,regret:3,carpet:5},
+  {name:"Cheese Meltdown",art:"🧀",cat:"BURGER",price:10.89,kcal:1589,grease:9,dodge:5,hang:9,regret:4,carpet:6},
+  {name:"Buffalo Burger",art:"🔥",cat:"BURGER",price:10.89,kcal:1679,grease:9,dodge:7,hang:9,regret:4,carpet:6},
+  {name:"BBQ Stack",art:"🌱",cat:"BURGER",diet:"VG",price:10.59,kcal:1360,grease:7,dodge:5,hang:8,regret:4,carpet:6},
+  {name:"The Ultimate Burger",art:"👑",cat:"BURGER",price:10.89,kcal:1698,grease:7,dodge:5,hang:9,regret:4,carpet:6},
+  {name:"Tennessee Burger",art:"🥃",cat:"BURGER",price:10.89,kcal:1566,grease:7,dodge:5,hang:9,regret:4,carpet:6},
+  {name:"The Empire State",art:"🗽",cat:"BURGER",price:12.05,kcal:1883,grease:9,dodge:5,hang:9,regret:6,carpet:7},
+  {name:"Margherita 8\"",art:"🍕",cat:"PIZZA",diet:"V",price:6.44,kcal:475,grease:6,dodge:4,hang:6,regret:3,carpet:7},
+  {name:"Spicy Chicken 8\"",art:"🍕",cat:"PIZZA",price:7.01,kcal:687,grease:6,dodge:6,hang:6,regret:3,carpet:7},
+  {name:"Pepperoni 8\"",art:"🍕",cat:"PIZZA",price:7.01,kcal:565,grease:6,dodge:6,hang:6,regret:3,carpet:7},
+  {name:"Ham & Mushroom 8\"",art:"🍕",cat:"PIZZA",price:7.01,kcal:517,grease:6,dodge:4,hang:6,regret:3,carpet:7},
+  {name:"BBQ Chicken 8\"",art:"🍕",cat:"PIZZA",price:7.01,kcal:562,grease:6,dodge:4,hang:6,regret:3,carpet:7},
+  {name:"Mediterranean Veg 8\"",art:"🍕",cat:"PIZZA",diet:"V",price:7.01,kcal:513,grease:5,dodge:2,hang:6,regret:3,carpet:7},
+  {name:"Vegan Mediterranean 8\"",art:"🍕",cat:"PIZZA",diet:"VG",price:7.01,kcal:349,grease:5,dodge:2,hang:6,regret:3,carpet:7},
+  {name:"Spicy Meat Feast 8\"",art:"🍕",cat:"PIZZA",price:7.60,kcal:616,grease:7,dodge:8,hang:6,regret:3,carpet:7},
+  {name:"Margherita 11\"",art:"🍕",cat:"PIZZA",diet:"V",price:9.61,kcal:949,grease:6,dodge:4,hang:6,regret:3,carpet:7},
+  {name:"Spicy Chicken 11\"",art:"🍕",cat:"PIZZA",price:10.78,kcal:1373,grease:6,dodge:6,hang:6,regret:3,carpet:7},
+  {name:"Pepperoni 11\"",art:"🍕",cat:"PIZZA",price:10.78,kcal:1130,grease:6,dodge:6,hang:6,regret:3,carpet:7},
+  {name:"Ham & Mushroom 11\"",art:"🍕",cat:"PIZZA",price:10.78,kcal:1034,grease:6,dodge:4,hang:6,regret:3,carpet:7},
+  {name:"BBQ Chicken 11\"",art:"🍕",cat:"PIZZA",price:10.78,kcal:1111,grease:6,dodge:4,hang:6,regret:3,carpet:7},
+  {name:"Mediterranean Veg 11\"",art:"🍕",cat:"PIZZA",diet:"V",price:10.78,kcal:1026,grease:5,dodge:2,hang:6,regret:3,carpet:7},
+  {name:"Vegan Mediterranean 11\"",art:"🍕",cat:"PIZZA",diet:"VG",price:10.78,kcal:697,grease:5,dodge:2,hang:6,regret:3,carpet:7},
+  {name:"Spicy Meat Feast 11\"",art:"🍕",cat:"PIZZA",price:11.95,kcal:1219,grease:7,dodge:8,hang:6,regret:3,carpet:7},
+  {name:"Nachos",art:"🧀",cat:"SIDES",diet:"V",price:6.49,kcal:1011,grease:8,dodge:4,hang:6,regret:4,carpet:4},
+  {name:"Bowl of Chips",art:"🍟",cat:"SIDES",diet:"VG",price:4.09,kcal:964,grease:9,dodge:4,hang:7,regret:4,carpet:9},
+  {name:"Chips with Curry Sauce",art:"🍟",cat:"SIDES",diet:"VG",price:5.08,kcal:1073,grease:8,dodge:5,hang:7,regret:4,carpet:10},
+  {name:"Cheesy Chips",art:"🧀",cat:"SIDES",diet:"V",price:5.74,kcal:1256,grease:9,dodge:4,hang:8,regret:3,carpet:8},
+  {name:"Loaded Chips",art:"🧀",cat:"SIDES",price:6.04,kcal:1303,grease:9,dodge:4,hang:8,regret:4,carpet:7},
+  {name:"Shawarma Chicken Topped Chips",art:"🍟",cat:"SIDES",price:6.04,kcal:1300,grease:8,dodge:7,hang:8,regret:4,carpet:7},
+  {name:"Halloumi-Style Fries",art:"🧀",cat:"SIDES",diet:"V",price:5.59,kcal:458,grease:8,dodge:4,hang:4,regret:2,carpet:7},
+  {name:"Chicken Bites (10)",art:"🍗",cat:"SIDES",price:6.71,kcal:411,grease:6,dodge:6,hang:4,regret:4,carpet:7},
+  {name:"Southern-Fried Chicken Strips (5)",art:"🍗",cat:"SIDES",price:6.71,kcal:547,grease:7,dodge:6,hang:4,regret:4,carpet:7},
+  {name:"Chicken Wings (10) + Naga",art:"🍗",cat:"SIDES",price:7.39,kcal:1026,grease:8,dodge:7,hang:5,regret:4,carpet:7},
+  {name:"Quorn Nuggets (8)",art:"🌱",cat:"SIDES",diet:"VG",price:5.59,kcal:369,grease:6,dodge:7,hang:4,regret:3,carpet:7},
+  {name:"Sweet Potato, Chickpea & Spinach Curry",art:"🍛",cat:"CURRY",diet:"VG",price:10.78,kcal:912,grease:5,dodge:3,hang:8,regret:1,carpet:9},
+  {name:"Chicken Tikka Masala",art:"🍛",cat:"CURRY",price:10.78,kcal:1032,grease:5,dodge:3,hang:8,regret:1,carpet:8},
+  {name:"Chicken Jalfrezi",art:"🍛",cat:"CURRY",price:8.99,kcal:919,grease:5,dodge:3,hang:9,regret:2,carpet:9},
+  {name:"Beef Madras",art:"🍛",cat:"CURRY",price:10.78,kcal:1084,grease:5,dodge:4,hang:9,regret:2,carpet:9},
+  {name:"Simple Sweet Potato Curry",art:"🍛",cat:"CURRY",diet:"VG",price:8.54,kcal:552,grease:5,dodge:3,hang:8,regret:1,carpet:9},
+  {name:"Simple Chicken Tikka Masala",art:"🍛",cat:"CURRY",price:8.54,kcal:672,grease:5,dodge:3,hang:8,regret:1,carpet:8},
+  {name:"Simple Chicken Jalfrezi",art:"🍛",cat:"CURRY",price:8.54,kcal:560,grease:5,dodge:3,hang:9,regret:2,carpet:9},
+  {name:"Simple Beef Madras",art:"🍛",cat:"CURRY",price:8.54,kcal:725,grease:5,dodge:3,hang:9,regret:2,carpet:9},
+  {name:"Katsu Grilled Chicken Curry",art:"🍛",cat:"CURRY",price:9.66,kcal:558,grease:5,dodge:3,hang:8,regret:1,carpet:5},
+  {name:"Katsu Quorn Nugget Curry",art:"🍛",cat:"CURRY",diet:"VG",price:9.66,kcal:678,grease:5,dodge:3,hang:8,regret:1,carpet:9},
+  {name:"Katsu Chicken Curry",art:"🍛",cat:"CURRY",price:10.78,kcal:844,grease:5,dodge:3,hang:8,regret:1,carpet:9},
+  {name:"Chicken & Tenderstem Broccoli",art:"🥦",cat:"CHICKEN",price:8.99,kcal:596,grease:3,dodge:1,hang:7,regret:1,carpet:2},
+  {name:"Chicken Pomodoro",art:"🍅",cat:"CHICKEN",price:8.99,kcal:470,grease:3,dodge:1,hang:7,regret:1,carpet:3},
+  {name:"BBQ Chicken Melt",art:"🍗",cat:"CHICKEN",price:10.52,kcal:1133,grease:8,dodge:5,hang:9,regret:3,carpet:6},
+  {name:"Chicken Spice Bag",art:"🌶️",cat:"CHICKEN",price:9.19,kcal:1065,grease:9,dodge:9,hang:6,regret:3,carpet:6},
+  {name:"Quorn No Chicken Spice Bag",art:"🌶️",cat:"CHICKEN",diet:"VG",price:9.19,kcal:944,grease:8,dodge:8,hang:6,regret:3,carpet:6},
+  {name:"Sticky Korean Fried Chicken",art:"🍢",cat:"CHICKEN",price:10.78,kcal:1226,grease:9,dodge:7,hang:7,regret:3,carpet:6},
+  {name:"Sticky Korean Grilled Chicken",art:"🍢",cat:"CHICKEN",price:10.78,kcal:984,grease:6,dodge:4,hang:7,regret:3,carpet:6},
+  {name:"Sticky Korean Fried Quorn",art:"🌱",cat:"CHICKEN",diet:"V",price:10.78,kcal:1104,grease:8,dodge:6,hang:7,regret:3,carpet:6},
+  {name:"Boneless Basket",art:"🍗",cat:"CHICKEN",price:9.61,kcal:1247,grease:9,dodge:7,hang:7,regret:3,carpet:6},
+  {name:"Chicken Bites Basket",art:"🍗",cat:"CHICKEN",price:9.19,kcal:1124,grease:8,dodge:7,hang:6,regret:3,carpet:6},
+  {name:"Southern-Fried Strips Basket",art:"🍗",cat:"CHICKEN",price:9.61,kcal:1282,grease:9,dodge:7,hang:7,regret:3,carpet:6},
+  {name:"Quorn Nuggets Basket",art:"🌱",cat:"CHICKEN",diet:"VG",price:9.19,kcal:1104,grease:8,dodge:7,hang:5,regret:3,carpet:6},
+  {name:"Freshly Battered Fish & Chips",art:"🐟",cat:"CLASSIC",price:12.35,kcal:1251,grease:9,dodge:3,hang:8,regret:2,carpet:8},
+  {name:"Whitby Breaded Scampi",art:"🦐",cat:"CLASSIC",price:9.39,kcal:1135,grease:8,dodge:5,hang:7,regret:2,carpet:8},
+  {name:"All-Day Brunch",art:"🍳",cat:"CLASSIC",price:10.36,kcal:1245,grease:6,dodge:3,hang:9,regret:2,carpet:8},
+  {name:"Vegetarian All-Day Brunch",art:"🍳",cat:"CLASSIC",diet:"V",price:10.36,kcal:992,grease:6,dodge:3,hang:9,regret:3,carpet:8},
+  {name:"Steak & Ale Pudding",art:"🥧",cat:"CLASSIC",price:9.26,kcal:1291,grease:7,dodge:3,hang:9,regret:1,carpet:9},
+  {name:"Bangers & Mash",art:"🌭",cat:"CLASSIC",price:9.26,kcal:888,grease:6,dodge:3,hang:8,regret:1,carpet:6},
+  {name:"Vegetarian Bangers & Mash",art:"🌭",cat:"CLASSIC",diet:"V",price:9.26,kcal:598,grease:5,dodge:3,hang:7,regret:1,carpet:8},
+  {name:"Wiltshire Ham, Eggs & Chips",art:"🍳",cat:"CLASSIC",price:8.66,kcal:874,grease:6,dodge:3,hang:7,regret:3,carpet:8},
+  {name:"Sausages, Chips & Beans",art:"🌭",cat:"CLASSIC",price:8.36,kcal:1170,grease:8,dodge:5,hang:8,regret:3,carpet:8},
+  {name:"Vegan Sausages, Chips & Beans",art:"🌭",cat:"CLASSIC",diet:"VG",price:8.36,kcal:880,grease:7,dodge:5,hang:7,regret:3,carpet:8},
+  {name:"Chilli Bean Non-Carne",art:"🌶️",cat:"CLASSIC",diet:"VG",price:9.26,kcal:644,grease:4,dodge:3,hang:8,regret:1,carpet:8},
+  {name:"Small Fish & Chips",art:"🐟",cat:"CLASSIC",price:9.89,kcal:687,grease:8,dodge:3,hang:6,regret:2,carpet:8},
+  {name:"Small Whitby Scampi",art:"🦐",cat:"CLASSIC",price:8.39,kcal:628,grease:7,dodge:5,hang:6,regret:3,carpet:8},
+  {name:"Small Ham, Egg & Chips",art:"🍳",cat:"CLASSIC",price:7.56,kcal:464,grease:6,dodge:3,hang:6,regret:3,carpet:8},
+  {name:"Small All-Day Brunch",art:"🍳",cat:"CLASSIC",price:7.55,kcal:681,grease:6,dodge:3,hang:8,regret:3,carpet:8},
+  {name:"Small Veg All-Day Brunch",art:"🍳",cat:"CLASSIC",diet:"V",price:7.55,kcal:590,grease:6,dodge:3,hang:8,regret:3,carpet:8},
+  {name:"Cheddar & Tomato Panini",art:"🥪",cat:"DELI",diet:"V",price:4.99,kcal:604,grease:4,dodge:3,hang:5,regret:3,carpet:3},
+  {name:"Ham & Cheddar Panini",art:"🥪",cat:"DELI",price:4.99,kcal:589,grease:4,dodge:3,hang:5,regret:3,carpet:3},
+  {name:"BBQ Chicken, Bacon & Cheddar Panini",art:"🥪",cat:"DELI",price:4.99,kcal:602,grease:4,dodge:4,hang:6,regret:3,carpet:3},
+  {name:"Tuna Mayo & Cheddar Panini",art:"🥪",cat:"DELI",price:4.99,kcal:581,grease:4,dodge:4,hang:5,regret:4,carpet:3},
+  {name:"Brunch Wrap",art:"🌯",cat:"DELI",price:5.04,kcal:754,grease:4,dodge:3,hang:7,regret:3,carpet:3},
+  {name:"Vegetarian Brunch Wrap",art:"🌯",cat:"DELI",diet:"V",price:5.04,kcal:634,grease:4,dodge:3,hang:7,regret:3,carpet:3},
+  {name:"Korean Fried Chicken Wrap",art:"🌯",cat:"DELI",price:5.04,kcal:582,grease:4,dodge:5,hang:5,regret:3,carpet:3},
+  {name:"Shawarma Chicken Wrap",art:"🌯",cat:"DELI",price:5.04,kcal:739,grease:4,dodge:6,hang:6,regret:3,carpet:3},
+  {name:"Southern-Fried Chicken Wrap",art:"🌯",cat:"DELI",price:5.04,kcal:636,grease:4,dodge:5,hang:6,regret:3,carpet:3},
+  {name:"Fried Halloumi Wrap",art:"🧀",cat:"DELI",diet:"V",price:5.04,kcal:740,grease:7,dodge:3,hang:5,regret:2,carpet:3},
+  {name:"Quorn Nuggets Wrap",art:"🌱",cat:"DELI",diet:"VG",price:5.04,kcal:535,grease:4,dodge:5,hang:4,regret:3,carpet:3},
+  {name:"Cold Chicken Breast Wrap",art:"🌯",cat:"DELI",price:5.04,kcal:512,grease:2,dodge:2,hang:3,regret:3,carpet:3},
+  {name:"Jacket Potato: Tuna Mayo",art:"🥔",cat:"JACKET",price:4.99,kcal:634,grease:3,dodge:2,hang:4,regret:3,carpet:4},
+  {name:"Jacket Potato: Coleslaw",art:"🥔",cat:"JACKET",diet:"V",price:4.99,kcal:602,grease:3,dodge:2,hang:4,regret:2,carpet:4},
+  {name:"Jacket Potato: Cheese",art:"🥔",cat:"JACKET",diet:"V",price:4.99,kcal:628,grease:5,dodge:2,hang:4,regret:2,carpet:4},
+  {name:"Jacket Potato: Baked Beans",art:"🥔",cat:"JACKET",diet:"VG",price:4.99,kcal:462,grease:3,dodge:2,hang:5,regret:2,carpet:4},
+  {name:"Jacket Potato: Chilli Non-Carne",art:"🥔",cat:"JACKET",diet:"VG",price:4.99,kcal:485,grease:3,dodge:2,hang:5,regret:2,carpet:4},
+  {name:"Jacket Potato: Mediterranean Veg",art:"🥔",cat:"JACKET",diet:"VG",price:4.99,kcal:475,grease:3,dodge:2,hang:4,regret:2,carpet:4},
+  {name:"The Smoky Spud",art:"🥔",cat:"JACKET",price:6.49,kcal:699,grease:5,dodge:4,hang:6,regret:2,carpet:4},
+  {name:"The Mexican Spud",art:"🥔",cat:"JACKET",diet:"V",price:6.49,kcal:736,grease:5,dodge:4,hang:6,regret:2,carpet:4},
+  {name:"The Loaded Spud",art:"🥔",cat:"JACKET",price:6.49,kcal:894,grease:8,dodge:5,hang:7,regret:2,carpet:4},
+  {name:"Ramen Noodle Bowl",art:"🍜",cat:"SALAD",diet:"V",price:7.69,kcal:477,grease:3,dodge:1,hang:5,regret:1,carpet:1},
+  {name:"Chicken & Bacon Salad",art:"🥗",cat:"SALAD",price:7.99,kcal:566,grease:2,dodge:0,hang:3,regret:1,carpet:1},
+  {name:"Mediterranean Salad",art:"🥗",cat:"SALAD",diet:"V",price:7.99,kcal:431,grease:1,dodge:0,hang:2,regret:0,carpet:1},
+  {name:"Halloumi & Mediterranean Salad",art:"🥗",cat:"SALAD",diet:"V",price:7.99,kcal:589,grease:3,dodge:0,hang:2,regret:1,carpet:1},
+  {name:"Pasta Alfredo",art:"🍝",cat:"SALAD",diet:"V",price:8.23,kcal:492,grease:5,dodge:0,hang:5,regret:1,carpet:3},
+  {name:"British Beef & Pancetta Lasagne",art:"🍝",cat:"SALAD",price:10.40,kcal:1347,grease:8,dodge:0,hang:9,regret:2,carpet:6},
+  {name:"Five Chicken Wings",art:"🍗",cat:"WINGS",price:3.10,kcal:445,grease:7,dodge:5,hang:6,regret:3,carpet:5},
+  {name:"Five Chicken Bites",art:"🍗",cat:"WINGS",price:3.10,kcal:153,grease:5,dodge:6,hang:3,regret:3,carpet:5},
+  {name:"Three Southern-Fried Strips",art:"🍗",cat:"WINGS",price:3.10,kcal:276,grease:7,dodge:5,hang:6,regret:3,carpet:5},
+  {name:"Five Quorn Nuggets",art:"🌱",cat:"WINGS",diet:"VG",price:3.10,kcal:192,grease:7,dodge:5,hang:6,regret:3,carpet:5},
+  {name:"Small Chips",art:"🍟",cat:"SIDES",diet:"VG",price:2.59,kcal:602,grease:8,dodge:4,hang:6,regret:4,carpet:9},
+  {name:"Whitby Scampi (8) Side",art:"🦐",cat:"SIDES",price:5.49,kcal:464,grease:7,dodge:5,hang:4,regret:4,carpet:7},
+  {name:"Side Salad",art:"🥬",cat:"SIDES",diet:"VG",price:2.49,kcal:111,grease:0,dodge:0,hang:1,regret:0,carpet:0},
+  {name:"Mediterranean Side Salad",art:"🥬",cat:"SIDES",diet:"V",price:3.42,kcal:214,grease:1,dodge:0,hang:1,regret:0,carpet:0},
+  {name:"Mediterranean Vegetables",art:"🥒",cat:"SIDES",diet:"VG",price:1.67,kcal:108,grease:0,dodge:0,hang:1,regret:0,carpet:0},
+  {name:"Tenderstem Broccoli & Peas",art:"🥦",cat:"SIDES",diet:"VG",price:1.50,kcal:91,grease:0,dodge:0,hang:1,regret:0,carpet:0},
+  {name:"Gravy",art:"🥣",cat:"SIDES",diet:"VG",price:0.99,kcal:37,grease:2,dodge:2,hang:2,regret:7,carpet:10},
+  {name:"Sliced Chilli",art:"🌶️",cat:"SIDES",diet:"VG",price:0.99,kcal:3,grease:0,dodge:2,hang:0,regret:5,carpet:0},
+  {name:"Coleslaw",art:"🥗",cat:"SIDES",diet:"V",price:1.60,kcal:266,grease:4,dodge:3,hang:2,regret:4,carpet:7},
+  {name:"Peas",art:"🟢",cat:"SIDES",diet:"VG",price:1.09,kcal:148,grease:0,dodge:0,hang:1,regret:2,carpet:7},
+  {name:"Mushy Peas",art:"🟢",cat:"SIDES",diet:"VG",price:1.09,kcal:204,grease:1,dodge:3,hang:2,regret:4,carpet:2},
+  {name:"Onion Rings (6)",art:"🧅",cat:"SIDES",diet:"V",price:2.55,kcal:244,grease:8,dodge:4,hang:4,regret:2,carpet:7},
+  {name:"Onion Rings (12)",art:"🧅",cat:"SIDES",diet:"V",price:3.80,kcal:489,grease:9,dodge:4,hang:4,regret:2,carpet:7},
+  {name:"Garlic Pizza Bread 8\"",art:"🧄",cat:"SIDES",diet:"V",price:4.75,kcal:389,grease:6,dodge:3,hang:3,regret:2,carpet:7},
+  {name:"Garlic Pizza Bread 11\"",art:"🧄",cat:"SIDES",diet:"V",price:5.97,kcal:778,grease:7,dodge:3,hang:4,regret:2,carpet:7},
+  {name:"Garlic Bread 8\" + Cheese",art:"🧄",cat:"SIDES",diet:"V",price:5.33,kcal:479,grease:7,dodge:3,hang:4,regret:2,carpet:7},
+  {name:"Garlic Bread 11\" + Cheese",art:"🧄",cat:"SIDES",diet:"V",price:6.84,kcal:958,grease:8,dodge:3,hang:4,regret:2,carpet:7},
+  {name:"Black Pudding",art:"⬛",cat:"SIDES",price:0.90,kcal:67,grease:8,dodge:9,hang:3,regret:3,carpet:9},
+  {name:"Hash Brown",art:"🥔",cat:"SIDES",diet:"V",price:0.61,kcal:82,grease:9,dodge:4,hang:4,regret:1,carpet:6},
+  {name:"Fried Egg (Side)",art:"🍳",cat:"SIDES",diet:"V",price:1.08,kcal:56,grease:6,dodge:2,hang:2,regret:1,carpet:7},
+  {name:"Baked Beans (Side)",art:"🫘",cat:"SIDES",diet:"VG",price:1.08,kcal:126,grease:2,dodge:1,hang:2,regret:3,carpet:7},
+  {name:"Two Tomato Halves",art:"🍅",cat:"SIDES",diet:"VG",price:0.67,kcal:16,grease:0,dodge:0,hang:0,regret:1,carpet:0},
+  {name:"Fresh Fruit & Ice Cream",art:"🍨",cat:"DESSERT",diet:"V",price:3.69,kcal:379,grease:1,dodge:1,hang:2,regret:1,carpet:2},
+  {name:"Salted Caramel Sticky Toffee Pudding",art:"🍮",cat:"DESSERT",diet:"V",price:5.67,kcal:799,grease:4,dodge:1,hang:2,regret:1,carpet:10},
+  {name:"Warm Chocolate Fudge Cake",art:"🍰",cat:"DESSERT",diet:"V",price:6.02,kcal:832,grease:4,dodge:1,hang:2,regret:1,carpet:8},
+  {name:"Warm Chocolate Brownie",art:"🍫",cat:"DESSERT",diet:"V",price:6.02,kcal:697,grease:4,dodge:1,hang:2,regret:1,carpet:8},
+  {name:"Warm Cookie Dough Sandwich",art:"🍪",cat:"DESSERT",diet:"V",price:6.02,kcal:601,grease:5,dodge:1,hang:2,regret:1,carpet:8},
+  {name:"Bramley Apple Crumble",art:"🥧",cat:"DESSERT",diet:"V",price:6.29,kcal:603,grease:4,dodge:1,hang:2,regret:1,carpet:7},
+  {name:"American-Style Pancakes (Dessert)",art:"🥞",cat:"DESSERT",diet:"V",price:5.57,kcal:650,grease:5,dodge:1,hang:2,regret:1,carpet:8},
+  {name:"Millionaire's Shortbread",art:"🍫",cat:"DESSERT",diet:"V",price:2.75,kcal:331,grease:3,dodge:1,hang:2,regret:1,carpet:9},
+  {name:"Vanilla Ice Cream & Sauce",art:"🍨",cat:"DESSERT",diet:"V",price:2.40,kcal:257,grease:1,dodge:1,hang:2,regret:1,carpet:2},
+  {name:"Cookie Crunch",art:"🍪",cat:"DESSERT",diet:"V",price:2.40,kcal:287,grease:3,dodge:1,hang:2,regret:1,carpet:8},
+  {name:"Mini Chocolate Brownie",art:"🍫",cat:"DESSERT",diet:"V",price:3.57,kcal:397,grease:4,dodge:1,hang:2,regret:1,carpet:8},
+  {name:"Mini Cookie Dough Sandwich",art:"🍪",cat:"DESSERT",diet:"V",price:3.57,kcal:349,grease:4,dodge:1,hang:2,regret:1,carpet:8},
+  {name:"Mini American Pancakes",art:"🥞",cat:"DESSERT",diet:"V",price:4.07,kcal:373,grease:4,dodge:1,hang:2,regret:1,carpet:8},
+  {name:"Flat White",art:"☕",cat:"HOT DRINK",price:1.89,kcal:92,grease:0,dodge:0,hang:5,regret:1,carpet:2},
+  {name:"Cappuccino",art:"☕",cat:"HOT DRINK",price:1.89,kcal:102,grease:0,dodge:0,hang:5,regret:1,carpet:2},
+  {name:"Latte",art:"☕",cat:"HOT DRINK",price:1.89,kcal:113,grease:0,dodge:0,hang:5,regret:1,carpet:2},
+  {name:"Espresso",art:"☕",cat:"HOT DRINK",price:1.89,kcal:6,grease:0,dodge:0,hang:6,regret:1,carpet:2},
+  {name:"Black Coffee",art:"☕",cat:"HOT DRINK",price:1.89,kcal:6,grease:0,dodge:0,hang:6,regret:1,carpet:2},
+  {name:"White Coffee",art:"☕",cat:"HOT DRINK",price:1.89,kcal:24,grease:0,dodge:0,hang:5,regret:1,carpet:2},
+  {name:"Tea",art:"🫖",cat:"HOT DRINK",price:1.89,kcal:14,grease:0,dodge:0,hang:4,regret:0,carpet:1},
+  {name:"Hot Chocolate",art:"🍫",cat:"HOT DRINK",price:1.89,kcal:169,grease:0,dodge:1,hang:3,regret:1,carpet:6},
+  {name:"Pint of Carling",art:"🍺",cat:"COLD DRINK",price:4.19,kcal:187,grease:0,dodge:2,hang:6,regret:1,carpet:3},
+  {name:"Pint of Stella Artois",art:"🍺",cat:"COLD DRINK",price:4.69,kcal:227,grease:0,dodge:3,hang:7,regret:2,carpet:3},
+  {name:"Pint of Guinness",art:"🍺",cat:"COLD DRINK",price:5.19,kcal:210,grease:0,dodge:2,hang:8,regret:1,carpet:8},
+  {name:"Pint of Guest Ale",art:"🍺",cat:"COLD DRINK",price:5.05,kcal:220,grease:0,dodge:3,hang:7,regret:1,carpet:7},
+  {name:"Pint of Pepsi",art:"🥤",cat:"COLD DRINK",price:2.99,kcal:250,grease:0,dodge:5,hang:3,regret:2,carpet:2},
+  {name:"Monster Energy",art:"⚡",cat:"COLD DRINK",price:2.99,kcal:225,grease:0,dodge:9,hang:4,regret:7,carpet:0},
+  {name:"J2O Purple",art:"🧃",cat:"COLD DRINK",price:2.79,kcal:140,grease:0,dodge:4,hang:2,regret:3,carpet:3},
+  {name:"Glass of White Wine (125ml)",art:"🍷",cat:"COLD DRINK",price:3.19,kcal:83,grease:0,dodge:2,hang:4,regret:2,carpet:3},
+  {name:"Large Glass of Wine (250ml)",art:"🍷",cat:"COLD DRINK",price:4.69,kcal:166,grease:0,dodge:2,hang:5,regret:3,carpet:3},
+  {name:"Prosecco (125ml)",art:"🥂",cat:"COLD DRINK",price:3.29,kcal:80,grease:0,dodge:2,hang:4,regret:2,carpet:3},
+  {name:"Gin & Tonic",art:"🍸",cat:"COLD DRINK",price:3.19,kcal:90,grease:0,dodge:2,hang:5,regret:1,carpet:3},
+  {name:"Whisky (25ml)",art:"🥃",cat:"COLD DRINK",price:2.79,kcal:61,grease:0,dodge:3,hang:6,regret:2,carpet:6},
+  {name:"Glass of Tap Water",art:"💧",cat:"COLD DRINK",diet:"VG",price:0.00,kcal:0,grease:0,dodge:0,hang:1,regret:0,carpet:0},
 ];
 
-/* ==================== 2. ENGINE (no DOM in here) ==================== */
 
+// Derived stats + stat metadata ------------------------------------
+const clamp10 = v => Math.max(0, Math.min(10, v));
+function hashStr(s){ let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h); }
+const MESS_BASE = { BREAKFAST:1, BURGER:1, PIZZA:1, CURRY:2, CHICKEN:1, CLASSIC:1, DELI:0, JACKET:0, SALAD:-1, WINGS:1, SIDES:1, DESSERT:1, "HOT DRINK":-1, "COLD DRINK":-1 };
+const SPEED_BASE = { "COLD DRINK":1, "HOT DRINK":2, WINGS:4, SIDES:4, DESSERT:4, PIZZA:9, BURGER:10, BREAKFAST:9, CLASSIC:12, CURRY:8, CHICKEN:9, DELI:6, JACKET:7, SALAD:5 };
+const OVERRIDES = {
+  "Pint of Guinness":{ speed:5 }, "Monster Energy":{ speed:1 }, "Glass of Tap Water":{ speed:1 },
+  "Large Breakfast":{ speed:12 }, "The Empire State":{ speed:13 }, "Gravy":{ speed:2, mess:4 },
+  "Chips with Curry Sauce":{ mess:9 }, "Freshly Battered Fish & Chips":{ speed:12 },
+  "Steak & Ale Pudding":{ speed:10 }, "Porridge":{ speed:3 }, "Eggs Benedict":{ speed:11 },
+  "Mushy Peas":{ mess:4 }, "Pint of Guest Ale":{ speed:5 },
+};
+CARDS.forEach(c => {
+  const o = OVERRIDES[c.name] || {};
+  c.mess = clamp10(Math.round(c.kcal / 1883 * 5 + c.grease * 0.5 + (MESS_BASE[c.cat] || 0)));
+  if (o.mess !== undefined) c.mess = clamp10(o.mess);
+  const jit = (hashStr(c.name) % 3) - 1;
+  c.speed = Math.max(1, Math.min(13, (o.speed !== undefined ? o.speed : (SPEED_BASE[c.cat] || 5)) + jit));
+});
+
+const CAT_LABEL = { BREAKFAST:"BREAKFAST", BURGER:"BURGER", PIZZA:"PIZZA", CURRY:"CURRY", CHICKEN:"CHICKEN", CLASSIC:"PUB CLASSIC", DELI:"DELI", JACKET:"JACKET SPUD", SALAD:"SALAD/NOODLES", WINGS:"WINGS", SIDES:"SIDE/SMALL", DESSERT:"DESSERT", "HOT DRINK":"HOT DRINK", "COLD DRINK":"DRINK" };
+
+// A stat: higherWins → big wins; false → small wins. get(card) → number.
+const STATS = [
+  { key:"kcal",   label:"KCAL",         higherWins:true,  max:1900, fmt:v => v + " kcal",           get:c => c.kcal },
+  { key:"price",  label:"PRICE",        higherWins:false, max:13,   fmt:v => v === 0 ? "FREE" : "£" + v.toFixed(2), get:c => c.price },
+  { key:"grease", label:"GREASE",       higherWins:true,  max:10,   fmt:v => v + "/10",             get:c => c.grease },
+  { key:"dodge",  label:"DODGINESS",    higherWins:true,  max:10,   fmt:v => v + "/10",             get:c => c.dodge },
+  { key:"hang",   label:"HANGOVER CURE",higherWins:true,  max:10,   fmt:v => v + "/10",             get:c => c.hang },
+  { key:"regret", label:"REGRET",       higherWins:false, max:10,   fmt:v => v + "/10",             get:c => c.regret },
+  { key:"carpet", label:"CARPET MATCH", higherWins:true,  max:10,   fmt:v => v + "/10",             get:c => c.carpet },
+  { key:"mess",   label:"MESSINESS",    higherWins:true,  max:10,   fmt:v => v + "/10",             get:c => c.mess },
+  { key:"speed",  label:"SPEED",        higherWins:true,  max:13,   fmt:v => v + " min",            get:c => c.speed },
+];
 const statByKey = key => STATS.find(s => s.key === key);
 
+/* ==================== 2. AUDIO (synthesized, no files) ==================== */
+const AudioFX = (() => {
+  let ctx = null;
+  let muted = localStorage.getItem("spoons.mute") === "1";
+  function ac(){
+    if (!ctx){ try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } }
+    if (ctx && ctx.state === "suspended") ctx.resume().catch(() => {});
+    return ctx;
+  }
+  function tone(freq, dur, type, vol, when){
+    const c = ac(); if (!c || muted) return;
+    const t = c.currentTime + (when || 0);
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = type || "square"; o.frequency.setValueAtTime(freq, t);
+    g.gain.setValueAtTime(vol || 0.06, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(c.destination);
+    o.start(t); o.stop(t + dur + 0.02);
+  }
+  return {
+    unlock(){ ac(); },
+    click(){ tone(220, 0.06, "square", 0.045); },
+    win(){ [523, 659, 784].forEach((f, i) => tone(f, 0.09, "square", 0.055, i * 0.07)); },
+    lose(){ tone(196, 0.12, "square", 0.055); tone(131, 0.16, "square", 0.055, 0.1); },
+    draw(){ tone(330, 0.1, "triangle", 0.055); },
+    coin(){ tone(988, 0.07, "square", 0.055); tone(1319, 0.18, "square", 0.055, 0.07); },
+    wave(){ [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.1, "square", 0.055, i * 0.09)); },
+    over(){ [392, 330, 262, 196].forEach((f, i) => tone(f, 0.14, "square", 0.055, i * 0.12)); },
+    toggleMute(){ muted = !muted; localStorage.setItem("spoons.mute", muted ? "1" : "0"); return muted; },
+    isMuted(){ return muted; },
+  };
+})();
+
+/* ==================== 3. ENGINE ==================== */
 function shuffle(arr){
   for (let i = arr.length - 1; i > 0; i--){
     const j = Math.floor(Math.random() * (i + 1));
@@ -359,259 +772,530 @@ function shuffle(arr){
   }
   return arr;
 }
-
-// +1 player wins, -1 ai wins, 0 draw
+// +1 player, -1 ai, 0 draw
 function compareStat(playerCard, aiCard, statKey){
   const st = statByKey(statKey);
-  const a = playerCard.stats[statKey], b = aiCard.stats[statKey];
+  const a = st.get(playerCard), b = st.get(aiCard);
   if (a === b) return 0;
   return (st.higherWins ? a > b : a < b) ? 1 : -1;
 }
 
-// EXTEND: AI difficulty. "Punter" = random pick.
-// Harder ideas: pick AI's own best stat; or peek at player's card (cheat weight).
-function aiChooseStat(aiCard){
-  return STATS[Math.floor(Math.random() * STATS.length)].key;
+// AI percentile per stat: precomputed sorted values + binary search rank
+const PERC = (() => {
+  const out = {};
+  for (const st of STATS){
+    const vals = CARDS.map(c => st.get(c)).sort((a, b) => a - b);
+    out[st.key] = { vals: vals, range: Math.max(1, vals[vals.length - 1] - vals[0]) };
+  }
+  return out;
+})();
+function percentile(statKey, value){
+  const p = PERC[statKey], vals = p.vals;
+  let lo = 0, hi = vals.length;
+  while (lo < hi){ const mid = (lo + hi) >> 1; if (vals[mid] < value) lo = mid + 1; else hi = mid; }
+  return lo / vals.length;
 }
 
-// Moves cards between decks. Returns "player" | "ai" | "draw".
-function settle(statKey){
-  const result = compareStat(game.playerCard, game.aiCard, statKey);
-  const taken = [game.playerCard, game.aiCard, ...game.pot.splice(0)]; // winner hoovers the pot
-  if (result > 0){ game.playerDeck.push(...taken); game.turnOwner = "player"; return "player"; }
-  if (result < 0){ game.aiDeck.push(...taken);     game.turnOwner = "ai";     return "ai"; }
-  game.pot.push(...taken); // draw: both cards sit in the pot until the next decisive round
-  return "draw";
+// AI levels: 0 Punter (random) · 1 Regular (own best stat, 20% noise) · 2 Landlord (counters player's favourite stats)
+const AI_NAMES = ["PUNTER", "REGULAR", "THE LANDLORD"];
+function aiChooseStat(aiCard, level){
+  if (level === 0 || Math.random() < 0.08) return STATS[Math.floor(Math.random() * STATS.length)].key;
+  if (level === 2 && game.pickHistory.length){
+    const fav = Object.entries(game.pickHistory).sort((a, b) => b[1] - a[1])[0];
+    if (fav && fav[1] >= 3 && percentile(fav[0], statByKey(fav[0]).get(aiCard)) >= 0.45) return fav[0];
+  }
+  let best = STATS[0], bestP = -1;
+  for (const st of STATS){
+    const p = percentile(st.key, st.get(aiCard));
+    const eff = st.higherWins ? p : 1 - p; // strength of this stat on this card
+    if (eff > bestP){ bestP = eff; best = st; }
+  }
+  return best.key;
 }
 
-/* ==================== 3. GAME STATE ==================== */
-
+/* ==================== 4. STATE + MODES ==================== */
+const MODES = {
+  arcade:  { label:"ARCADE",        startPlayer:6, waves:true,  endless:false, winPts:100 },
+  classic: { label:"CLASSIC 9V9",   startPlayer:0, waves:false, endless:false, winPts:100 }, // startPlayer 0 → split whole menu
+  endless: { label:"ENDLESS",       startPlayer:6, waves:false, endless:true,  winPts:150 },
+};
 const game = {
-  phase:"title",        // title | play | reveal | gameover
-  playerDeck:[], aiDeck:[], pot:[],
-  turnOwner:"player",   // winner of last round picks the stat
-  playerCard:null, aiCard:null, statKey:null,
-  round:0, busy:false,
+  mode:"arcade", phase:"title", paused:false,
+  playerDeck:[], aiDeck:[], bag:[], pot:[],
+  turnOwner:"player", playerCard:null, aiCard:null, statKey:null,
+  round:0, wave:1, busy:false, aiLevel:1,
+  score:0, streak:0, bestStreak:0, biggestPot:0, roundsPlayed:0, statWins:{},
+  pickHistory:{}, // stat -> times player picked it (Landlord reads this)
 };
 
-function startGame(){
-  const shuffled = shuffle(CARDS.slice());
-  game.playerDeck = shuffled.slice(0, shuffled.length / 2);
-  game.aiDeck     = shuffled.slice(shuffled.length / 2);
-  game.pot = []; game.turnOwner = "player";
-  game.round = 0; game.busy = false; game.statKey = null;
+function refillBag(){
+  const inPlay = new Set([...game.playerDeck, ...game.aiDeck, ...game.pot]);
+  let fresh = shuffle(CARDS.filter(c => !inPlay.has(c)));
+  if (!fresh.length) fresh = shuffle(CARDS.slice());
+  game.bag = fresh;
+}
+function drawFromBag(n){
+  const out = [];
+  for (let i = 0; i < n; i++){
+    if (!game.bag.length) refillBag();
+    if (!game.bag.length) break;
+    out.push(game.bag.pop());
+  }
+  return out;
+}
+function aiLevelForWave(w){ return w <= 2 ? 0 : (w <= 5 ? 1 : 2); }
+
+function startGame(mode){
+  game.mode = mode;
+  const M = MODES[mode];
+  game.playerDeck = []; game.aiDeck = []; game.pot = []; game.bag = [];
+  game.turnOwner = "player"; game.statKey = null;
+  game.score = 0; game.streak = 0; game.bestStreak = 0; game.biggestPot = 0;
+  game.roundsPlayed = 0; game.statWins = {}; game.pickHistory = {};
+  game.wave = 1; game.aiLevel = M.waves ? 0 : 1;
+  if (M.endless || M.waves){
+    game.playerDeck = drawFromBag(M.startPlayer);
+    game.aiDeck = M.waves ? drawFromBag(Math.min(4 + game.wave, 12)) : [];
+  } else { // classic: whole menu split
+    const sh = shuffle(CARDS.slice());
+    const half = Math.ceil(sh.length / 2);
+    game.playerDeck = sh.slice(0, half);
+    game.aiDeck = sh.slice(half);
+  }
   showScreen("table");
   beginRound();
 }
 
 function beginRound(){
-  game.round++;
-  game.playerCard = game.playerDeck.shift(); // cards leave the deck while on the table
-  game.aiCard     = game.aiDeck.shift();
   game.phase = "play";
+  game.playerCard = game.playerDeck.shift();
+  game.aiCard = game.mode === "endless"
+    ? drawFromBag(1)[0]
+    : game.aiDeck.shift();
   renderHud();
-  renderPlayerCard({ pickable: game.turnOwner === "player" });
+  renderPlayerCard({ pickable: game.turnOwner === "player", deal: true });
   renderAiBack();
-  setVerdict("");
+  setVerdict(game.turnOwner === "player"
+    ? '<div class="verdict-sub" style="font-family:\'Press Start 2P\',monospace;font-size:9px;color:#ffc94d;">PICK YOUR STAT — KEYS 1-9 WORK TOO</div>'
+    : '<div class="verdict-line">THE SPOONS IS LOOKING…</div>');
   clearActions();
   if (game.turnOwner === "ai") aiTurn();
 }
 
 function playerPick(statKey){
-  if (game.phase !== "play" || game.turnOwner !== "player" || game.busy) return;
+  if (game.phase !== "play" || game.turnOwner !== "player" || game.paused) return;
+  game.pickHistory[statKey] = (game.pickHistory[statKey] || 0) + 1;
   game.statKey = statKey;
+  AudioFX.click();
   resolveRound();
 }
 
 function aiTurn(){
   game.busy = true;
-  setVerdict('<div class="verdict-line">THE SPOONS EYES UP ITS CARD…</div>');
   setTimeout(() => {
-    game.statKey = aiChooseStat(game.aiCard);
+    if (game.phase !== "play") { game.busy = false; return; }
+    game.statKey = aiChooseStat(game.aiCard, game.aiLevel);
     game.busy = false;
     resolveRound();
-  }, 900);
+  }, 850);
+}
+
+function settle(statKey){
+  const result = compareStat(game.playerCard, game.aiCard, statKey);
+  if (game.mode === "endless"){
+    if (result > 0){ game.playerDeck.push(game.aiCard, ...game.pot.splice(0)); return "player"; }
+    if (result < 0){ game.playerDeck.push(...game.pot.splice(0)); return "ai"; } // player's card is binned
+    game.pot.push(game.playerCard, game.aiCard); return "draw";
+  }
+  const taken = [game.playerCard, game.aiCard, ...game.pot.splice(0)];
+  if (result > 0){ game.playerDeck.push(...taken); game.turnOwner = "player"; return "player"; }
+  if (result < 0){ game.aiDeck.push(...taken); game.turnOwner = "ai"; return "ai"; }
+  game.pot.push(...taken); return "draw";
 }
 
 function resolveRound(){
   game.phase = "reveal";
+  game.roundsPlayed++;
   const winner = settle(game.statKey);
+  const st = statByKey(game.statKey);
+  const margin = Math.abs(st.get(game.playerCard) - st.get(game.aiCard));
+
+  if (winner === "player"){
+    game.streak++;
+    game.bestStreak = Math.max(game.bestStreak, game.streak);
+    game.statWins[game.statKey] = (game.statWins[game.statKey] || 0) + 1;
+    const mult = Math.min(Math.max(1, game.streak), 5);
+    const pts = (MODES[game.mode].winPts + Math.floor(margin / PERC[game.statKey].range * 100)) * mult;
+    game.score += pts;
+    if (game.streak >= 2) showCombo(mult);
+    AudioFX.win(); shake("shake-soft");
+  } else if (winner === "ai"){
+    game.streak = 0;
+    AudioFX.lose(); shake("shake-hard");
+  } else {
+    AudioFX.draw();
+  }
+  game.biggestPot = Math.max(game.biggestPot, game.pot.length);
+
   renderHud();
   renderAiReveal();
-  highlightStats(game.statKey);
-  renderVerdict(winner);
-  if (!game.playerDeck.length || !game.aiDeck.length){
-    setTimeout(endGame, 1400);
-  } else {
+  highlightStats(game.statKey, winner);
+  renderVerdict(winner, margin);
+
+  if (!game.playerDeck.length){ setTimeout(() => endGame(winner === "player" ? "sweep" : "out"), 1500); return; }
+  if (MODES[game.mode].waves && !game.aiDeck.length){
+    const bonus = 500 * game.wave;
+    game.score += bonus;
+    game.wave++;
+    game.aiLevel = aiLevelForWave(game.wave);
+    game.aiDeck = drawFromBag(Math.min(4 + game.wave, 12));
+    renderHud();
+    AudioFX.wave();
+    setVerdict('<div class="verdict-line wave">WAVE ' + (game.wave - 1) + ' CLEARED +' + bonus + '</div>' +
+      '<div class="verdict-sub">NEXT UP: ' + AI_NAMES[game.aiLevel] + ' · ' + game.aiDeck.length + ' CARDS</div>');
     renderNextButton();
+    return;
   }
+  renderNextButton();
 }
 
 function endGame(){
-  game.phase = "gameover";
-  const you = game.playerDeck.length, ai = game.aiDeck.length;
+  game.phase = "over";
+  AudioFX.over();
+  const mode = game.mode, M = MODES[mode];
+  const you = game.playerDeck.length;
+  const ai = game.aiDeck.length;
   const title = document.getElementById("overTitle");
-  const line  = document.getElementById("overLine");
-  if (you > ai){
-    title.textContent = "LAST ORDERS ARE YOURS";
+  if (mode === "endless"){
+    title.textContent = "CUT OFF AT " + game.roundsPlayed + " ROUNDS";
+    title.className = "lose";
+  } else if (you > ai || (mode === "arcade")){
+    title.textContent = mode === "arcade" ? "WAVE " + game.wave + " — LAST ORDERS" : "LAST ORDERS ARE YOURS";
     title.className = "win";
-    line.textContent = "You hold the entire menu. The Spoons nods respectfully and turns the chairs up.";
-  } else if (ai > you){
+  } else {
     title.textContent = "YOU'VE BEEN CUT OFF";
     title.className = "lose";
-    line.textContent = "The Spoons holds every card. Go home. Drink a glass of water. Think about what you did.";
-  } else {
-    title.textContent = "THE POT TAKES IT ALL";
-    title.className = "";
-    line.textContent = "Dead heat. The whole menu dissolves into the pot. Nobody speaks of this round again.";
   }
   document.getElementById("overScore").textContent =
-    "FINAL — YOU " + you + " · SPOONS " + ai + " · POT " + game.pot.length;
+    "SCORE " + game.score + " · BEST " + highScore(mode);
+  document.getElementById("overStats").innerHTML =
+    "ROUNDS " + game.roundsPlayed + " · LONGEST STREAK " + game.bestStreak +
+    " · BIGGEST POT " + game.biggestPot +
+    "<br>GO-TO WEAPON: " + topStatLine();
+  renderLeaderboard(mode);
+  const isHigh = game.score > 0 && game.score > highScore(mode);
+  document.getElementById("initialsForm").classList.toggle("open", isHigh);
   showScreen("over");
 }
+function topStatLine(){
+  const entries = Object.entries(game.statWins).sort((a, b) => b[1] - a[1]);
+  if (!entries.length) return "NONE (brutal)";
+  const st = statByKey(entries[0][0]);
+  return st.label + " ×" + entries[0][1];
+}
 
-/* ==================== 4. UI ==================== */
+/* ---------- high scores ---------- */
+function highScore(mode){
+  const v = localStorage.getItem("spoons.high." + mode);
+  return v ? parseInt(v, 10) || 0 : 0;
+}
+function saveScore(mode, initials, score){
+  const key = "spoons.board." + mode;
+  let board = [];
+  try { board = JSON.parse(localStorage.getItem(key)) || []; } catch (e) { board = []; }
+  board.push({ ini: initials, sc: score });
+  board.sort((a, b) => b.sc - a.sc);
+  board = board.slice(0, 5);
+  localStorage.setItem(key, JSON.stringify(board));
+  if (score > highScore(mode)) localStorage.setItem("spoons.high." + mode, String(score));
+}
+function renderLeaderboard(mode){
+  let board = [];
+  try { board = JSON.parse(localStorage.getItem("spoons.board." + mode)) || []; } catch (e) {}
+  if (!board.length){ document.getElementById("leaderboard").textContent = "NO SCORES YET — BE THE FIRST."; return; }
+  document.getElementById("leaderboard").innerHTML =
+    board.map((b, i) => (i + 1) + ". " + b.ini + " — " + b.sc).join("<br>");
+}
+function refreshBests(){
+  document.getElementById("bestArcade").textContent = "BEST " + highScore("arcade");
+  document.getElementById("bestClassic").textContent = "BEST " + highScore("classic");
+  document.getElementById("bestEndless").textContent = "BEST " + highScore("endless");
+  document.getElementById("countBest").textContent = highScore(game.mode);
+}
 
+/* ==================== 5. UI ==================== */
 const el = id => document.getElementById(id);
-
-const BANTER = {
-  player:[
-    "YOURS. GET IN.", "THE SPOONS FEARS YOU.", "TAKEN. NO CONTEST.", "AN ABSOLUTE STEAL.",
-  ],
-  ai:[
-    "THE HOUSE TAKES IT.", "DEVASTATING.", "THE CARPET CLAIMS ANOTHER.", "NOT YOUR ROUND.",
-  ],
-  draw:[
-    "DEAD HEAT. TO THE POT.", "SPLIT DECISION. POT GROWS.",
-  ],
-};
 const pick = arr => arr[Math.floor(Math.random() * arr.length)];
-
+const BANTER = {
+  player:["YOURS. GET IN.","THE SPOONS FEARS YOU.","TAKEN. NO CONTEST.","AN ABSOLUTE STEAL.","THE CARPET TREMBLES."],
+  ai:["THE HOUSE TAKES IT.","DEVASTATING.","THE CARPET CLAIMS ANOTHER.","NOT YOUR ROUND.","THE LANDLORD LAUGHS."],
+  draw:["DEAD HEAT. TO THE POT.","SPLIT DECISION. POT GROWS."],
+};
 function showScreen(name){
   for (const s of ["title", "table", "over"]) el("screen-" + s).classList.toggle("hidden", s !== name);
+  if (name === "title") startAttract(); else stopAttract();
+}
+function shake(cls){
+  const st = el("stage");
+  st.classList.remove("shake-soft", "shake-hard");
+  void st.offsetWidth;
+  st.classList.add(cls);
+}
+function showCombo(mult){
+  const c = el("comboPop");
+  c.textContent = "COMBO ×" + mult;
+  c.classList.remove("show"); void c.offsetWidth; c.classList.add("show");
+  setTimeout(() => c.classList.remove("show"), 900);
 }
 
 function renderHud(){
-  el("countRound").textContent = game.round || "—";
+  el("scoreChip").textContent = String(game.score).padStart(6, "0");
+  el("modeLabel").textContent = MODES[game.mode].label;
   el("countPlayer").textContent = game.playerDeck.length;
-  el("countAi").textContent = game.aiDeck.length;
   el("countPot").textContent = game.pot.length;
+  el("potChip").style.display = game.pot.length ? "" : "none";
+  const combo = el("comboChip");
+  combo.style.display = game.streak >= 2 ? "" : "none";
+  if (game.streak >= 2) combo.textContent = "COMBO ×" + Math.min(game.streak, 5);
+  const waveChip = el("waveChip"), aiChip = el("aiChip");
+  if (MODES[game.mode].waves){ waveChip.style.display = ""; el("countWave").textContent = game.wave; aiChip.style.display = ""; el("countAi").textContent = game.aiDeck.length; }
+  else if (MODES[game.mode].endless){ waveChip.innerHTML = "STREAK <b>" + game.streak + "</b>"; waveChip.style.display = ""; aiChip.style.display = "none"; }
+  else { waveChip.style.display = "none"; aiChip.style.display = ""; el("countAi").textContent = game.aiDeck.length; }
+  el("countBest").textContent = highScore(game.mode);
 }
 
 function statRowHTML(st, card, opts){
-  const value = st.fmt(card.stats[st.key]);
+  const value = st.get(card);
   const arrow = st.higherWins ? "▲" : "▼";
-  const title = st.higherWins ? "higher wins" : "lower wins";
-  const tag = `<span class="tag" title="${title}">${arrow}</span>`;
+  const pct = Math.round(Math.max(0, Math.min(1, value / st.max)) * 100);
   const selected = opts && opts.selectedKey === st.key ? " selected" : "";
-  const dim = opts && opts.selectedKey && opts.selectedKey !== st.key ? " dim" : "";
-  const inner = `<span class="stat-label">${st.label} ${tag}</span><span class="stat-val">${value}</span>`;
+  const slam = opts && opts.slam && selected ? " slam" : "";
+  const dim = opts && opts.selectedKey && !selected ? " dim" : "";
+  const bar = '<span class="stat-bar"><i style="width:' + pct + '%"></i></span>';
+  const hint = opts && opts.asButton ? '<span class="keyhint">' + (opts.index + 1) + '</span>' : "";
+  const label = st.label + ' <span class="tag" title="' + (st.higherWins ? "higher wins" : "LOWER wins") + '">' + arrow + "</span>";
+  const inner = '<span class="stat-label">' + label + '</span>' + bar +
+    '<span class="stat-val">' + st.fmt(value) + "</span>" + hint;
   return opts && opts.asButton
-    ? `<button class="stat${selected}${dim}" data-stat="${st.key}" aria-label="${st.label} ${value}">${inner}</button>`
-    : `<div class="stat${selected}${dim}">${inner}</div>`;
+    ? '<button class="stat' + selected + dim + '" data-stat="' + st.key + '">' + inner + "</button>"
+    : '<div class="stat' + selected + dim + '">' + inner + "</div>";
 }
-
 function cardFaceHTML(card, opts){
-  const rows = STATS.map(st => statRowHTML(st, card, opts)).join("");
-  return `
-    <article class="card">
-      <div class="card-art">${card.art}</div>
-      <div class="card-body">
-        <h3 class="card-name">${card.name}</h3>
-        <p class="card-line">${card.line}</p>
-        <div class="stats${opts && opts.locked ? " stats-locked" : ""}">${rows}</div>
-      </div>
-    </article>`;
+  opts = opts || {};
+  const rows = STATS.map((st, i) => statRowHTML(st, card, Object.assign({}, opts, { index: i }))).join("");
+  const diet = card.diet === "VG" ? '<span class="diet-chip">VG</span>'
+    : card.diet === "V" ? '<span class="diet-chip v">V</span>' : "";
+  const deal = opts.deal ? " deal" : "";
+  return '<article class="card' + deal + '">' +
+    '<div class="card-art">' + card.art + "</div>" +
+    '<div class="card-body">' +
+      '<div class="card-topline"><span class="cat-chip">' + (CAT_LABEL[card.cat] || card.cat) + "</span>" + diet + "</div>" +
+      '<h3 class="card-name">' + card.name + "</h3>" +
+      '<div class="stats' + (opts.locked ? " stats-locked" : "") + '">' + rows + "</div>" +
+    "</div></article>";
 }
-
 function renderPlayerCard(opts){
-  const pickable = opts && opts.pickable;
   el("playerCard").innerHTML = cardFaceHTML(game.playerCard, {
-    asButton: pickable, locked: !pickable,
+    asButton: opts && opts.pickable, locked: !(opts && opts.pickable), deal: opts && opts.deal,
   });
 }
-
 function renderAiBack(){
-  el("aiCard").innerHTML = `
-    <article class="card">
-      <div class="card-back">
-        <div class="diamond"><div class="diamond-text">SPOONS<br><span class="red">TOP</span><br>TRUMPS</div></div>
-      </div>
-    </article>`;
+  el("aiCard").innerHTML =
+    '<article class="card"><div class="card-back"><div class="diamond"><div class="diamond-text">SPOONS<br><span class="red">TOP</span><br>TRUMPS</div></div></div></article>';
 }
-
 function renderAiReveal(){
-  el("aiCard").innerHTML = cardFaceHTML(game.aiCard, {
-    asButton: false, locked: true, selectedKey: game.statKey,
-  });
+  el("aiCard").innerHTML = cardFaceHTML(game.aiCard, { locked: true, selectedKey: game.statKey });
   const card = el("aiCard").querySelector(".card");
   if (card) card.classList.add("reveal");
 }
-
-// After the pick: mark the chosen stat on BOTH cards, dim the rest.
-function highlightStats(statKey){
+function highlightStats(statKey, winner){
   el("playerCard").innerHTML = cardFaceHTML(game.playerCard, {
-    asButton: false, locked: true, selectedKey: statKey,
+    locked: true, selectedKey: statKey, slam: true,
   });
+  const pc = el("playerCard").querySelector(".card"), ac = el("aiCard").querySelector(".card");
+  if (winner === "player" && ac) ac.classList.add("defeat");
+  if (winner === "ai" && pc) pc.classList.add("defeat");
+  if (winner === "player" && pc) pc.classList.add("award");
+  if (winner === "ai" && ac) ac.classList.add("award");
 }
-
-function renderVerdict(winner){
+function renderVerdict(winner, margin){
   const line = winner === "player" ? pick(BANTER.player)
-            : winner === "ai" ? pick(BANTER.ai)
-            : pick(BANTER.draw);
+    : winner === "ai" ? pick(BANTER.ai) : pick(BANTER.draw);
   const cls = winner === "player" ? "win" : winner === "ai" ? "lose" : "draw";
   const st = statByKey(game.statKey);
   const sub = winner === "draw"
-    ? `${game.playerCard.name} ${st.fmt(game.playerCard.stats[st.key])} — same as ${game.aiCard.name}. The pot grows to ${game.pot.length}.`
-    : `${game.playerCard.name} ${st.fmt(game.playerCard.stats[st.key])} vs ${game.aiCard.name} ${st.fmt(game.aiCard.stats[st.key])}`;
-  setVerdict(`<div class="verdict-line ${cls}">${line}</div><div class="verdict-sub">${sub}</div>`);
+    ? game.playerCard.name + " " + st.fmt(st.get(game.playerCard)) + " — same as " + game.aiCard.name + ". The pot grows to " + game.pot.length + "."
+    : game.playerCard.name + " " + st.fmt(st.get(game.playerCard)) + " vs " + game.aiCard.name + " " + st.fmt(st.get(game.aiCard)) +
+      (winner === "player" ? " · +" + Math.floor(margin / PERC[game.statKey].range * 100) + " margin bonus" : "");
+  setVerdict('<div class="verdict-line ' + cls + '">' + line + "</div><div class=\"verdict-sub\">" + sub + "</div>");
 }
-
 function setVerdict(html){ el("verdict").innerHTML = html; }
 function clearActions(){ el("roundActions").innerHTML = ""; }
-
 function renderNextButton(){
-  el("roundActions").innerHTML = `<button id="btnNext" class="btn btn-cream">NEXT CARD</button>`;
-  el("btnNext").addEventListener("click", () => {
-    if (game.phase !== "reveal") return;
-    beginRound();
-  });
+  el("roundActions").innerHTML = '<button id="btnNext" class="btn btn-cream">NEXT CARD</button>';
+  el("btnNext").addEventListener("click", () => { if (game.phase === "reveal") beginRound(); });
 }
 
-/* ==================== 5. WIRING ==================== */
+/* ---------- attract mode ---------- */
+let attractTimer = null, attractIdx = 0;
+const ATTRACT_CARDS = ["The Empire State", "Pint of Guinness", "Salted Caramel Sticky Toffee Pudding",
+  "Chicken Spice Bag", "Large Breakfast", "The Big Smoke", "Warm Chocolate Fudge Cake", "Pint of Best Bitter"];
+function startAttract(){
+  stopAttract();
+  const host = el("attract");
+  const render = () => {
+    const card = CARDS.find(c => c.name === ATTRACT_CARDS[attractIdx % ATTRACT_CARDS.length]) || CARDS[0];
+    attractIdx++;
+    host.innerHTML = cardFaceHTML(card, { locked: true });
+  };
+  render();
+  if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches){
+    attractTimer = setInterval(render, 2400);
+  }
+}
+function stopAttract(){ if (attractTimer){ clearInterval(attractTimer); attractTimer = null; } }
 
-el("btnStart").addEventListener("click", startGame);
-el("btnRematch").addEventListener("click", startGame);
+/* ==================== 6. MENU BROWSER ==================== */
+let browserCat = "ALL";
+function openBrowser(){
+  el("browser").classList.add("open");
+  const chips = el("catChips");
+  if (!chips.dataset.built){
+    chips.dataset.built = "1";
+    const cats = ["ALL"].concat(Object.keys(CAT_LABEL));
+    chips.innerHTML = cats.map(c =>
+      '<button data-cat="' + c + '"' + (c === "ALL" ? ' class="on"' : "") + ">" +
+      (c === "ALL" ? "ALL " + CARDS.length : (CAT_LABEL[c] + " " + CARDS.filter(x => x.cat === c).length)) + "</button>").join("");
+    chips.addEventListener("click", e => {
+      const b = e.target.closest("button[data-cat]");
+      if (!b) return;
+      browserCat = b.dataset.cat;
+      chips.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+      renderBrowserGrid();
+      AudioFX.click();
+    });
+  }
+  renderBrowserGrid();
+}
+function closeBrowser(){ el("browser").classList.remove("open"); el("browserDetail").classList.remove("open"); }
+function renderBrowserGrid(){
+  const q = (el("browserSearch").value || "").trim().toLowerCase();
+  const list = CARDS.filter(c =>
+    (browserCat === "ALL" || c.cat === browserCat) &&
+    (!q || c.name.toLowerCase().includes(q) || c.cat.toLowerCase().includes(q)));
+  el("browserCount").textContent = list.length + " ITEMS";
+  el("browserGrid").innerHTML = list.map(c =>
+    '<div class="bcard" data-name="' + c.name.replace(/"/g, "&quot;") + '">' +
+    '<span class="art">' + c.art + "</span><span><span class='nm'>" + c.name + "</span>" +
+    "<span class='meta'>" + CAT_LABEL[c.cat] + " · £" + c.price.toFixed(2) + " · " + c.kcal + " kcal" +
+    (c.diet ? " · " + c.diet : "") + "</span></span></div>").join("");
+}
+function openDetail(name){
+  const card = CARDS.find(c => c.name === name);
+  if (!card) return;
+  const det = el("browserDetail");
+  det.innerHTML = '<div style="filter:drop-shadow(0 20px 40px rgba(0,0,0,.6))">' +
+    cardFaceHTML(card, { locked: true }) +
+    '<div style="text-align:center;margin-top:10px;"><button class="btn btn-cream" id="btnDetailClose">CLOSE</button></div></div>';
+  det.classList.add("open");
+  el("btnDetailClose").addEventListener("click", () => det.classList.remove("open"));
+  det.addEventListener("click", e => { if (e.target === det) det.classList.remove("open"); }, { once: true });
+}
+
+/* ==================== 7. WIRING ==================== */
+el("btnArcade").addEventListener("click", () => { AudioFX.unlock(); startGame("arcade"); });
+el("btnClassic").addEventListener("click", () => { AudioFX.unlock(); startGame("classic"); });
+el("btnEndless").addEventListener("click", () => { AudioFX.unlock(); startGame("endless"); });
+el("btnRematch").addEventListener("click", () => startGame(game.mode));
+el("btnOverMenu").addEventListener("click", () => { refreshBests(); showScreen("title"); });
+el("btnBrowser").addEventListener("click", openBrowser);
+el("btnPauseBrowser").addEventListener("click", openBrowser);
+el("btnBrowserClose").addEventListener("click", closeBrowser);
+el("btnHowTitle").addEventListener("click", () => { const d = el("howto"); d.open = !d.open; });
 el("playerCard").addEventListener("click", e => {
   const btn = e.target.closest("button.stat");
   if (btn) playerPick(btn.dataset.stat);
 });
+el("browserSearch").addEventListener("input", renderBrowserGrid);
+el("browserGrid").addEventListener("click", e => {
+  const b = e.target.closest(".bcard");
+  if (b) openDetail(b.dataset.name);
+});
+el("btnMute").addEventListener("click", () => {
+  const m = AudioFX.toggleMute();
+  el("btnMute").textContent = m ? "🔇" : "🔊";
+});
+el("btnMute").textContent = AudioFX.isMuted() ? "🔇" : "🔊";
+el("btnPause").addEventListener("click", togglePause);
+el("btnResume").addEventListener("click", togglePause);
+el("btnQuit").addEventListener("click", () => {
+  el("pause").classList.remove("open");
+  game.paused = false; game.phase = "title";
+  refreshBests(); showScreen("title");
+});
+el("btnSaveInitials").addEventListener("click", () => {
+  const ini = (el("initialsInput").value || "AAA").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 3) || "AAA";
+  saveScore(game.mode, ini, game.score);
+  el("initialsForm").classList.remove("open");
+  renderLeaderboard(game.mode);
+  refreshBests();
+  AudioFX.coin();
+});
+function togglePause(){
+  if (game.phase === "title" || game.phase === "over") return;
+  game.paused = !game.paused;
+  el("pause").classList.toggle("open", game.paused);
+}
+document.addEventListener("keydown", e => {
+  if (el("browser").classList.contains("open")){
+    if (e.key === "Escape") closeBrowser();
+    return; // typing in search
+  }
+  if (e.key === "m" || e.key === "M"){ el("btnMute").click(); return; }
+  if (e.key === "p" || e.key === "P"){ togglePause(); return; }
+  if (game.paused) return;
+  if (game.phase === "play" && game.turnOwner === "player"){
+    const n = parseInt(e.key, 10);
+    if (n >= 1 && n <= STATS.length){
+      const st = STATS[n - 1];
+      playerPick(st.key);
+    }
+  } else if (game.phase === "reveal" && (e.key === "Enter" || e.key === " ")){
+    const nb = el("btnNext");
+    if (nb) nb.click();
+  } else if (game.phase === "over" && e.key === "Enter"){
+    startGame(game.mode);
+  }
+});
 
-/* ==================== 6. DEBUG HANDLES (handy for vibe coding) ==================== */
-
-window.__game = game; // poke at state from devtools
-
+/* ==================== 8. DEBUG ==================== */
+window.__game = game;
 window.__errs = [];
 window.addEventListener("error", e => window.__errs.push(String(e.message)));
 window.addEventListener("unhandledrejection", e => window.__errs.push("rejection: " + String(e.reason)));
-
-// Full headless game with no timers — verifies the engine end to end.
-// Mirrors the real flow: settle (which accounts the table cards) BEFORE the end check.
-window.__autoplay = function(){
-  startGame();
-  let guard = 1000;
-  while (game.phase !== "gameover" && guard--){
+window.__autoplay = function(mode){
+  startGame(mode || "classic");
+  let guard = 4000;
+  while (game.phase !== "over" && guard--){
     game.statKey = game.turnOwner === "ai"
-      ? aiChooseStat(game.aiCard)
+      ? aiChooseStat(game.aiCard, game.aiLevel)
       : STATS[Math.floor(Math.random() * STATS.length)].key;
     settle(game.statKey);
-    if (!game.playerDeck.length || !game.aiDeck.length){ endGame(); break; }
+    game.roundsPlayed++;
+    if (!game.playerDeck.length){ endGame(); break; }
+    if (MODES[game.mode].waves && !game.aiDeck.length){
+      game.score += 500 * game.wave; game.wave++;
+      game.aiLevel = aiLevelForWave(game.wave);
+      game.aiDeck = drawFromBag(Math.min(4 + game.wave, 12));
+    }
     game.playerCard = game.playerDeck.shift();
-    game.aiCard = game.aiDeck.shift();
-    game.round++;
+    game.aiCard = game.mode === "endless" ? drawFromBag(1)[0] : game.aiDeck.shift();
   }
-  return { you: game.playerDeck.length, spoons: game.aiDeck.length, pot: game.pot.length, rounds: game.round };
+  return { mode: game.mode, score: game.score, you: game.playerDeck.length,
+    ai: game.aiDeck.length, pot: game.pot.length, rounds: game.roundsPlayed, wave: game.wave };
 };
+refreshBests();
+startAttract();
 </script>
 </body>
 </html>
