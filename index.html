@@ -129,6 +129,27 @@ body::before{
 @media (prefers-reduced-motion:reduce){ .duck-track{ animation:none; } }
 
 
+/* ---------- Signup + Boards ---------- */
+.signup-panel{ max-width:340px; margin:0 auto 14px; padding:14px; background:rgba(20,25,32,.92); border:1px solid rgba(242,232,213,.2); border-radius:14px; display:flex; flex-direction:column; gap:8px; }
+.signup-head{ font-family:var(--font-arcade); color:var(--gold); font-size:12px; letter-spacing:.1em; text-align:center; }
+.signup-panel label{ color:var(--muted); font-size:10px; font-weight:800; }
+.signup-panel input{ font-family:var(--font-arcade); background:#141920; color:var(--cream); border:1px solid var(--gold); border-radius:8px; padding:10px; font-size:14px; text-transform:uppercase; }
+.boards-overlay{ position:fixed; inset:0; z-index:70; display:none; align-items:center; justify-content:center; background:rgba(8,10,14,.85); padding:18px; }
+.boards-overlay.open{ display:flex; }
+.boards-panel{ width:min(560px,100%); max-height:min(78vh,640px); display:flex; flex-direction:column; background:#141920; border:1px solid var(--gold); border-radius:16px; padding:16px; gap:10px; }
+.boards-head{ font-family:var(--font-arcade); color:var(--gold); letter-spacing:.12em; font-size:13px; text-align:center; }
+.boards-tabs{ display:flex; gap:6px; justify-content:center; }
+.boards-tabs .linkbtn.on{ color:var(--gold); text-decoration:underline; }
+.boards-list{ overflow:auto; display:flex; flex-direction:column; gap:4px; min-height:120px; }
+.boards-row{ display:flex; gap:8px; align-items:center; font-family:var(--font-arcade); font-size:12px; color:var(--cream); padding:7px 8px; border-radius:8px; background:rgba(242,232,213,.05); }
+.boards-row.me{ outline:1px solid var(--gold); }
+.boards-rank{ color:var(--muted); width:34px; }
+.boards-name{ flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.boards-sub{ color:var(--muted); font-size:10px; }
+.boards-elo{ color:var(--gold); font-variant-numeric:tabular-nums; }
+.boards-status{ text-align:center; color:var(--muted); font-family:var(--font-arcade); font-size:10px; min-height:14px; }
+.boards-close{ align-self:center; }
+
 /* ---------- Title ---------- */
 #screen-title{ text-align:center; padding-top:4vh; position:relative; }
 #screen-title h1{
@@ -575,6 +596,15 @@ footer{ text-align:center; color:#7b7264; font-size:11px; padding:12px 16px 18px
       </div>
     </div>
     <h1>SPOONS<br><span class="red">TOP TRUMPS</span></h1>
+
+    <div class="signup-panel" id="signupPanel" style="display:none;">
+      <div class="signup-head">FIRST TIME IN THE SPOONS?</div>
+      <label for="signupName">YOUR HANDLE (3-8)</label>
+      <input id="signupName" maxlength="8" placeholder="RUS" autocomplete="off" inputmode="text">
+      <label for="signupPub">NAME YOUR LOCAL (3-24)</label>
+      <input id="signupPub" maxlength="24" placeholder="MY LOCAL" autocomplete="off" inputmode="text">
+      <button class="btn btn-cream" id="btnSignupGo">LET'S GO</button>
+    </div>
     <p class="title-tag">★ 210 CARDS · THE ENTIRE MENU · 6 STATS ★</p>
     <p class="title-sub">
       <b>201 real Spoons menu items.</b> Pick a stat. Highest wins — except <b>Price</b> &amp; <b>Regret</b>, where lower wins.
@@ -592,6 +622,7 @@ footer{ text-align:center; color:#7b7264; font-size:11px; padding:12px 16px 18px
       <button class="linkbtn" id="btnSpoons">CHOOSE YOUR SPOONS</button> ·
       <button class="linkbtn" id="btnOnline">ONLINE</button> ·
       <button class="linkbtn" id="btnBrowser">BROWSE</button> ·
+      <button class="linkbtn" id="btnBoards">BOARDS</button> ·
       <button class="linkbtn" id="btnHowTitle">HOW TO PLAY</button>
     </div>
     
@@ -1032,6 +1063,7 @@ const AudioFX = (() => {
   try { musicOn = localStorage.getItem("spoons.music") !== "0"; } catch(e){}
   let musicTimer = null, musicStep = 0;
   let mediaAudio = null;
+  let fartAudio = null, fartIdx = 1;
   function ac(){
     if (!ctx){ try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } }
     if (ctx && ctx.state === "suspended") ctx.resume().catch(() => {});
@@ -1070,22 +1102,61 @@ const AudioFX = (() => {
     s.connect(g); g.connect(c.destination);
     s.start(t);
   }
-  /* --- 8-bit overlay tune: 16-step bassline + sparse lead, bar loops via setInterval.
-         Pub-carpet vibe: minor key bounce, nothing intrusive, sits under SFX. --- */
-  const BASS = [110, 110, 0, 110, 0, 110, 130.8, 0, 98, 98, 0, 98, 0, 130.8, 146.8, 0]; // A2 A2 C3 G2 G2 C3 D3
-  const LEAD = [0, 0, 440, 0, 392, 0, 440, 523, 0, 0, 392, 0, 440, 0, 0, 0];            // sparse blips
+  /* --- 8-bit upbeat multichannel tune: G major, ~150 BPM feel.
+     4 channels data-driven, 32 steps (4 bars) with a B-section variation.
+     Each step creates short-lived nodes that stop automatically. --- */
+  const BPM = 150;
+  const STEP_MS = Math.round((60 / BPM) * 1000 / 4); // 16th-note at 150 BPM = 100 ms
+  // Note frequencies (A4 = 440)
+  const N = {
+    G2: 98.00, A2: 110.00, B2: 123.47, C3: 130.81, D3: 146.83, E3: 164.81,
+    G3: 196.00, A3: 220.00, B3: 246.94, C4: 261.63, D4: 293.66, E4: 329.63,
+    Fs4: 369.99, G4: 392.00, A4: 440.00, B4: 493.88, C5: 523.25, D5: 587.33,
+    E5: 659.25, Fs5: 739.99, G5: 783.99
+  };
+  // 32-step loop. A-section = steps 0-15, B-section = steps 16-31 (variation).
+  const BASS = [
+    N.G2, 0, N.G2, N.D3, 0, N.G2, N.B2, 0,
+    N.D3, 0, N.D3, N.A2, 0, N.D3, N.Fs4, 0,
+    N.C3, 0, N.C3, N.G3, 0, N.C3, N.E3, 0,
+    N.D3, 0, N.B2, 0, N.G2, 0, N.D3, 0
+  ];
+  const LEAD = [
+    N.G4, 0, N.B4, 0, N.D5, 0, N.B4, N.G4,
+    N.A4, 0, N.C5, 0, N.E5, 0, N.C5, N.A4, 0,
+    N.B4, 0, N.D5, 0, N.G5, 0, N.D5, N.B4,
+    N.C5, N.B4, N.A4, N.G4, N.Fs4, N.G4, N.A4, 0
+  ];
+  const ARP = [
+    N.G4, N.B4, N.D5, N.B4, N.G4, N.B4, N.D5, N.B4,
+    N.A4, N.C5, N.E5, N.C5, N.A4, N.C5, N.E5, N.C5,
+    N.B4, N.D5, N.G5, N.D5, N.B4, N.D5, N.G5, N.D5,
+    N.C5, N.E5, N.G5, N.E5, N.D5, N.C5, N.B4, N.A4
+  ];
+  const DRUMS = {
+    kick:  [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
+            1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0],
+    hat:   [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0,
+            0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0],
+    snare: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+            0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0]
+  };
   function musicTick(){
     if (!musicOn || muted) return;
-    const i = musicStep % 16;
-    if (BASS[i]) tone(BASS[i], 0.12, "triangle", 0.05);
-    if (LEAD[i]) tone(LEAD[i], 0.08, "square", 0.032);
-    if (i % 4 === 0) noise(0.03, 0.02); // soft tick
+    const i = musicStep % 32;
+    if (BASS[i]) tone(BASS[i], 0.18, "triangle", 0.05);
+    if (LEAD[i]) tone(LEAD[i], 0.11, "square", 0.04);
+    if (ARP[i])  tone(ARP[i],  0.08, "square", 0.018);
+    if (DRUMS.kick[i])  tone(55, 0.12, "triangle", 0.08);
+    if (DRUMS.hat[i])   noise(0.035, 0.02);
+    if (DRUMS.snare[i]) noise(0.07, 0.035);
     musicStep++;
   }
   function startMusic(){
-    if (musicTimer || !musicOn) return;
+    stopMusic();
+    if (!musicOn || muted) return;
     const c = ac(); if (!c) return;
-    musicTimer = setInterval(musicTick, 220);
+    musicTimer = setInterval(musicTick, STEP_MS);
   }
   function stopMusic(){ if (musicTimer){ clearInterval(musicTimer); musicTimer = null; } }
   function resumeMusic(){ if (musicOn && !muted && !musicTimer) startMusic(); }
@@ -1123,6 +1194,20 @@ const AudioFX = (() => {
       const f = [659, 784, 880, 988][Math.min(step - 2, 3)] || 659; tone(f, 0.1, "square", 0.05); tone(f * 1.5, 0.12, "square", 0.04, 0.06);
     },
     fart(){
+      // Real vicious farts (CC0, fartsoundboard.com) alternate for variety; synthesized fallback.
+      try {
+        fartIdx = (fartIdx + 1) % 2;
+        const src = fartIdx === 0 ? "sfx/fart-pig.mp3" : "sfx/fart-alt.mp3";
+        if (!fartAudio) fartAudio = new Audio();
+        if (fartAudio.src.indexOf(src) === -1) fartAudio.src = src;
+        fartAudio.currentTime = 0;
+        fartAudio.volume = 0.9;
+        fartAudio.play().catch(() => { this.synthFart(); });
+        return;
+      } catch (e) { /* fall through to synth */ }
+      this.synthFart();
+    },
+    synthFart(){
       const c = ac(); if (!c || muted) return;
       const t = c.currentTime;
       // body: low sawtooth with pitch wobble (the classic brrip)
@@ -1448,9 +1533,15 @@ function onSpoonsItemClick(e){
   Spoons.pickPub(pub);
   updateSpoonsHeader();
   updatePlayingAt();
+  ensureSignup();
   closeSpoonsPanel();
   AudioFX.click();
   Spoons.loadChunk(pub.f);
+}
+function setBoardTab(tab){
+  ["tabGlobal", "tabPub", "tabPubPlayer"].forEach(id => document.getElementById(id).classList.toggle("on", false));
+  document.getElementById(tab === "global" ? "tabGlobal" : tab === "pub" ? "tabPub" : "tabPubPlayer").classList.add("on");
+  renderBoards(tab);
 }
 function updatePlayingAt(){
   const pub = Spoons.myPub();
@@ -1460,7 +1551,198 @@ function updatePlayingAt(){
   else { line.style.display = "none"; }
 }
 
+/* ============ BOARDS: shared leaderboard (players update it from any device) ============
+   Store: crudcrud.com namespace (keyless, CORS *). Single doc holds all players.
+   Player record: { elo, wins, losses, streak, pub, games, bigSpoon, updated }.
+   Flow: signup once (handle + local) -> after every finished game, submit result.
+   Fail-soft: any network error = boards show local cache, game never blocks.
+   NOTE (MVP): store is a free tier — data is demo-grade, last-write-wins on races.
+   Swap BOARD_NS/BOARD_API for a Supabase/Cloudflare edge when Spoons bite. */
+
+const BOARD_NS = "98a36877c84d487ea8884e04c024e399";
+const BOARD_API = "https://crudcrud.com/api/" + BOARD_NS + "/board";
+const LS_BOARD_ME = "spoons.me";
+const LS_BOARD_CACHE = "spoons.boardCache";
+let boardCache = null;      // last known players map
+let submitting = false;
+
+function me(){
+  try { const v = localStorage.getItem(LS_BOARD_ME); return v ? JSON.parse(v) : null; }
+  catch(e){ return null; }
+}
+function isSignedUp(){ return !!me(); }
+
+async function boardRead(){
+  try {
+    if (typeof fetch !== "function") throw new Error("no fetch");
+    const r = await fetch(BOARD_API, { cache: "no-store" });
+    if (!r.ok) throw new Error("status " + r.status);
+    const items = await r.json();
+    const doc = Array.isArray(items) && items[0] && items[0].players ? items[0] : null;
+    if (!doc) throw new Error("no doc");
+    boardCache = doc;
+    try { localStorage.setItem(LS_BOARD_CACHE, JSON.stringify(doc)); } catch(e){}
+    return doc;
+  } catch(e){
+    try { const v = localStorage.getItem(LS_BOARD_CACHE); return v ? JSON.parse(v) : { players: {} }; }
+    catch(e2){ return { players: {} }; }
+  }
+}
+
+async function boardWrite(doc){
+  const items = await (await fetch(BOARD_API, { cache: "no-store" })).json();
+  const cur = Array.isArray(items) && items[0] ? items[0] : null;
+  if (!cur || !cur._id) throw new Error("no doc");
+  const r = await fetch(BOARD_API + "/" + cur._id, {
+    method: "PUT", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id: "main", players: doc.players, pubs: doc.pubs || {} })
+  });
+  if (!r.ok) throw new Error("write " + r.status);
+  return true;
+}
+
+/* Submit my result after a finished game. Retries up to 3x with re-read (race-safe-ish). */
+async function boardSubmit(result){
+  const m = me(); if (!m || submitting) return false;
+  submitting = true;
+  try {
+    for (let attempt = 0; attempt < 3; attempt++){
+      const doc = await boardRead();
+      const players = doc.players || {};
+      const p = players[m.name] || { elo: 1200, wins: 0, losses: 0, streak: 0, games: 0, pub: m.pub, bigSpoon: false };
+      const expected = result.expectedElo || p.elo;
+      const k = 24;
+      p.elo = Math.max(400, Math.round(p.elo + k * ((result.win ? 1 : 0) - 1 / (1 + Math.pow(10, (expected - p.elo) / 400)))));
+      if (result.win){ p.wins++; p.streak = (p.streak || 0) + 1; } else { p.losses++; p.streak = 0; }
+      p.games = (p.games || 0) + 1;
+      p.pub = m.pub;
+      p.updated = Date.now();
+      const pubs = doc.pubs || {};
+      const key = (m.pub || "unknown").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "unknown";
+      const pb = pubs[key] || { name: m.pub || "Unknown", games: 0, topElo: 0 };
+      pb.games++;
+      if (p.elo > pb.topElo) pb.topElo = p.elo;
+      pubs[key] = pb;
+      const next = { players: Object.assign({}, players, { [m.name]: p }), pubs };
+      // cap the doc: top 120 by elo + always me
+      const entries = Object.entries(next.players);
+      if (entries.length > 130){
+        entries.sort((a, b) => (b[1].elo || 0) - (a[1].elo || 0));
+        const keep = new Set(entries.slice(0, 120).map(e => e[0])); keep.add(m.name);
+        next.players = Object.fromEntries(entries.filter(e => keep.has(e[0])));
+      }
+      try {
+        await boardWrite(next);
+        boardCache = next;
+        try { localStorage.setItem(LS_BOARD_CACHE, JSON.stringify(next)); } catch(e){}
+        return true;
+      } catch(e){ /* retry */ }
+    }
+    return false;
+  } finally { submitting = false; }
+}
+
+/* ---- signup UI ---- */
+function ensureSignup(){
+  const panel = document.getElementById("signupPanel");
+  if (!panel) return;
+  panel.style.display = isSignedUp() ? "none" : "";
+}
+function doSignup(){
+  const nEl = document.getElementById("signupName");
+  const pEl = document.getElementById("signupPub");
+  const name = (nEl.value || "").trim().toUpperCase();
+  const pub = (pEl.value || "").trim();
+  if (name.length < 3 || name.length > 8){ nEl.focus(); return; }
+  if (pub.length < 3 || pub.length > 24){ pEl.focus(); return; }
+  const m = { name, pub, since: Date.now() };
+  try { localStorage.setItem(LS_BOARD_ME, JSON.stringify(m)); } catch(e){}
+  ensureSignup();
+  AudioFX.coin();
+  renderBoards("global");
+}
+
+/* ---- boards UI ---- */
+function boardsTitleFor(tab){
+  return tab === "global" ? "WORLD TOP 20" : tab === "pub" ? "TOP SPOONS PUBS" : "PLAYERS AT MY SPOONS";
+}
+async function renderBoards(tab){
+  const list = document.getElementById("boardsList");
+  const status = document.getElementById("boardsStatus");
+  const m = me();
+  if (!list) return;
+  status.textContent = "PULLING THE BOARD…";
+  const doc = await boardRead();
+  const players = doc.players || {};
+  const pubs = doc.pubs || {};
+  list.textContent = "";
+  if (tab === "global"){
+    const rows = Object.entries(players).sort((a, b) => (b[1].elo || 0) - (a[1].elo || 0)).slice(0, 20);
+    if (!rows.length){ status.textContent = m ? "NO SCORES YET — GO SET THE PACE" : "NO SCORES YET"; return; }
+    rows.forEach(([nm, p], i) => {
+      const row = document.createElement("div");
+      row.className = "boards-row" + (m && nm === m.name ? " me" : "");
+      const rk = document.createElement("span"); rk.className = "boards-rank"; rk.textContent = String(i + 1);
+      const nwrap = document.createElement("span"); nwrap.className = "boards-name";
+      nwrap.textContent = nm + (p.streak >= 3 ? " 🔥" : "") + (p.bigSpoon ? " 🥄" : "");
+      const sub = document.createElement("span"); sub.className = "boards-sub";
+      sub.textContent = (p.pub || "?") + " · " + (p.wins || 0) + "W" + (p.losses ? "-" + p.losses : "");
+      nwrap.appendChild(sub);
+      const e = document.createElement("span"); e.className = "boards-elo"; e.textContent = String(p.elo || 1200);
+      row.append(rk, nwrap, e);
+      list.appendChild(row);
+    });
+    status.textContent = rows.length + " PLAYERS RANKED";
+  } else if (tab === "pub"){
+    const rows = Object.entries(pubs).sort((a, b) => (b[1].games || 0) - (a[1].games || 0)).slice(0, 20);
+    if (!rows.length){ status.textContent = "NO PUBS ON THE BOARD YET"; return; }
+    rows.forEach(([key, pb], i) => {
+      const row = document.createElement("div");
+      row.className = "boards-row";
+      const rk = document.createElement("span"); rk.className = "boards-rank"; rk.textContent = String(i + 1);
+      const nwrap = document.createElement("span"); nwrap.className = "boards-name"; nwrap.textContent = pb.name || key;
+      const sub = document.createElement("span"); sub.className = "boards-sub";
+      sub.textContent = (pb.games || 0) + " GAMES";
+      nwrap.appendChild(sub);
+      const e = document.createElement("span"); e.className = "boards-elo"; e.textContent = String(pb.topElo || 0);
+      row.append(rk, nwrap, e);
+      list.appendChild(row);
+    });
+    status.textContent = rows.length + " PUBS PLAYING";
+  } else {
+    if (!m){ status.textContent = "SIGN UP FIRST — NAME YOUR LOCAL"; return; }
+    const mine = Object.entries(players).filter(([, p]) => (p.pub || "").toLowerCase() === m.pub.toLowerCase())
+      .sort((a, b) => (b[1].elo || 0) - (a[1].elo || 0)).slice(0, 20);
+    if (!mine.length){ status.textContent = "NO ONE AT " + m.pub.toUpperCase() + " YET — YOU'RE FIRST"; return; }
+    mine.forEach(([nm, p], i) => {
+      const row = document.createElement("div");
+      row.className = "boards-row" + (nm === m.name ? " me" : "");
+      const rk = document.createElement("span"); rk.className = "boards-rank"; rk.textContent = String(i + 1);
+      const nwrap = document.createElement("span"); nwrap.className = "boards-name";
+      nwrap.textContent = nm + (p.streak >= 3 ? " 🔥" : "") + (p.bigSpoon ? " 🥄" : "");
+      const sub = document.createElement("span"); sub.className = "boards-sub";
+      sub.textContent = (p.wins || 0) + "W-" + (p.losses || 0) + "L";
+      nwrap.appendChild(sub);
+      const e = document.createElement("span"); e.className = "boards-elo"; e.textContent = String(p.elo || 1200);
+      row.append(rk, nwrap, e);
+      list.appendChild(row);
+    });
+    const myRow = mine.findIndex(([nm]) => nm === m.name);
+    status.textContent = myRow >= 0 ? "YOU'RE #" + (myRow + 1) + " AT " + m.pub.toUpperCase() : "PLAY YOUR FIRST GAME TO ENTER";
+  }
+}
+
+/* Hook: called from endGame (and duel finish) with the player's result. */
+function submitMyResult(win){
+  const m = me(); if (!m) return;
+  boardSubmit({ win: !!win, expectedElo: 1200 }).then(ok => {
+    if (ok && typeof renderBoards === "function") { /* boards refresh on open */ }
+  });
+}
+
+
 function startRemoteGame(){
+  game.demo = false; el("demoChip").style.display = "none";
   game.mode = "pvp";
   startGame("pvp");
   // re-arm remote AFTER startGame — startGame resets to a clean local state
@@ -1470,6 +1752,7 @@ function startRemoteGame(){
   sendSnapshot();
 }
 function joinRemoteGame(){
+  game.demo = false; el("demoChip").style.display = "none";
   game.mode = "pvp";
   startGame("pvp");
   game.pvp.remote = true;
@@ -1590,8 +1873,15 @@ function applyRound(r){
   game.statKey = r.statKey || null;
   game.turnOwner = r.pickerIsYou ? "ai" : "player";
   game.pvp.picker = r.pickerIsYou ? "p2" : "p1";
+  game.lastRemoteWinner = r.winner || null;
   renderRemoteState(r.opponentHidden);
   document.getElementById("verdict").innerHTML = r.verdictText || "";
+  if (game.phase === "reveal"){
+    const streak = parseInt(r.streak, 10) || 0;
+    if (r.winner === "player"){ AudioFX.win(streak); if (streak >= 2) AudioFX.bacon(streak); }
+    else if (r.winner === "ai") AudioFX.lose();
+    else AudioFX.draw();
+  }
 }
 
 function renderRemoteState(opponentHidden){
@@ -1633,6 +1923,7 @@ function applyOver(o){
 
 function endRemoteGame(title){
   game.phase = "over";
+  AudioFX.stopMusic();
   const t = title || (game.pvp.matchWinner === "p1" ? "PLAYER 1 WINS THE MATCH" : "PLAYER 2 WINS THE MATCH");
   const titleEl = document.getElementById("overTitle");
   titleEl.textContent = t;
@@ -1657,6 +1948,7 @@ function endRemoteGame(title){
 function onDisconnect(){
   if (game.phase === "title"){ openOnlinePanel(false); return; }
   game.phase = "over";
+  AudioFX.stopMusic();
   setVerdict('<div class="verdict-line lose">OPPONENT LEFT THE PUB</div>');
   const titleEl = document.getElementById("overTitle");
   titleEl.textContent = "OPPONENT LEFT THE PUB";
@@ -1786,6 +2078,7 @@ function isBossWave(w){ return w > 1 && (w % 4) === 0; }
 function startGame(mode){
   game.mode = mode;
   game.pendingMode = null;
+  el("demoChip").style.display = game.demo ? "" : "none";
   Spoons.applyOverlaySync();
   const M = MODES[mode];
   game.playerDeck = []; game.aiDeck = []; game.pot = []; game.bag = [];
@@ -2023,6 +2316,7 @@ function resolveRound(){
 
 function endGame(){
   game.phase = "over";
+  AudioFX.stopMusic();
   if (game.pvp.remote && game.pvp.role === "host"){ endRemoteGame(); return; }
   closeRewardScreen();
   AudioFX.over();
@@ -2059,6 +2353,7 @@ function endGame(){
     title.textContent = mode === "arcade" ? "GAME OVER — SCORE " + game.score : "YOU'VE BEEN CUT OFF";
     title.className = "lose";
   }
+  if (!game.pvp.remote && mode !== "pvp") submitMyResult(mode === "arcade" ? game.score > 0 : you > ai);
   const isArcade = mode === "arcade";
   document.getElementById("overScore").textContent =
     isArcade ? "HIGH SCORE " + highScore("arcade") : "SCORE " + game.score + " · BEST " + highScore(mode);
@@ -2069,7 +2364,7 @@ function endGame(){
   if (isArcade){
     if (tag) tag.textContent = "INSERT COIN";
     if (rematchBtn){ rematchBtn.textContent = "INSERT COIN"; rematchBtn.className = "btn btn-cream insert-coin"; }
-    if (game.score > highScore("arcade")) localStorage.setItem("spoons.high.arcade", String(game.score));
+    if (game.score > highScore("arcade")) try { localStorage.setItem("spoons.high.arcade", String(game.score)); } catch(e){}
   }
   renderLeaderboard(isArcade ? "arcade" : mode);
   const isHigh = !isArcade && game.score > 0 && game.score > highScore(mode);
@@ -2126,8 +2421,8 @@ function topStatLine(){
 
 /* ---------- high scores ---------- */
 function highScore(mode){
-  const v = localStorage.getItem("spoons.high." + mode);
-  return v ? parseInt(v, 10) || 0 : 0;
+  try { const v = localStorage.getItem("spoons.high." + mode); return v ? parseInt(v, 10) || 0 : 0; }
+  catch(e){ return 0; }
 }
 function saveScore(mode, initials, score){
   if (mode !== "arcade") return;
@@ -2137,8 +2432,8 @@ function saveScore(mode, initials, score){
   board.push({ ini: initials, sc: score });
   board.sort((a, b) => b.sc - a.sc);
   board = board.slice(0, 5);
-  localStorage.setItem(key, JSON.stringify(board));
-  if (score > highScore(mode)) localStorage.setItem("spoons.high." + mode, String(score));
+  try { localStorage.setItem(key, JSON.stringify(board)); } catch(e){}
+  if (score > highScore(mode)) try { localStorage.setItem("spoons.high." + mode, String(score)); } catch(e){}
 }
 function renderLeaderboard(mode){
   let board = [];
@@ -2163,7 +2458,7 @@ const BANTER = {
 };
 function showScreen(name){
   for (const s of ["title", "table", "over", "handoff"]) el("screen-" + s).classList.toggle("hidden", s !== name);
-  if (name === "title"){ openOnlinePanel(false); closeSpoonsPanel(); closeRewardScreen(); openOrderPanel(false); Spoons.restoreNational(); stopAttract(); }
+  if (name === "title"){ AudioFX.stopMusic(); openOnlinePanel(false); closeSpoonsPanel(); closeRewardScreen(); openOrderPanel(false); Spoons.restoreNational(); stopAttract(); }
 }
 function shake(cls){
   const st = el("stage");
@@ -2183,7 +2478,7 @@ function showCombo(mult){
   }
   c.style.fontSize = "clamp(" + (18 + mult * 3) + "px," + (4 + mult) + "vw," + (30 + mult * 5) + "px)";
   c.classList.remove("show"); void c.offsetWidth; c.classList.add("show");
-  setTimeout(() => c.classList.remove("show"), 2000);
+  setTimeout(() => { c.classList.remove("show"); c.classList.remove("farting"); }, 2000);
 }
 
 function renderHud(){
@@ -2401,7 +2696,9 @@ Net.onDisconnect(() => {
   if (game.phase !== "title") onDisconnect();
 });
 el("btnRematch").addEventListener("click", () => {
-  if (game.mode === "arcade"){ AudioFX.unlock(); startGame("arcade"); }
+  AudioFX.unlock();
+  game.demo = false;
+  if (game.mode === "arcade"){ startGame("arcade"); }
   else if (game.mode === "pvp"){
     const p1 = game.duel.p1Score, p2 = game.duel.p2Score;
     if (p1 === p2 && game.duel.player === 2){ suddenDeathDuel(); }
@@ -2449,11 +2746,27 @@ el("browserGrid").addEventListener("click", e => {
   const b = e.target.closest(".bcard");
   if (b) openDetail(b.dataset.name);
 });
+el("btnBoards").addEventListener("click", () => {
+  document.getElementById("boardsOverlay").classList.add("open");
+  renderBoards("global");
+});
+el("btnBoardsClose").addEventListener("click", () => {
+  document.getElementById("boardsOverlay").classList.remove("open");
+});
+el("tabGlobal").addEventListener("click", () => { setBoardTab("global"); });
+el("tabPub").addEventListener("click", () => { setBoardTab("pub"); });
+el("tabPubPlayer").addEventListener("click", () => { setBoardTab("pubplayer"); });
+el("btnSignupGo").addEventListener("click", doSignup);
+el("signupName").addEventListener("keydown", e => { if (e.key === "Enter") el("signupPub").focus(); });
+el("signupPub").addEventListener("keydown", e => { if (e.key === "Enter") doSignup(); });
+
 el("btnMute").addEventListener("click", () => {
+  AudioFX.unlock();
   const m = AudioFX.toggleMute();
   el("btnMute").textContent = m ? "🔇" : "🔊";
 });
 el("btnMusic").addEventListener("click", () => {
+  AudioFX.unlock();
   const on = AudioFX.toggleMusic();
   el("btnMusic").textContent = on ? "🎵" : "🎵̸";
   el("btnMusic").style.opacity = on ? "1" : "0.45";
@@ -2466,6 +2779,7 @@ el("btnResume").addEventListener("click", togglePause);
 el("btnQuit").addEventListener("click", () => {
   el("pause").classList.remove("open");
   game.paused = false; game.phase = "title"; game.demo = false; el("demoChip").style.display = "none";
+  AudioFX.stopMusic();
   Net.close();
   refreshBests(); showScreen("title");
 });
@@ -2484,16 +2798,19 @@ function togglePause(){
   if (game.phase === "title" || game.phase === "over") return;
   game.paused = !game.paused;
   el("pause").classList.toggle("open", game.paused);
-  if (game.paused) el("btnResume").focus();
+  if (game.paused){ AudioFX.stopMusic(); el("btnResume").focus(); }
+  else { AudioFX.resumeMusic(); }
 }
 document.addEventListener("keydown", e => {
   if (el("browser").classList.contains("open")){
     if (e.key === "Escape") closeBrowser();
     return; // typing in search
   }
-  if (e.key === "m" || e.key === "M"){ el("btnMute").click(); return; }
-  if (e.key === "p" || e.key === "P"){ togglePause(); return; }
+  if (e.key === "m" || e.key === "M"){ AudioFX.unlock(); el("btnMute").click(); return; }
+  if (e.key === "p" || e.key === "P"){ AudioFX.unlock(); togglePause(); return; }
+  if (e.key === "n" || e.key === "N"){ AudioFX.unlock(); el("btnMusic").click(); return; }
   if (game.paused) return;
+  AudioFX.unlock();
   if (game.phase === "play" && game.turnOwner === "player"){
     const n = parseInt(e.key, 10);
     if (n >= 1 && n <= STATS.length){
@@ -2616,9 +2933,11 @@ function onNewSession(){
 function onRewardPlay(){
   closeRewardScreen();
   AudioFX.unlock();
+  AudioFX.resumeMusic();
   startGame(game.mode);
 }
 function onRewardTitle(){
+  AudioFX.stopMusic();
   closeRewardScreen();
   refreshBests();
   showScreen("title");
@@ -2688,5 +3007,19 @@ Spoons.preloadMyPub();
 
 
 </script>
+  <div class="boards-overlay" id="boardsOverlay" role="dialog" aria-modal="true" aria-label="Leaderboards">
+    <div class="boards-panel">
+      <div class="boards-head">🏆 BOARDS</div>
+      <div class="boards-tabs">
+        <button class="linkbtn on" id="tabGlobal">WORLD</button> ·
+        <button class="linkbtn" id="tabPub">MY SPOONS</button> ·
+        <button class="linkbtn" id="tabPubPlayer">PLAYERS AT MY SPOONS</button>
+      </div>
+      <div class="boards-list" id="boardsList"></div>
+      <div class="boards-status" id="boardsStatus"></div>
+      <button class="btn btn-cream boards-close" id="btnBoardsClose">BACK</button>
+    </div>
+  </div>
+
 </body>
 </html>
