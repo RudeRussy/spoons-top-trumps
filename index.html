@@ -1174,7 +1174,7 @@ const REWARDS = {
 };
 
   /* ---------- build stamp: self-heal stale phone cache ---------- */
-  const BUILD_STAMP = "lff-dom-12-r17";
+  const BUILD_STAMP = "lff-flow-13-r18";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){ localStorage.setItem("spoons_build", BUILD_STAMP); location.reload(true); }
@@ -2559,7 +2559,7 @@ function startGame(mode){
   const M = MODES[mode];
   game.playerDeck = []; game.aiDeck = []; game.pot = []; game.bag = [];
   game.turnOwner = "player"; game.statKey = null;
-  game.score = 0; game.streak = 0; game.foOffered = false; game.brOffered = false;; game.bestStreak = 0; game.biggestPot = 0;
+  game.score = 0; game.streak = 0; game.foOffered = false; game.brOffered = false; pendingBonus.queue.length = 0; game.paused = false;; game.bestStreak = 0; game.biggestPot = 0;
   game.roundsPlayed = 0; game.statWins = {}; game.pickHistory = {};
   game.wave = 1; game.aiLevel = M.waves ? 0 : 1;
   game.pvp.picker = "p1";
@@ -2618,6 +2618,7 @@ function startArcadeRunForPlayer(player){
   game.score = 0; game.streak = 0; game.bestStreak = 0; game.biggestPot = 0;
   game.roundsPlayed = 0; game.statWins = {}; game.pickHistory = {};
   game.wave = 1; game.aiLevel = 0;
+  game.foOffered = false; game.brOffered = false;
   game.duel.player = player;
   // draw from the pre-shuffled duel bag using seeded rng
   game.playerDeck = drawFromBagRng(6, game.rng);
@@ -2820,6 +2821,7 @@ function resolveRound(){
 }
 
 function endGame(){
+  if (game.phase === "over") return; // idempotent: timers + paths can race here
   game.phase = "over";
   AudioFX.stopMusic();
   if (game.pvp.remote && game.pvp.role === "host"){ endRemoteGame(); return; }
@@ -2860,6 +2862,7 @@ function endGame(){
   }
   if (!game.pvp.remote && mode !== "pvp") submitMyResult(mode === "arcade" ? game.score > 0 : you > ai);
   const isArcade = mode === "arcade";
+  if (isArcade && game.score > highScore("arcade")) try { localStorage.setItem("spoons.high.arcade", String(game.score)); } catch(e){}
   document.getElementById("overScore").textContent =
     isArcade ? "HIGH SCORE " + highScore("arcade") : "SCORE " + game.score + " · BEST " + highScore(mode);
   document.getElementById("overStats").innerHTML =
@@ -2869,7 +2872,6 @@ function endGame(){
   if (isArcade){
     if (tag) tag.textContent = "INSERT COIN";
     if (rematchBtn){ rematchBtn.textContent = "INSERT COIN"; rematchBtn.className = "btn btn-cream insert-coin"; }
-    if (game.score > highScore("arcade")) try { localStorage.setItem("spoons.high.arcade", String(game.score)); } catch(e){}
   }
     if (game.score > 0){
       let meName = "AAA";
@@ -2935,7 +2937,7 @@ function highScore(mode){
   catch(e){ return 0; }
 }
 function saveScore(mode, initials, score){
-  if (mode !== "arcade") return;
+  if (!mode) return;
   const key = "spoons.board." + mode;
   let board = [];
   try { board = JSON.parse(localStorage.getItem(key)) || []; } catch (e) { board = []; }
@@ -3316,8 +3318,8 @@ function unlockShitter(){
   if (!first){
     game.score += SHITTER_PTS;
     try {
-      const hs = parseInt(localStorage.getItem("spoons.high") || "0", 10) || 0;
-      if (game.score > hs) localStorage.setItem("spoons.high", String(game.score));
+      const hs = parseInt(localStorage.getItem("spoons.high.arcade") || "0", 10) || 0;
+      if (game.score > hs) localStorage.setItem("spoons.high.arcade", String(game.score));
     } catch(e){}
   }
   updateShitterChip();
@@ -3585,11 +3587,11 @@ function maybeTriggerBogRoll(force){
 }
 
 /* ==================== MID-GAME BONUS DISPATCH ==================== */
-const pendingBonus = { type: null };
-function offerBonus(type){ pendingBonus.type = type; }
+const pendingBonus = { queue: [] };
+function offerBonus(type){ if (!pendingBonus.queue.includes(type)) pendingBonus.queue.push(type); }
 function maybePendingBonus(){ // returns true if a bonus round took over
-  if (!pendingBonus.type) return false;
-  const t = pendingBonus.type; pendingBonus.type = null;
+  const t = pendingBonus.queue.shift();
+  if (!t) return false;
   if (t === "fartoff"){ foMidGameStart(); return true; }
   if (t === "bogroll"){ brMidGameStart(); return true; }
   return false;
@@ -3648,7 +3650,7 @@ function renderBonusScratch(){
       fo.innerHTML = out;
     }
     const sc = document.getElementById("scratchFart");
-    if (sc) sc.classList.toggle("arm", pendingBonus.type === "fartoff");
+    if (sc) sc.classList.toggle("arm", pendingBonus.queue.indexOf("fartoff") !== -1);
     // BOG: 4 pips = wave progress; armed = flash
     const bp = document.getElementById("brPips");
     if (bp){
@@ -3661,7 +3663,7 @@ function renderBonusScratch(){
       bp.innerHTML = out;
     }
     const sb = document.getElementById("scratchBog");
-    if (sb) sb.classList.toggle("arm", pendingBonus.type === "bogroll");
+    if (sb) sb.classList.toggle("arm", pendingBonus.queue.indexOf("bogroll") !== -1);
   } catch(e){}
 }
 /* ==================== 7. WIRING ==================== */
