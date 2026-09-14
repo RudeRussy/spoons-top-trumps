@@ -768,6 +768,11 @@ header#hud .score > *{ flex:0 0 auto; }
   /* low-value chips leave the phone rail: they show on the table anyway */
   #aiChip, .chip.round:last-of-type{ display:none; }
 }
+@media (max-width:380px){
+  /* very narrow: labels collapse to icon+number */
+  .score .chip:not(#scoreChip):not(.combo) > span,
+  #chipPlayerLabel, #waveChipLabel{ display:none; }
+}
 </style>
 
 </head>
@@ -1092,7 +1097,7 @@ const REWARDS = {
 };
 
   /* ---------- build stamp: self-heal stale phone cache ---------- */
-  const BUILD_STAMP = "hud-swarm-6-r11";
+  const BUILD_STAMP = "hud-swarm-7-r12";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){ localStorage.setItem("spoons_build", BUILD_STAMP); location.reload(true); }
