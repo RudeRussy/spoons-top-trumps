@@ -1178,7 +1178,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: self-heal stale phone cache ---------- */
-  const BUILD_STAMP = "lff-core2-18-r23";
+  const BUILD_STAMP = "integrity-19-r24";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){ localStorage.setItem("spoons_build", BUILD_STAMP); location.reload(true); }
@@ -2160,13 +2160,17 @@ function doSignup(){
 function boardsTitleFor(tab){
   return tab === "global" ? "WORLD TOP 20" : tab === "pub" ? "TOP SPOONS PUBS" : "PLAYERS AT MY SPOONS";
 }
+let boardsRenderToken = 0;
 async function renderBoards(tab){
   const list = document.getElementById("boardsList");
   const status = document.getElementById("boardsStatus");
   const m = me();
   if (!list) return;
+  const myToken = ++boardsRenderToken;
   status.textContent = "PULLING THE BOARD…";
   const doc = await boardRead();
+  if (myToken !== boardsRenderToken) return; // a newer tab switch superseded this fetch
+  
   const players = doc.players || {};
   const pubs = doc.pubs || {};
   list.textContent = "";
@@ -2602,8 +2606,8 @@ function startGame(mode){
   el("demoChip").style.display = game.demo ? "" : "none";
   Spoons.applyOverlaySync();
   { // if the pub chunk is still loading, re-apply when it lands (prices self-correct)
-    const __pub = myPub();
-    if (__pub && !getChunkSync(__pub.f)) loadChunk(__pub.f).then(() => applyOverlaySync()).catch(() => {});
+    const __pub = Spoons.myPub();
+    if (__pub && !Spoons.getChunkSync(__pub.f)) Spoons.loadChunk(__pub.f).then(() => Spoons.applyOverlaySync()).catch(() => {});
   }
   const M = MODES[mode];
   game.playerDeck = []; game.aiDeck = []; game.pot = []; game.bag = [];
@@ -2915,7 +2919,7 @@ function endGame(){
   const isArcade = mode === "arcade";
   if (isArcade && game.score > highScore("arcade")) try { localStorage.setItem("spoons.high.arcade", String(game.score)); } catch(e){}
   document.getElementById("overScore").textContent =
-    isArcade ? "HIGH SCORE " + highScore("arcade") : "SCORE " + game.score + " · BEST " + highScore(mode);
+    isArcade ? "SCORE " + game.score + " · HIGH " + highScore("arcade") : "SCORE " + game.score + " · BEST " + highScore(mode);
   document.getElementById("overStats").innerHTML =
     "ROUNDS " + game.roundsPlayed + " · LONGEST STREAK " + game.bestStreak +
     " · BIGGEST POT " + game.biggestPot +
@@ -3879,6 +3883,7 @@ el("btnResume").addEventListener("click", togglePause);
 el("btnQuit").addEventListener("click", () => {
   el("pause").classList.remove("open");
   game.paused = false; game.phase = "title"; game.demo = false; el("demoChip").style.display = "none";
+  pendingBonus.queue.length = 0; // armed bonuses must not hijack the next session (LFF)
   AudioFX.stopMusic();
   Net.close();
   refreshBests(); showScreen("title");
@@ -3902,6 +3907,11 @@ function togglePause(){
   else { AudioFX.resumeMusic(); }
 }
 document.addEventListener("keydown", e => {
+  const ae = document.activeElement;
+  if (ae && (ae.tagName === "INPUT" || ae.tagName === "TEXTAREA" || ae.isContentEditable)){
+    if (e.key === "Escape" && el("browser").classList.contains("open")) closeBrowser();
+    return; // typing in a field — never fire game shortcuts (LFF auditor 4)
+  }
   if (el("browser").classList.contains("open")){
     if (e.key === "Escape") closeBrowser();
     return; // typing in search
