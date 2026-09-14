@@ -134,7 +134,7 @@ body::before{
 .signup-head{ font-family:var(--font-arcade); color:var(--gold); font-size:12px; letter-spacing:.1em; text-align:center; }
 .signup-panel label{ color:var(--muted); font-size:10px; font-weight:800; }
 .signup-panel input{ font-family:var(--font-arcade); background:#141920; color:var(--cream); border:1px solid var(--gold); border-radius:8px; padding:10px; font-size:14px; text-transform:uppercase; }
-.boards-overlay{ position:fixed; inset:0; z-index:70; display:none; align-items:center; justify-content:center; background:rgba(8,10,14,.85); padding:18px; }
+.boards-overlay{ position:fixed; inset:0; z-index:70; display:none; align-items:center; justify-content:center; background:#080a0e; padding:18px; }
 .boards-overlay.open{ display:flex; }
 .boards-panel{ width:min(560px,100%); max-height:min(78vh,640px); display:flex; flex-direction:column; background:#141920; border:1px solid var(--gold); border-radius:16px; padding:16px; gap:10px; }
 .boards-head{ font-family:var(--font-arcade); color:var(--gold); letter-spacing:.12em; font-size:13px; text-align:center; }
@@ -267,6 +267,10 @@ body::before{
 
 /* ---------- In-flow bonus strip (main window) ---------- */
 #stage{ min-height:100dvh; padding-bottom:max(34px, calc(env(safe-area-inset-bottom) + 72px)); }
+@media (max-width:420px){
+  /* thumb-zone separation: round actions keep clear of the bottom-right HOME FAB */
+  #roundActions{ padding-right:84px !important; }
+}
 
 .bonus-strip{
   display:flex;
@@ -378,7 +382,7 @@ body::before{
 /* ---------- Order panel ---------- */
 #orderPanel{
   position:fixed; inset:0; z-index:75; display:none; place-items:center;
-  background:rgba(4,6,9,.88);
+  background:#040609;  /* fully opaque: no ghosting of buttons behind */
 }
 #orderPanel.open{ display:grid; }
 .order-inner{
@@ -1152,7 +1156,7 @@ const REWARDS = {
 };
 
   /* ---------- build stamp: self-heal stale phone cache ---------- */
-  const BUILD_STAMP = "ux-research-9-r14";
+  const BUILD_STAMP = "opaque-10-r15";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){ localStorage.setItem("spoons_build", BUILD_STAMP); location.reload(true); }
