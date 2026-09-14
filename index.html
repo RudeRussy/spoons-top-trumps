@@ -740,26 +740,33 @@ header#hud .score > *{ flex:0 0 auto; }
   justify-content:center;
 }
 @media (max-width:420px){
-  /* phones: two tidy rows BY DESIGN — brand+HOME on top, full-width chip rail below */
+  /* phones: row1 brand+transport+HOME, row2 full-width chip rail */
   header#hud{
     flex-wrap:wrap;
-    padding:8px 100px 8px 12px;   /* HOME lane still reserved on row 1 */
+    padding:8px 12px 8px 12px;
     row-gap:6px;
   }
-  header#hud .brand{ font-size:14px; }
+  header#hud .brand{ font-size:14px; flex:1 1 auto; min-width:0; }
   header#hud .brand em{ display:none; }
+  header#hud > div[style*="display:flex"]{ order:2; margin-left:auto; gap:4px; }
+  .hudbtn{ padding:0; min-width:40px; min-height:40px; font-size:15px; }
+  #homeChip{ min-width:44px; min-height:44px; order:3; }
   header#hud .score{
     flex:1 1 100%;
-    order:3;
+    order:4;
     overflow-x:auto;
-    gap:6px;
+    gap:5px;
     padding:2px 2px 4px;
     min-height:30px;
   }
-  /* score chip LEADS the rail and pops — never lost in a scroll */
   #scoreChip{ font-size:13px; min-width:74px; justify-content:center; }
-  .hudbtn{ padding:0 4px; min-width:40px; min-height:40px; }
-  #homeChip{ min-width:44px; min-height:44px; }
+  /* everything fits: tighter pills, smaller labels */
+  .chip{ padding:4px 6px; font-size:10px; min-height:24px; }
+  .chip b{ font-size:11px; }
+  .scratch{ min-height:24px; font-size:11px; padding:2px 6px; }
+  .scratch .pips{ letter-spacing:1px; }
+  /* low-value chips leave the phone rail: they show on the table anyway */
+  #aiChip, .chip.round:last-of-type{ display:none; }
 }
 </style>
 
@@ -1085,7 +1092,7 @@ const REWARDS = {
 };
 
   /* ---------- build stamp: self-heal stale phone cache ---------- */
-  const BUILD_STAMP = "score-fix-5-r10";
+  const BUILD_STAMP = "hud-swarm-6-r11";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){ localStorage.setItem("spoons_build", BUILD_STAMP); location.reload(true); }
