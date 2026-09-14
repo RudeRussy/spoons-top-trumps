@@ -254,6 +254,16 @@ body::before{
 
 @keyframes chipPulse{ 0%,100%{ transform:scale(1);} 50%{ transform:scale(1.08);} }
 .linkbtn.pulse{ animation:chipPulse 1s ease-in-out infinite; }
+
+/* ---------- Scratchcard bonus progress ---------- */
+.scratch{ display:inline-flex; align-items:center; gap:4px; background:rgba(20,25,32,.8); border:1px solid rgba(242,232,213,.28); border-radius:10px; padding:3px 8px; font-size:13px; }
+.scratch .pips{ font-style:normal; letter-spacing:2px; color:rgba(242,232,213,.35); text-shadow:none; }
+.scratch .pips i{ font-style:normal; }
+.scratch.arm{ border-color:#e3b23c; animation:chipPulse 1s ease-in-out infinite; }
+.scratch.arm .pips{ color:#e3b23c; }
+.scratch .pips .on{ color:#e3b23c; text-shadow:0 0 6px rgba(227,178,60,.8); }
+.scratch .pips .gold{ color:#ffd700; text-shadow:0 0 8px rgba(255,215,0,.9); }
+
 /* ---------- Title ---------- */
 #screen-title{ text-align:center; padding-top:4vh; position:relative; }
 #screen-title h1{
@@ -671,6 +681,8 @@ footer{ text-align:center; color:#7b7264; font-size:11px; padding:12px 16px 18px
   <div class="score">
     <span id="scoreChip">0</span>
     <span class="chip combo" id="comboChip">🥓 STREAK ×2</span>
+    <span class="scratch" id="scratchFart" title="STREAK ×4 = LANDLORD"><b>💨</b><i class="pips" id="foPips">····</i></span>
+    <span class="scratch" id="scratchBog" title="WAVE CLEAR = CUBICLE ROLL"><b>🧻</b><i class="pips" id="brPips">····</i></span>
     <span class="chip round" id="waveChip"><span id="waveChipLabel">WAVE</span> <b id="countWave">1</b></span>
     <span id="chipPlayer"><span id="chipPlayerLabel">YOU</span> <b id="countPlayer">—</b></span>
     <span class="chip pot" id="potChip">POT <b id="countPot">0</b></span>
@@ -981,7 +993,7 @@ const REWARDS = {
 };
 
   /* ---------- build stamp: self-heal stale phone cache ---------- */
-  const BUILD_STAMP = "europop-128-20260913";
+  const BUILD_STAMP = "scratch-ladder-3-r8";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){ localStorage.setItem("spoons_build", BUILD_STAMP); location.reload(true); }
@@ -2834,6 +2846,7 @@ function showCombo(mult){
 
 function renderHud(){
   const lastPot = renderHud._lastPot || 0;
+  try { renderBonusScratch(); } catch(e){}
   const potNow = game.pot.length;
   el("scoreChip").textContent = String(game.score).padStart(6, "0");
   el("modeLabel").textContent = MODES[game.mode].label;
@@ -3429,6 +3442,34 @@ function foMidGameEnd(won){
   else { setVerdict('<div class="verdict-line wave-clear">💨 FART OFF LOST — BACK TO THE TABLE</div><div class="verdict-sub">THE LANDLORD WALKS OFF GRINNING</div>'); }
   AudioFX.resumeMusic();
   renderNextButton();
+}
+
+function renderBonusScratch(){
+  try {
+    // FART OFF: 4 pips = current streak (cap display at 4; armed state flashes)
+    const fo = document.getElementById("foPips");
+    if (fo){
+      const s = Math.min(4, Math.max(0, game.streak || 0));
+      let out = "";
+      for (let k = 0; k < 4; k++) out += '<i class="' + (k < s ? "on" : "") + '">' + (k < s ? "█" : "·") + '</i>';
+      fo.innerHTML = out;
+    }
+    const sc = document.getElementById("scratchFart");
+    if (sc) sc.classList.toggle("arm", pendingBonus.type === "fartoff");
+    // BOG: 4 pips = wave progress; armed = flash
+    const bp = document.getElementById("brPips");
+    if (bp){
+      const w = Math.min(4, Math.max(1, game.wave || 1));
+      let out = "";
+      for (let k = 0; k < 4; k++){
+        const cls = k < (w - 1) ? (k === 3 ? "gold" : "on") : "";
+        out += '<i class="' + cls + '">' + (k < (w - 1) ? (k === 3 ? "★" : "█") : "·") + '</i>';
+      }
+      bp.innerHTML = out;
+    }
+    const sb = document.getElementById("scratchBog");
+    if (sb) sb.classList.toggle("arm", pendingBonus.type === "bogroll");
+  } catch(e){}
 }
 /* ==================== 7. WIRING ==================== */
 /* ---------- home chip wiring ---------- */
