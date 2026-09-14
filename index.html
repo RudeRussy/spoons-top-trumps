@@ -1249,6 +1249,7 @@ const AudioFX = (() => {
   let muted = false, musicOn = true;
   try { muted = localStorage.getItem("spoons.mute") === "1"; } catch(e){}
   try { musicOn = localStorage.getItem("spoons.music") !== "0"; } catch(e){}
+  try { localStorage.removeItem("spoons.fartoff.seen"); } catch(e){} // menu-era flag suppressed mid-game triggers
   let musicTimer = null, musicStep = 0;
   let mediaAudio = null;
   let shitterWinAudio = null, shitterLoseAudio = null;
@@ -2365,7 +2366,7 @@ function startGame(mode){
   const M = MODES[mode];
   game.playerDeck = []; game.aiDeck = []; game.pot = []; game.bag = [];
   game.turnOwner = "player"; game.statKey = null;
-  game.score = 0; game.streak = 0; game.bestStreak = 0; game.biggestPot = 0;
+  game.score = 0; game.streak = 0; game.foOffered = false; game.brOffered = false;; game.bestStreak = 0; game.biggestPot = 0;
   game.roundsPlayed = 0; game.statWins = {}; game.pickHistory = {};
   game.wave = 1; game.aiLevel = M.waves ? 0 : 1;
   game.pvp.picker = "p1";
@@ -2588,7 +2589,8 @@ function resolveRound(){
     const st = stageForWave(game.wave);
     setVerdict('<div class="verdict-line wave-clear">WAVE ' + oldWave + ' CLEARED — ' + st.name + '</div>' +
       '<div class="verdict-sub">+' + bonus + ' · ' + (boss ? '⚔️ BOSS — THE LANDLORD · ' : '') + st.tag + ' · ' + game.aiDeck.length + ' CARDS</div>');
-    if (boss){ shake("shake-hard"); try { maybeTriggerBogRoll(); } catch(e){} }
+    if (boss){ shake("shake-hard"); try { maybeTriggerBogRoll(true); } catch(e){} }
+    else { try { maybeTriggerBogRoll(false); } catch(e){} }
     renderNextButton();
     return;
   }
@@ -2818,6 +2820,7 @@ function showCombo(mult){
   } else if (mult >= 4){
     c.textContent = "🐖💨 STREAK ×" + mult + " 💨🐖";
     c.classList.add("farting");
+    try { maybeTriggerFartOff(); } catch(e){}
   } else {
     c.classList.remove("farting");
     const strips = "🥓".repeat(Math.min(mult, 5));
@@ -3358,18 +3361,19 @@ function bonusToast(msg){
     setTimeout(() => t.remove(), 4200);
   } catch(e){}
 }
-function foUnlocked(){ try { return localStorage.getItem("spoons.fartoff.won") === "1" || localStorage.getItem("spoons.fartoff.seen") === "1"; } catch(e){ return false; } }
 function maybeTriggerFartOff(){
-  // called on streak 6+: first time ever -> landlord challenge
-  if (foUnlocked()) return;
-  try { localStorage.setItem("spoons.fartoff.seen", "1"); } catch(e){}
+  // streak x4+ (pig moment) — once per game, no persisted suppression
+  if (game.foOffered) return;
+  game.foOffered = true;
   offerBonus("fartoff");
   bonusToast("🎩 THE LANDLORD WANTS A WORD. FINISH THIS ROUND…");
   AudioFX.fart();
 }
-function maybeTriggerBogRoll(){
-  // called on boss-wave clear: victory lap offer
-  bonusToast("🧻 THE BOGS ARE FRESHLY CLEANED. ROLL THE CUBICLES? (title screen)");
+function maybeTriggerBogRoll(force){
+  // wave clears: 40% chance, boss gate: guaranteed — once per game
+  if (game.brOffered) return;
+  if (!force && Math.random() > 0.4) return;
+  game.brOffered = true;
   offerBonus("bogroll");
   bonusToast("🧻 A CLEAN CUBICLE JUST OPENED. FINISH THE ROUND…");
 }
