@@ -213,6 +213,14 @@ body::before{
 .shitter-bog{ animation:bogDrop .7s cubic-bezier(.2,1.4,.4,1) both; }
 @media (prefers-reduced-motion: reduce){ .shitter-bog,.shitter-pile span,.shitter-steam b{ animation:none; } }
 
+
+/* ---------- home chip ---------- */
+#homeChip{ position:fixed; top:10px; right:10px; z-index:70; display:none;
+  background:rgba(20,25,32,.85); color:#f2e8d5; border:1px solid rgba(242,232,213,.35);
+  border-radius:10px; padding:8px 12px; font-weight:800; font-size:12px; letter-spacing:.08em;
+  cursor:pointer; -webkit-tap-highlight-color:transparent; backdrop-filter:blur(6px); }
+#homeChip.show{ display:block; }
+
 /* ---------- Title ---------- */
 #screen-title{ text-align:center; padding-top:4vh; position:relative; }
 #screen-title h1{
@@ -621,6 +629,7 @@ footer{ text-align:center; color:#7b7264; font-size:11px; padding:12px 16px 18px
 </style>
 </head>
 <body>
+<button id="homeChip" aria-label="Home">🏠 HOME</button>
 <div id="crt" aria-hidden="true"></div>
 <div id="vign" aria-hidden="true"></div>
 
@@ -2596,6 +2605,11 @@ function endGame(){
     if (rematchBtn){ rematchBtn.textContent = "INSERT COIN"; rematchBtn.className = "btn btn-cream insert-coin"; }
     if (game.score > highScore("arcade")) try { localStorage.setItem("spoons.high.arcade", String(game.score)); } catch(e){}
   }
+    if (game.score > 0){
+      let meName = "AAA";
+      try { const m2 = JSON.parse(localStorage.getItem(LS_BOARD_ME) || "null"); if (m2 && m2.name) meName = String(m2.name).toUpperCase().slice(0, 8); } catch(e){}
+      saveScore("arcade", meName, game.score);
+    }
   renderLeaderboard(isArcade ? "arcade" : mode);
   const isHigh = !isArcade && game.score > 0 && game.score > highScore(mode);
   document.getElementById("initialsForm").classList.toggle("open", isHigh);
@@ -2690,7 +2704,29 @@ function showScreen(name){
   for (const s of ["title", "table", "over", "handoff"]) el("screen-" + s).classList.toggle("hidden", s !== name);
   if (name !== "bonus") closeBonus();
   if (name === "title"){ AudioFX.stopMusic(); openOnlinePanel(false); closeSpoonsPanel(); closeRewardScreen(); updateShitterChip(); openOrderPanel(false); Spoons.restoreNational(); stopAttract(); }
+  try { if (typeof updateHomeChip === "function") updateHomeChip(); } catch(e){}
+  try {
+    if (window.__spoonsNav !== name){
+      window.__spoonsNav = name;
+      history.pushState({ spoons: name }, "", location.href);
+    }
+  } catch(e){}
 }
+window.addEventListener("popstate", function(ev){
+  const bonusOpen = !el("screen-bonus").classList.contains("hidden");
+  const boardsOpen = document.getElementById("boardsOverlay") && document.getElementById("boardsOverlay").classList.contains("open");
+  const browserOpen = document.getElementById("browser") && document.getElementById("browser").classList.contains("open");
+  if (bonusOpen){ closeBonus(); history.pushState({ spoons: "bonus" }, "", location.href); return; }
+  if (boardsOpen){ document.getElementById("boardsOverlay").classList.remove("open"); history.pushState({ spoons: "boards" }, "", location.href); return; }
+  if (browserOpen){ document.getElementById("browser").classList.remove("open"); history.pushState({ spoons: "browser" }, "", location.href); return; }
+  if (window.__spoonsNav && window.__spoonsNav !== "title"){
+    window.__spoonsNav = "title";
+    for (const s of ["table", "over", "handoff"]) el("screen-" + s).classList.add("hidden");
+    el("screen-title").classList.remove("hidden");
+    AudioFX.stopMusic(); openOnlinePanel(false); closeSpoonsPanel(); closeRewardScreen(); updateShitterChip(); openOrderPanel(false); Spoons.restoreNational(); stopAttract();
+    history.pushState({ spoons: "title" }, "", location.href);
+  }
+});
 function shake(cls){
   const st = el("stage");
   st.classList.remove("shake-soft", "shake-hard");
@@ -3033,9 +3069,26 @@ function openBonus(){
 }
 function closeBonus(){
   el("screen-bonus").classList.add("hidden");
+  try { if (typeof updateHomeChip === "function") updateHomeChip(); } catch(e){}
 }
 
 /* ==================== 7. WIRING ==================== */
+/* ---------- home chip wiring ---------- */
+function updateHomeChip(){
+  const c = document.getElementById("homeChip");
+  if (!c) return;
+  const title = !el("screen-title").classList.contains("hidden");
+  c.classList.toggle("show", !title);
+}
+document.getElementById("homeChip").addEventListener("click", function(){
+  AudioFX.click ? AudioFX.click() : null;
+  closeBonus();
+  document.getElementById("boardsOverlay") && document.getElementById("boardsOverlay").classList.remove("open");
+  showScreen("title");
+  updateHomeChip();
+});
+// chip syncs via showScreen/closeBonus/bonusBack wiring (no polling — keeps jsdom suites exiting)
+
 el("btnArcade").addEventListener("click", () => { onModeStartRequested("arcade"); });
 el("btnShitter").addEventListener("click", () => { openBonus(); });
 el("bonusBack").addEventListener("click", () => { AudioFX.click(); closeBonus(); });
