@@ -1170,7 +1170,7 @@ const REWARDS = {
 };
 
   /* ---------- build stamp: self-heal stale phone cache ---------- */
-  const BUILD_STAMP = "lff-flow2-16-r21";
+  const BUILD_STAMP = "lff-core-17-r22";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){ localStorage.setItem("spoons_build", BUILD_STAMP); location.reload(true); }
@@ -1756,6 +1756,9 @@ function initPeer(code){
 }
 
 function startHost(){
+  if (startHost._busy) return;
+  startHost._busy = true;
+  setTimeout(() => { startHost._busy = false; }, 1500);
   Net.close();
   isHost = true;
   myRoom = genRoomCode(4);
@@ -1856,6 +1859,8 @@ const Spoons = (() => {
     const r = recentPubs().filter(p => p.s !== pub.s);
     r.unshift({s:pub.s, n:pub.n, f:pub.f});
     setRecent(r);
+    // load the pub's price chunk, then re-apply the overlay (LFF: first game used national prices)
+    loadChunk(pub.f).then(chunk => { if (chunk) applyOverlaySync(); }).catch(() => {});
   }
   async function preloadMyPub(){
     const pub = myPub(); if (!pub) return;
@@ -2026,7 +2031,12 @@ async function boardRead(){
     const txt = (await r.text()).trim();
     if (!txt) throw new Error("empty");
     const doc = JSON.parse(txt);
-    if (!doc || !doc.players) throw new Error("no doc");
+    if (!doc || typeof doc !== "object" || !doc.players || typeof doc.players !== "object" || Array.isArray(doc.players)) throw new Error("bad doc");
+    // shape check: every player entry must be an object with numeric elo
+    for (const k of Object.keys(doc.players)){
+      const p = doc.players[k];
+      if (!p || typeof p !== "object" || typeof p.elo !== "number" || !isFinite(p.elo)) { delete doc.players[k]; }
+    }
     boardCache = doc;
     try { localStorage.setItem(LS_BOARD_CACHE, JSON.stringify(doc)); } catch(e){}
     return doc;
@@ -2038,6 +2048,26 @@ async function boardRead(){
 
 async function boardWrite(doc){
   const payload = encodeURIComponent(JSON.stringify({ players: doc.players, pubs: doc.pubs || {} }));
+  if (BOARD_WRITE.length + payload.length > 7000) {
+    // URL-safe guard: drop pubs (players are the leaderboard) rather than truncate corrupt
+    const slim = encodeURIComponent(JSON.stringify({ players: doc.players, pubs: {} }));
+    if (BOARD_WRITE.length + slim.length <= 7000) {
+      const r0 = await fetch(BOARD_WRITE + slim, { cache: "no-store" });
+      if (!r0.ok) throw new Error("write " + r0.status);
+      const j0 = await r0.json().catch(() => null);
+      if (!j0 || j0.status !== 1) throw new Error("write rejected");
+      return true;
+    }
+    // still too big: prune to top 60 players by elo
+    const entries = Object.entries(doc.players).sort((a, b) => (b[1].elo || 0) - (a[1].elo || 0)).slice(0, 60);
+    const tiny = encodeURIComponent(JSON.stringify({ players: Object.fromEntries(entries), pubs: {} }));
+    if (BOARD_WRITE.length + tiny.length > 7000) throw new Error("doc too large");
+    const r1 = await fetch(BOARD_WRITE + tiny, { cache: "no-store" });
+    if (!r1.ok) throw new Error("write " + r1.status);
+    const j1 = await r1.json().catch(() => null);
+    if (!j1 || j1.status !== 1) throw new Error("write rejected");
+    return true;
+  }
   const r = await fetch(BOARD_WRITE + payload, { cache: "no-store" });
   if (!r.ok) throw new Error("write " + r.status);
   const j = await r.json().catch(() => null);
@@ -2191,7 +2221,7 @@ async function renderBoards(tab){
 /* Hook: called from endGame (and duel finish) with the player's result. */
 function submitMyResult(win){
   const m = me(); if (!m) return;
-  boardSubmit({ win: !!win, expectedElo: 1200 }).then(ok => {
+  boardSubmit({ win: !!win }).then(ok => {
     if (ok && typeof renderBoards === "function") { /* boards refresh on open */ }
   });
 }
@@ -2296,6 +2326,12 @@ function checkProceed(){
 function hostRematch(){
   hostReady = false; guestReady = false;
   startGame("pvp");
+  // startGame wipes remote flags — re-arm for the rematch (LFF auditor 2)
+  if (Net.connected && Net.isHost){
+    game.pvp.remote = true;
+    game.pvp.role = "host";
+    game.pvp.room = myRoom;
+  }
   sendSnapshot();
 }
 
@@ -2331,7 +2367,11 @@ function applyRound(r){
   game.pvp.picker = r.pickerIsYou ? "p2" : "p1";
   game.lastRemoteWinner = r.winner || null;
   renderRemoteState(r.opponentHidden);
-  document.getElementById("verdict").innerHTML = r.verdictText || "";
+  { // sanitize remote verdict: peers are untrusted — strip all tags/scripts
+    const __tmp = document.createElement("div");
+    __tmp.textContent = String(r.verdictText || "");
+    document.getElementById("verdict").innerHTML = __tmp.innerHTML;
+  }
   if (game.phase === "reveal"){
     const streak = parseInt(r.streak, 10) || 0;
     if (r.winner === "player"){ AudioFX.win(streak); if (streak >= 2) AudioFX.bacon(streak); }
@@ -2552,6 +2592,10 @@ function startGame(mode){
   game.pendingMode = null;
   el("demoChip").style.display = game.demo ? "" : "none";
   Spoons.applyOverlaySync();
+  { // if the pub chunk is still loading, re-apply when it lands (prices self-correct)
+    const __pub = myPub();
+    if (__pub && !getChunkSync(__pub.f)) loadChunk(__pub.f).then(() => applyOverlaySync()).catch(() => {});
+  }
   const M = MODES[mode];
   game.playerDeck = []; game.aiDeck = []; game.pot = []; game.bag = [];
   game.turnOwner = "player"; game.statKey = null;
