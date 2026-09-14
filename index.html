@@ -702,7 +702,7 @@ header#hud .brand small{
 #chipPlayer b{ font-size:13px; margin-left:4px; }
 header#hud .score{
   flex:1 1 auto;
-  min-width:0;
+  min-width:120px;
   display:flex;
   align-items:center;
   gap:8px;
@@ -740,11 +740,26 @@ header#hud .score > *{ flex:0 0 auto; }
   justify-content:center;
 }
 @media (max-width:420px){
-  header#hud{ padding-right:92px; gap:8px; }
-  header#hud .brand{ font-size:13px; }
+  /* phones: two tidy rows BY DESIGN — brand+HOME on top, full-width chip rail below */
+  header#hud{
+    flex-wrap:wrap;
+    padding:8px 100px 8px 12px;   /* HOME lane still reserved on row 1 */
+    row-gap:6px;
+  }
+  header#hud .brand{ font-size:14px; }
   header#hud .brand em{ display:none; }
-  header#hud .score{ gap:6px; }
-  .hudbtn{ padding:0 4px; }
+  header#hud .score{
+    flex:1 1 100%;
+    order:3;
+    overflow-x:auto;
+    gap:6px;
+    padding:2px 2px 4px;
+    min-height:30px;
+  }
+  /* score chip LEADS the rail and pops — never lost in a scroll */
+  #scoreChip{ font-size:13px; min-width:74px; justify-content:center; }
+  .hudbtn{ padding:0 4px; min-width:40px; min-height:40px; }
+  #homeChip{ min-width:44px; min-height:44px; }
 }
 </style>
 
@@ -1070,7 +1085,7 @@ const REWARDS = {
 };
 
   /* ---------- build stamp: self-heal stale phone cache ---------- */
-  const BUILD_STAMP = "hud-tidy-4-r9";
+  const BUILD_STAMP = "score-fix-5-r10";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){ localStorage.setItem("spoons_build", BUILD_STAMP); location.reload(true); }
