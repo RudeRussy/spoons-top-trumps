@@ -1169,8 +1169,16 @@ const REWARDS = {
   ]
 };
 
+  /* tab hidden → stop the music scheduler (battery); visible → resume if it was on */
+  document.addEventListener("visibilitychange", () => {
+    try {
+      if (document.hidden){ if (musicTimer){ clearInterval(musicTimer); musicTimer = null; } }
+      else if (musicOn && !muted && !musicTimer && game.phase !== "title") startMusic();
+    } catch(e){}
+  });
+
   /* ---------- build stamp: self-heal stale phone cache ---------- */
-  const BUILD_STAMP = "lff-core-17-r22";
+  const BUILD_STAMP = "lff-core2-18-r23";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){ localStorage.setItem("spoons_build", BUILD_STAMP); location.reload(true); }
@@ -1591,6 +1599,7 @@ function startMusic(){
       // active <audio> media session. Open a silent looping one inside the first gesture.
       try {
         if (!mediaAudio || mediaAudio.__failed){
+          mediaAudio = { __creating: true }; // re-entry guard: rapid gestures create ONE element
           const a = document.createElement("audio");
           a.src = SILENT_WAV;
           a.loop = true; a.volume = 0.001; a.muted = false;
@@ -1601,7 +1610,6 @@ function startMusic(){
           });
           const p = a.play();
           if (p && p.catch) p.catch(() => { mediaAudio = { __failed: true }; });
-          mediaAudio = a;
         } else if (mediaAudio.paused){
           mediaAudio.play().catch(() => {});
         }
@@ -1695,7 +1703,7 @@ function genRoomCode(n){
   for (let i = 0; i < n; i++) s += ROOM_ALPHABET[Math.floor(Math.random() * ROOM_ALPHABET.length)];
   return s;
 }
-function cleanCode(v){ return (v || "").toUpperCase().replace(/[^A-Z0-9]/g, "").replace(/0/g, "O").replace(/1/g, "I").slice(0, 4); }
+function cleanCode(v){ return (v || "").toUpperCase().replace(/[^A-Z0-9]/g, "").replace(/0/g, "Q").replace(/1/g, "J").replace(/[^A-Z0-9]/g, "").slice(0, 4); } // 0→Q, 1→J: confusables map INTO the alphabet (LFF)
 
 const ICE_CONFIG = { iceServers: [
   { urls: "stun:stun.l.google.com:19302" },
@@ -2443,6 +2451,7 @@ function endRemoteGame(title){
 
 function onDisconnect(){
   if (game.phase === "title"){ openOnlinePanel(false); return; }
+  hostReady = false; guestReady = false; // peer's 'next' must not leak into a rematch (LFF)
   game.phase = "over";
   AudioFX.stopMusic();
   setVerdict('<div class="verdict-line lose">OPPONENT LEFT THE PUB</div>');
@@ -2654,6 +2663,8 @@ function startDuel(){
 
 function startArcadeRunForPlayer(player){
   game.playerDeck = []; game.aiDeck = []; game.pot = []; game.bag = [];
+  if (game.duel.seed != null && game.duel.bagBuilt) game.bag = game.duel.bag.slice(); // seeded bag is the duel deal source
+  else game.bag = [];
   game.turnOwner = "player"; game.statKey = null;
   game.score = 0; game.streak = 0; game.bestStreak = 0; game.biggestPot = 0;
   game.roundsPlayed = 0; game.statWins = {}; game.pickHistory = {};
