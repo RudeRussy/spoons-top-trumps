@@ -740,7 +740,7 @@ header#hud .score > *{ flex:0 0 auto; }
   justify-content:center;
 }
 @media (max-width:420px){
-  /* phones: row1 brand+transport+HOME, row2 full-width chip rail */
+  /* phones: row1 brand+HOME(right), row2 transport buttons, row3 chip rail */
   header#hud{
     flex-wrap:wrap;
     padding:8px 12px 8px 12px;
@@ -748,9 +748,9 @@ header#hud .score > *{ flex:0 0 auto; }
   }
   header#hud .brand{ font-size:14px; flex:1 1 auto; min-width:0; }
   header#hud .brand em{ display:none; }
-  header#hud > div[style*="display:flex"]{ order:2; margin-left:auto; gap:4px; }
-  .hudbtn{ padding:0; min-width:40px; min-height:40px; font-size:15px; }
-  #homeChip{ min-width:44px; min-height:44px; order:3; }
+  #homeChip{ min-width:44px; min-height:44px; order:2; margin-left:auto; }
+  header#hud > div[style*="display:flex"]{ order:3; flex:1 1 100%; justify-content:flex-end; gap:8px; margin-top:8px; }
+  .hudbtn{ padding:0; min-width:44px; min-height:44px; font-size:16px; }
   header#hud .score{
     flex:1 1 100%;
     order:4;
@@ -1097,7 +1097,7 @@ const REWARDS = {
 };
 
   /* ---------- build stamp: self-heal stale phone cache ---------- */
-  const BUILD_STAMP = "hud-swarm-7-r12";
+  const BUILD_STAMP = "home-clear-8-r13";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){ localStorage.setItem("spoons_build", BUILD_STAMP); location.reload(true); }
