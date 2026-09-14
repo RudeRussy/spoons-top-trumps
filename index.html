@@ -1170,7 +1170,7 @@ const REWARDS = {
 };
 
   /* ---------- build stamp: self-heal stale phone cache ---------- */
-  const BUILD_STAMP = "lff-wiring-15-r20";
+  const BUILD_STAMP = "lff-flow2-16-r21";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){ localStorage.setItem("spoons_build", BUILD_STAMP); location.reload(true); }
@@ -2872,7 +2872,7 @@ function endGame(){
     if (game.score > 0){
       let meName = "AAA";
       try { const m2 = JSON.parse(localStorage.getItem(LS_BOARD_ME) || "null"); if (m2 && m2.name) meName = String(m2.name).toUpperCase().slice(0, 8); } catch(e){}
-      saveScore("arcade", meName, game.score);
+      saveScore(mode === "pvp" ? "arcade" : mode, meName, game.score);
     }
   renderLeaderboard(isArcade ? "arcade" : mode);
   const isHigh = !isArcade && game.score > 0 && game.score > highScore(mode);
