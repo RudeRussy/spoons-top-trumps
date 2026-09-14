@@ -720,8 +720,6 @@ footer{ text-align:center; color:#7b7264; font-size:11px; padding:12px 16px 18px
       <button class="linkbtn" id="btnOnline">ONLINE</button> ·
       <button class="linkbtn" id="btnBrowser">BROWSE</button> ·
       <button class="linkbtn" id="btnBoards">BOARDS</button> · <button class="linkbtn" id="btnShitter" title="???" style="opacity:.55">🚽 ???</button> ·
-      <button class="linkbtn" id="btnFartOff" title="BEER GARDEN FART OFF" style="opacity:.85">💨 FART OFF</button> ·
-      <button class="linkbtn" id="btnBogRoll" title="BOG ROLL ROULETTE" style="opacity:.85">🧻 BOG ROULETTE</button> ·
       <button class="linkbtn" id="btnHowTitle">HOW TO PLAY</button>
     </div>
     
@@ -2965,7 +2963,7 @@ function setVerdict(html){ el("verdict").innerHTML = html; }
 function clearActions(){ el("roundActions").innerHTML = ""; }
 function renderNextButton(){
   el("roundActions").innerHTML = '<button id="btnNext" class="btn btn-cream">NEXT CARD</button>';
-  el("btnNext").addEventListener("click", () => { if (game.phase === "reveal") beginRound(); });
+  el("btnNext").addEventListener("click", () => { if (game.phase === "reveal" && maybePendingBonus()) return; if (game.phase === "reveal") beginRound(); });
 }
 
 /* ---------- attract mode removed ---------- */
@@ -3158,7 +3156,7 @@ function foPreload(){
   if (FO_POOL.length || !FO_FILES.length) return;
   FO_FILES.forEach(src => { try { const a = new Audio(src); a.preload = "auto"; a.load(); FO_POOL.push(a); } catch(e){} });
 }
-const fo = { on:false, holding:false, holdStart:0, meter:0, raf:0, you:0, ai:0, busy:false };
+const fo = { on:false, holding:false, holdStart:0, meter:0, raf:0, you:0, ai:0, busy:false, mid:false };
 function foShow(on_){
   el("screen-fartoff").classList.toggle("hidden", !on_);
   if (on_){ foPreload(); foLog("FIRST TO 3. HOLD AND LET RIP."); try { updateHomeChip(); } catch(e){} }
@@ -3232,7 +3230,8 @@ function foRelease(){
 }
 function foEnd(won){
   fo.on = false; fo.busy = false; fo.holding = false;
-  const paid = won ? (shitterUnlocked() ? 500 : 2000) : 0;
+  if (fo.mid){ foMidGameEnd(won); return; }
+  const paid = (fo.mid ? 0 : (won ? (shitterUnlocked() ? 500 : 2000) : 0));
   if (won){
     game.score += paid;
     try {
@@ -3249,7 +3248,7 @@ function foEnd(won){
   el("foPressure").textContent = won ? "TAP HOLD FOR A REMATCH" : "TAP HOLD FOR REVENGE";
   fo.you = 0; fo.ai = 0; fo.busy = false;
   // re-arm: next hold starts a fresh match
-  setTimeout(() => { if (fo.on === false && !el("screen-fartoff").classList.contains("hidden")){ fo.on = true; fo.busy = false; } }, 50);
+  setTimeout(() => { if (!fo.mid && fo.on === false && !el("screen-fartoff").classList.contains("hidden")){ fo.on = true; fo.busy = false; } }, 50);
 }
 function openFartOff(){
   AudioFX.unlock();
@@ -3262,7 +3261,7 @@ function openFartOff(){
 
 
 /* ==================== BOG ROLL ROULETTE ==================== */
-const br = { on:false, cleared:0, banked:0, paperDoor:-1, doors:[], busy:false };
+const br = { on:false, cleared:0, banked:0, paperDoor:-1, doors:[], busy:false, mid:false };
 function brShow(on_){
   el("screen-bogroll").classList.toggle("hidden", !on_);
   if (on_){ try { updateHomeChip(); } catch(e){} }
@@ -3305,19 +3304,20 @@ function brPick(d, btn){
     btn.classList.add("open-paper");
     btn.querySelector(".br-face").textContent = "🧻";
     br.cleared++;
-    const bank = brLadder(br.cleared);
+    const bank = brLadder(br.cleared) + (br.mid ? 100 * br.cleared : 0);
     br.banked = bank;
     el("brCleared").textContent = String(br.cleared);
     el("brBanked").textContent = String(bank);
     if (br.cleared >= 4){
       // CLEARED THE WHOLE BOG
       const first = (() => { try { return localStorage.getItem("spoons.bogroll.won") !== "1"; } catch(e){ return true; } })();
-      const paid = first ? 2000 : 500;
+      const paid = br.mid ? 1500 : (first ? 2000 : 500);
       try { localStorage.setItem("spoons.bogroll.won", "1"); } catch(e){}
       game.score += paid;
       brLog("👑 EVERY CUBICLE, ONE ROLL — LEGEND. +" + paid + " POINTS" + (first ? " (FIRST CLEAR BONUS)" : " (repeat clear)"));
       AudioFX.win(5);
       br.on = false;
+      if (br.mid){ setTimeout(() => brMidGameEnd(1500), 2000); br.on = false; return; }
       setTimeout(() => { if (!el("screen-bogroll").classList.contains("hidden")){ br.on = true; brRender(); brLog("GO AGAIN — THE ROLL RESPAWNS."); br.busy = false; } }, 2200);
     } else {
       brLog("🧻 FRESH ROLL! +" + bank + " BANKED — NEXT CUBICLE? (walk away or push on)");
@@ -3331,6 +3331,7 @@ function brPick(d, btn){
     btn.querySelector(".br-face").textContent = "💩";
     brSteamAt(btn);
     AudioFX.fart();
+    if (br.mid){ setTimeout(() => brMidGameEnd(0), 1800); br.on = false; return; }
     const lost = br.banked;
     brLog("💩 THE UNFLUSHED FLOATER. CUBICLE " + (d + 1) + " IS A WAR CRIME. DISQUALIFIED" + (lost ? " — LOST " + lost + " BANKED" : " — NOT A PENNY BANKED"));
     AudioFX.lose();
@@ -3362,17 +3363,68 @@ function maybeTriggerFartOff(){
   // called on streak 6+: first time ever -> landlord challenge
   if (foUnlocked()) return;
   try { localStorage.setItem("spoons.fartoff.seen", "1"); } catch(e){}
-  const b = el("btnFartOff");
-  if (b){ b.style.opacity = "1"; b.classList.add("pulse"); }
-  bonusToast("🎩 THE LANDLORD HEARD YOUR STREAK. HE WANTS A FART OFF. (title screen)");
+  offerBonus("fartoff");
+  bonusToast("🎩 THE LANDLORD WANTS A WORD. FINISH THIS ROUND…");
   AudioFX.fart();
 }
 function maybeTriggerBogRoll(){
   // called on boss-wave clear: victory lap offer
-  if (Math.random() > 0.4) return;
   bonusToast("🧻 THE BOGS ARE FRESHLY CLEANED. ROLL THE CUBICLES? (title screen)");
-  const b = el("btnBogRoll");
-  if (b){ b.style.opacity = "1"; b.classList.add("pulse"); }
+  offerBonus("bogroll");
+  bonusToast("🧻 A CLEAN CUBICLE JUST OPENED. FINISH THE ROUND…");
+}
+
+/* ==================== MID-GAME BONUS DISPATCH ==================== */
+const pendingBonus = { type: null };
+function offerBonus(type){ pendingBonus.type = type; }
+function maybePendingBonus(){ // returns true if a bonus round took over
+  if (!pendingBonus.type) return false;
+  const t = pendingBonus.type; pendingBonus.type = null;
+  if (t === "fartoff"){ foMidGameStart(); return true; }
+  if (t === "bogroll"){ brMidGameStart(); return true; }
+  return false;
+}
+
+function brMidGameStart(){
+  AudioFX.stopMusic();
+  brShow(true);
+  br.on = true; br.busy = false; br.cleared = 0; br.banked = 0;
+  el("brCleared").textContent = "0"; el("brBanked").textContent = "0";
+  brRender(); brLog("A CLEAN CUBICLE APPEARS MID-SESSION. PUSH YOUR LUCK.");
+  br.mid = true;
+}
+function brMidGameEnd(escapedWith){
+  br.mid = false;
+  brShow(false);
+  showScreen("table");
+  if (escapedWith > 0){
+    game.score += escapedWith;
+    setVerdict('<div class="verdict-line wave-clear">🧻 WALKED AWAY CLEAN — +' + escapedWith + ' BANKED</div><div class="verdict-sub">TABLE RESUMES</div>');
+  } else {
+    setVerdict('<div class="verdict-line wave-clear">💩 THE FLOATER GOT YOU — NOTHING BANKED</div><div class="verdict-sub">TABLE RESUMES. WASH YOUR HANDS.</div>');
+  }
+  AudioFX.resumeMusic();
+  renderNextButton();
+}
+
+function foMidGameStart(){
+  AudioFX.stopMusic();
+  foShow(true);
+  fo.on = true; fo.busy = false; fo.you = 0; fo.ai = 0;
+  el("foVs").textContent = "VS";
+  el("foScoreYou").textContent = "—"; el("foScoreAi").textContent = "—";
+  foMeterPct(0, "you"); foMeterPct(0, "ai");
+  foLog("THE LANDLORD STEPS OUT FROM BEHIND THE BAR. FIRST TO 3.");
+  fo.mid = true;
+}
+function foMidGameEnd(won){
+  fo.mid = false;
+  foShow(false);
+  showScreen("table");
+  if (won){ game.score += 500; setVerdict('<div class="verdict-line wave-clear">💨 FART OFF WON — THE LANDLORD BUYS A ROUND</div><div class="verdict-sub">+500 · TABLE RESUMES</div>'); }
+  else { setVerdict('<div class="verdict-line wave-clear">💨 FART OFF LOST — BACK TO THE TABLE</div><div class="verdict-sub">THE LANDLORD WALKS OFF GRINNING</div>'); }
+  AudioFX.resumeMusic();
+  renderNextButton();
 }
 /* ==================== 7. WIRING ==================== */
 /* ---------- home chip wiring ---------- */
@@ -3393,16 +3445,23 @@ document.getElementById("homeChip").addEventListener("click", function(){
 
 el("btnArcade").addEventListener("click", () => { onModeStartRequested("arcade"); });
 el("btnShitter").addEventListener("click", () => { openBonus(); });
-el("btnFartOff").addEventListener("click", () => { AudioFX.click(); openFartOff(); });
+const btnFartOff = el("btnFartOff"); if (btnFartOff) btnFartOff.addEventListener("click", () => { AudioFX.click(); openFartOff(); });
 el("foBack").addEventListener("click", () => { AudioFX.click(); foShow(false); showScreen("title"); });
-el("btnBogRoll").addEventListener("click", () => { AudioFX.click(); openBogRoll(); });
+const btnBogRoll = el("btnBogRoll"); if (btnBogRoll) btnBogRoll.addEventListener("click", () => { AudioFX.click(); openBogRoll(); });
 el("brBack").addEventListener("click", () => { AudioFX.click(); brShow(false); showScreen("title"); });
 (function foBind(){
   const s = el("screen-fartoff");
-  s.addEventListener("pointerdown", e => { if (e.target.closest("#foBack")) return; foHoldStart_(e); });
-  s.addEventListener("pointerup", () => foRelease());
-  s.addEventListener("pointercancel", () => foRelease());
-  s.addEventListener("pointerleave", () => foRelease());
+  s.style.touchAction = "none";
+  s.addEventListener("contextmenu", e => e.preventDefault());
+  let holding = false;
+  s.addEventListener("pointerdown", e => {
+    if (e.target.closest("#foBack")) return;
+    e.preventDefault(); holding = true; foHoldStart_(e);
+  });
+  s.addEventListener("pointerup", () => { if (holding){ holding = false; foRelease(); } });
+  s.addEventListener("pointercancel", () => { holding = false; foRelease(); });
+  // mouse-only leave-cancel (touch keep-hold while finger drifts)
+  s.addEventListener("pointerleave", e => { if (e.pointerType === "mouse"){ holding = false; foRelease(); } });
 })();
 
 el("bonusBack").addEventListener("click", () => { AudioFX.click(); closeBonus(); });
