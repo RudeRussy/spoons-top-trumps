@@ -746,18 +746,23 @@ footer{ text-align:center; color:#7b7264; font-size:11px; padding:12px 16px 18px
 }
 </style>
 <style>
-/* ---------- HUD tidy override: single-row, scrollable chip rail, no HOME overlap ---------- */
+/* ---------- HUD bulletproof: one-row button strip, no overlaps 300-1024 ---------- */
 header#hud{
   flex-wrap:nowrap;
   align-items:center;
   gap:10px;
   padding:max(10px, env(safe-area-inset-top)) 12px 10px 12px;
   min-height:54px;
+  justify-content:space-between;
 }
 header#hud .brand{
   flex:0 0 auto;
+  max-width:42vw;
+  overflow:hidden;
+  text-overflow:ellipsis;
   line-height:1.15;
 }
+header#hud .brand em{ display:inline; }
 header#hud .brand small{
   display:block;
   font-size:11px;
@@ -792,7 +797,7 @@ header#hud .score{
   -ms-overflow-style:none;
   padding-right:4px;
 }
-#hudButtons{ flex:0 0 auto; display:flex; gap:6px; }
+#hudButtons{ flex:0 0 auto; display:flex; justify-content:flex-end; gap:6px; }
 header#hud .score::-webkit-scrollbar{ display:none; }
 header#hud .score > *{ flex:0 0 auto; }
 .chip, .chip.combo, .chip.demo{
@@ -803,97 +808,77 @@ header#hud .score > *{ flex:0 0 auto; }
 .chip.combo, .chip.demo{ min-height:28px; }
 #scoreChip{ font-size:12px; white-space:nowrap; padding-right:2px; }
 
-/* Bonus scratch captions */
-.bonus-strip{ gap:8px; }
-.scratch{
-  display:inline-flex;
-  flex-direction:column;
-  align-items:flex-start;
-  gap:1px;
-  background:rgba(20,25,32,.8);
-  border:1px solid rgba(242,232,213,.28);
-  border-radius:10px;
-  padding:4px 8px;
-  font-size:13px;
-  line-height:1.1;
-}
-.scratch .scratch-caption{
-  font-size:8px;
-  font-weight:800;
-  letter-spacing:.08em;
-  color:var(--gold);
-  white-space:nowrap;
-}
-.scratch .scratch-body{
-  display:inline-flex;
-  align-items:center;
-  gap:4px;
-}
-.scratch .pips{
-  font-style:normal;
-  letter-spacing:2px;
-  color:rgba(242,232,213,.35);
-  text-shadow:none;
-}
-.scratch .pips i{ font-style:normal; }
-.scratch.arm{ border-color:#e3b23c; animation:chipPulse 1s ease-in-out infinite; }
-.scratch.arm .pips{ color:#e3b23c; }
-.scratch .pips .on{ color:#e3b23c; text-shadow:0 0 6px rgba(227,178,60,.8); }
-.scratch .pips .gold{ color:#ffd700; text-shadow:0 0 8px rgba(255,215,0,.9); }
-
 .hudbtn{
   min-width:44px;
   min-height:44px;
-  padding:0 6px;
+  width:44px;
+  height:44px;
+  padding:0;
   font-size:16px;
   border-radius:10px;
-  flex:1 1 0;
+  flex:0 0 auto;
+  box-sizing:border-box;
 }
 #homeChip{
-  position:fixed;
-  top:auto;
-  right:max(14px, env(safe-area-inset-right));
-  bottom:max(18px, calc(env(safe-area-inset-bottom) + 10px));
-  z-index:85;
+  position:static;
+  inset:auto;
   display:none;
-  min-width:56px;
-  min-height:56px;
-  width:56px;
-  height:56px;
-  border-radius:50%;
+  min-width:44px;
+  min-height:44px;
+  width:44px;
+  height:44px;
+  border-radius:10px;
   align-items:center;
   justify-content:center;
   padding:0;
-  background:rgba(20,25,32,.92);
-  color:#f2e8d5;
-  border:2px solid #e3b23c;
-  box-shadow:0 6px 22px rgba(0,0,0,.55), 0 0 0 1px rgba(227,178,60,.35);
-  font-size:11px;
+  background:transparent;
+  color:var(--cream);
+  border:1px solid rgba(242,232,213,.3);
+  font-size:0;
   font-weight:900;
   -webkit-tap-highlight-color:transparent;
-  backdrop-filter:blur(8px);
+  backdrop-filter:none;
   overflow:hidden;
+  z-index:auto;
 }
-#homeChip.show{ display:flex; }
-#homeChip::before{ content:"🏠"; font-size:24px; }
-#homeChip{ font-size:0; }
-#hudButtons{ flex:0 0 auto; display:flex; gap:6px; }
+#homeChip.show{ display:inline-flex; }
+#homeChip::before{ content:"🏠"; font-size:20px; }
+#homeChip:hover{ background:rgba(242,232,213,.12); }
 
-@media (max-width:780px) and (min-width:421px){
-  /* tablets/small desktops: shrink the score rail so buttons never overlap */
-  header#hud .score{ flex:1 1 0; min-width:0; }
+/* Wide screens: keep buttons compact, never grow into chip rail */
+@media (min-width:781px){
+  header#hud .score{ flex:1 1 0; min-width:0; max-width:calc(100% - 260px); }
   #hudButtons{ flex:0 0 auto; }
   #aiChip, .chip.round:last-of-type{ display:none; }
 }
+
+/* 561-780: compact single-row, rail hides overflow nicely */
+@media (max-width:780px) and (min-width:561px){
+  header#hud .score{ flex:1 1 0; min-width:0; max-width:calc(100% - 210px); }
+  #hudButtons{ flex:0 0 auto; }
+  #aiChip, .chip.round:last-of-type, #bonusPill{ display:none; }
+}
+/* 421-560: very tight; keep buttons, collapse brand + score to minimum */
+@media (max-width:560px) and (min-width:421px){
+  header#hud{ gap:6px; }
+  header#hud .brand{ font-size:13px; max-width:130px; }
+  header#hud .brand small{ display:none; }
+  #hudButtons{ flex:0 0 auto; gap:4px; }
+  .hudbtn, #homeChip{ width:40px; min-width:40px; height:40px; min-height:40px; }
+  header#hud .score{ flex:0 0 auto; min-width:0; max-width:calc(100% - 188px); overflow:hidden; }
+  header#hud .score > *:not(#scoreChip):not(.combo){ display:none; }
+  #aiChip, .chip.round:last-of-type, #bonusPill{ display:none; }
+}
+
+/* Narrow phones: title row + even button row + chip rail */
 @media (max-width:420px){
-  /* phones: row1 TITLE ONLY, row2 buttons evenly spaced, row3 chip rail */
   header#hud{
     flex-wrap:wrap;
+    justify-content:space-between;
     padding:8px 12px 8px 12px;
     row-gap:8px;
   }
-  header#hud .brand{ font-size:15px; flex:1 1 100%; min-width:0; }
-  header#hud .brand em{ display:none; }
+  header#hud .brand{ font-size:15px; flex:0 0 auto; min-width:0; max-width:none; }
   #hudButtons{
     order:2;
     flex:1 1 100%;
@@ -905,17 +890,14 @@ header#hud .score > *{ flex:0 0 auto; }
   .hudbtn, #homeChip{
     flex:1 1 0;
     min-width:44px;
+    width:auto;
     max-width:25%;
   }
   .hudbtn{ padding:0; min-width:44px; min-height:44px; font-size:16px; }
   #homeChip{
-    position:static;
-    inset:auto;
-    top:auto; bottom:auto; right:auto; left:auto;
     order:2;
     min-width:44px;
     min-height:44px;
-    width:auto;
     height:44px;
     border-radius:12px;
     padding:0 12px;
@@ -1296,12 +1278,16 @@ const REWARDS = {
     } catch(e){}
   });
 
-  /* ---------- build stamp: self-heal stale phone cache ---------- */
-  const BUILD_STAMP = "bonus-pill-23-r28";
+  /* ---------- build stamp: bulletproof self-heal ---------- */
+  const BUILD_STAMP = "hud-final-22-r27";
   try {
     const seen = localStorage.getItem("spoons_build");
-    if (seen && seen !== BUILD_STAMP){ localStorage.setItem("spoons_build", BUILD_STAMP); location.reload(true); }
-    else localStorage.setItem("spoons_build", BUILD_STAMP);
+    if (seen && seen !== BUILD_STAMP){
+      try { localStorage.setItem("spoons_build", BUILD_STAMP); } catch(e){}
+      location.replace(location.pathname + "?v=" + encodeURIComponent(BUILD_STAMP) + location.hash);
+    } else {
+      localStorage.setItem("spoons_build", BUILD_STAMP);
+    }
   } catch(e){}
   try { document.getElementById("buildChip").textContent = BUILD_STAMP.slice(0, 12); } catch(e){}
 
