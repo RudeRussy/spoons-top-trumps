@@ -339,6 +339,27 @@ body::before{ content:""; position:fixed; inset:0; z-index:-2; pointer-events:no
 @keyframes pillPulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(227,178,60,.7);} 50%{ box-shadow:0 0 0 8px rgba(227,178,60,0);} }
 #bonusPill.show{ animation:pillPulse 1.2s infinite; }
 
+
+/* ---------- Card + fold fixes (user pass) ---------- */
+.table{ align-items:stretch; }
+.table .side{ display:flex; flex-direction:column; }
+.table .card{ height:100%; }
+/* bonus strip: compact single-row on phones (was wrapping 2 rows, 126px tall) */
+@media (max-width:420px){
+  .bonus-strip{ flex-wrap:nowrap; gap:6px; padding:6px 8px; }
+  .bonus-strip .scratch{ min-height:30px; padding:2px 6px; }
+  .scratch-caption{ font-size:9px !important; }
+  #bonusToastSlot{ position:absolute; left:0; right:0; top:-22px; font-size:11px; min-height:0; }
+  .bonus-strip{ position:relative; }
+}
+/* anchor NEXT/card actions within the viewport on phones: stage flex + min-height fold calc */
+@media (max-width:420px){
+  #stage{ min-height:100dvh; padding-bottom:max(34px, calc(env(safe-area-inset-bottom) + 20px)); display:flex; flex-direction:column; }
+  #stage > main, #stage #screen-table{ flex:1 1 auto; }
+  #screen-table .table{ margin-top:auto; }
+  #roundActions{ margin-bottom:0; }
+}
+
 /* ---------- Title ---------- */
 #screen-title{ text-align:center; padding-top:4vh; position:relative; }
 #screen-title h1{
@@ -484,6 +505,7 @@ body::before{ content:""; position:fixed; inset:0; z-index:-2; pointer-events:no
 }
 .card{
   width:min(330px,44vw);
+  min-height:340px; /* equal card heights on both sides (user pass) */
   background:var(--paper);
   border-radius:var(--radius);
   border:1px solid rgba(0,0,0,.25);
@@ -1272,7 +1294,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "hud-final-22-r27";
+  const BUILD_STAMP = "cards-equal-25-r30";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
