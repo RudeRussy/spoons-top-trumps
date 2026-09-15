@@ -360,6 +360,15 @@ body::before{ content:""; position:fixed; inset:0; z-index:-2; pointer-events:no
   #roundActions{ margin-bottom:0; }
 }
 
+
+/* ---------- Achievements ---------- */
+.brow-ach{ display:flex; align-items:center; gap:8px; padding:6px 10px; font-size:12px; color:#f2e8d5; border-bottom:1px solid rgba(242,232,213,.08); }
+.brow-ach .ach-ico{ font-size:16px; }
+.brow-ach .ach-name{ font-weight:800; letter-spacing:.06em; }
+.brow-ach .ach-desc{ color:var(--muted); font-size:10px; }
+.brow-ach.locked{ opacity:.35; }
+.brow-ach.locked .ach-desc{ font-style:italic; }
+
 /* ---------- Title ---------- */
 #screen-title{ text-align:center; padding-top:4vh; position:relative; }
 #screen-title h1{
@@ -1254,7 +1263,8 @@ header#hud .score > *{ flex:0 0 auto; }
       <div class="boards-tabs">
         <button class="linkbtn on" id="tabGlobal">WORLD</button> ·
         <button class="linkbtn" id="tabPub">MY SPOONS</button> ·
-        <button class="linkbtn" id="tabPubPlayer">PLAYERS AT MY SPOONS</button>
+        <button class="linkbtn" id="tabPubPlayer">PLAYERS AT MY SPOONS</button> ·
+        <button class="linkbtn" id="tabAch">🏆 <span id="achChip">0</span></button>
       </div>
       <div class="boards-list" id="boardsList"></div>
       <div class="boards-status" id="boardsStatus"></div>
@@ -1294,7 +1304,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "cards-equal-25-r30";
+  const BUILD_STAMP = "achievements-26-r31";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -1986,6 +1996,7 @@ const Spoons = (() => {
     try { localStorage.setItem(LS_RECENT, JSON.stringify(list.slice(0, 3))); } catch(e){}
   }
   function pickPub(pub){
+    try { achCheck("pubPlayed", { pub: pub.n || (pub && pub.s) }); } catch(e){}
     try { localStorage.setItem(LS_MY_PUB, JSON.stringify(pub)); } catch(e){}
     const r = recentPubs().filter(p => p.s !== pub.s);
     r.unshift({s:pub.s, n:pub.n, f:pub.f});
@@ -2120,9 +2131,10 @@ function onSpoonsItemClick(e){
   Spoons.loadChunk(pub.f);
 }
 function setBoardTab(tab){
-  ["tabGlobal", "tabPub", "tabPubPlayer"].forEach(id => document.getElementById(id).classList.toggle("on", false));
-  document.getElementById(tab === "global" ? "tabGlobal" : tab === "pub" ? "tabPub" : "tabPubPlayer").classList.add("on");
-  renderBoards(tab);
+  ["tabGlobal", "tabPub", "tabPubPlayer", "tabAch"].forEach(id => document.getElementById(id).classList.toggle("on", false));
+  document.getElementById(tab === "global" ? "tabGlobal" : tab === "pub" ? "tabPub" : tab === "pubplayer" ? "tabPubPlayer" : "tabAch").classList.add("on");
+  if (tab === "ach") renderAchievements();
+  else renderBoards(tab);
 }
 function updatePlayingAt(){
   const pub = Spoons.myPub();
@@ -2725,6 +2737,7 @@ function isBossWave(w){ return w > 1 && (w % 4) === 0; }
 
 function startGame(mode){
   game.mode = mode;
+  try { achCheck("gameStarted"); } catch(e){}
   game.pendingMode = null;
   el("demoChip").style.display = game.demo ? "" : "none";
   Spoons.applyOverlaySync();
@@ -2919,6 +2932,17 @@ function resolveRound(){
     game.streak++;
     game.bestStreak = Math.max(game.bestStreak, game.streak);
     game.statWins[game.statKey] = (game.statWins[game.statKey] || 0) + 1;
+    try {
+      achCheck("streak", game.streak);
+      achCheck("roundWin", {
+        cardCat: game.playerCard && game.playerCard.cat,
+        statKey: game.statKey,
+        regret: game.playerCard ? game.playerCard.regret : 99,
+        tie: winner === "draw",
+        potSize: game.pot.length
+      });
+      achCheck("score", game.score);
+    } catch(e){}
     const mult = game.streak; // uncapped — streaks climb as high as the player can take them
     const pts = (MODES[game.mode].winPts + Math.floor(margin / PERC[game.statKey].range * 100)) * mult;
     game.score += pts;
@@ -2927,9 +2951,11 @@ function resolveRound(){
     AudioFX.win(game.streak); shake("shake-soft");
   } else if (winner === "ai"){
     game.streak = 0;
+    try { if (game.aiCard && game.aiCard.cat === "COLD DRINK") achCheck("loseToColdDrink"); } catch(e){}
     AudioFX.lose(); shake("shake-hard");
   } else {
     AudioFX.draw();
+    try { achCheck("roundWin", { tie: true }); } catch(e){}
   }
   game.biggestPot = Math.max(game.biggestPot, game.pot.length);
 
@@ -2961,7 +2987,7 @@ function resolveRound(){
     const st = stageForWave(game.wave);
     setVerdict('<div class="verdict-line wave-clear">WAVE ' + oldWave + ' CLEARED — ' + st.name + '</div>' +
       '<div class="verdict-sub">+' + bonus + ' · ' + (boss ? '⚔️ BOSS — THE LANDLORD · ' : '') + st.tag + ' · ' + game.aiDeck.length + ' CARDS</div>');
-    if (boss){ shake("shake-hard"); try { maybeTriggerBogRoll(true); } catch(e){} }
+    if (boss){ shake("shake-hard"); try { maybeTriggerBogRoll(true); achCheck("bossWaveClear"); } catch(e){} }
     else { try { maybeTriggerBogRoll(false); } catch(e){} }
     renderNextButton();
     return;
@@ -2999,7 +3025,8 @@ function resolveRound(){
 }
 
 function endGame(){
-  if (game.phase === "over") return; // idempotent: timers + paths can race here
+  if (game.phase === "over") return;
+  try { achCheck("score", game.score); } catch(e){} // idempotent: timers + paths can race here
   game.phase = "over";
   AudioFX.stopMusic();
   if (game.pvp.remote && game.pvp.role === "host"){ endRemoteGame(); return; }
@@ -3488,6 +3515,7 @@ function unlockShitter(){
   try { localStorage.setItem(SHITTER_LS, "1"); } catch(e){}
   const scr = el("screen-bonus");
   scr.classList.add("unlocked");
+  try { achCheck("shitterClear"); } catch(e){}
   el("bonusStatus").textContent = first
     ? "🔓 THE DISABLED SHITTER IS YOURS. +1000 POINTS. 🚽👑"
     : "🚽👑 ALREADY UNLOCKED — 1000 POINTS AGAIN ANYWAY.";
@@ -3613,6 +3641,7 @@ function foEnd(won){
   if (fo.mid){ foMidGameEnd(won); return; }
   const paid = (fo.mid ? 0 : (won ? (shitterUnlocked() ? 500 : 2000) : 0));
   if (won){
+    try { achCheck("fartOffWin"); } catch(e){}
     game.score += paid;
     try {
       const k = "spoons.fartoff.won";
@@ -3691,6 +3720,7 @@ function brPick(d, btn){
     el("brCleared").textContent = String(br.cleared);
     el("brBanked").textContent = String(bank);
     if (br.cleared >= 4){
+      try { achCheck("bogFullClear"); } catch(e){}
       // CLEARED THE WHOLE BOG
       const first = (() => { try { return localStorage.getItem("spoons.bogroll.won") !== "1"; } catch(e){ return true; } })();
       const paid = br.mid ? 1500 : (first ? 2000 : 500);
@@ -3888,6 +3918,124 @@ function updateBonusPill(){
   if (!p) return;
   p.classList.toggle("show", pendingBonus.queue.length > 0);
 }
+
+/* ==================== ACHIEVEMENTS (random + hidden) ==================== */
+const ACH_LS = "spoons.achievements";
+const ACHIEVE_DEFS = {
+  firstBacon:  { name: "FIRST BACON RUN",          desc: "Reach a ×7 streak.", icon: "🥓", hidden: true },
+  shitterFound:{ name: "MIND THE STEAM",           desc: "Unlock the Disabled Shitter.", icon: "🚽", hidden: true },
+  curryKing:   { name: "CURRY HOUSE KING",         desc: "Reach STREAK ×8.", icon: "🍛", hidden: true },
+  fatCunt:     { name: "FAT CUNT",                 desc: "Draw three burgers in a row.", icon: "🍔", hidden: true },
+  ghey:        { name: "ABSOLUTELY GHEY",          desc: "Lose to a cold drink.", icon: "🍺", hidden: true },
+  bigPunter:   { name: "BIGGEST LAD IN THE PUB",   desc: "Bank 5,000+ points in a single game.", icon: "🏆", hidden: true },
+  bossKiller:  { name: "LANDLORD'S NIGHTMARE",     desc: "Clear the FULL MENU boss wave.", icon: "👑", hidden: true },
+  bogSurvivor: { name: "CLEAN CUBICLE CHAMPION",   desc: "Clear all four cubicles in Bog Roll Roulette.", icon: "🧻", hidden: true },
+  fartChampion:{ name: "BEER GARDEN CHAMPION",     desc: "Win a Fart Off.", icon: "💨", hidden: true },
+  carpetMatch: { name: "CARPET MATCH CHAMPION",    desc: "Win three Carpet Match rounds in one game.", icon: "🪑", hidden: true },
+  pubCrawling: { name: "PUB CRAWLER",              desc: "Play arcade at three different Spoons pubs.", icon: "🍻", hidden: true },
+  zeroRegret:  { name: "ZERO REGRETS",             desc: "Win a round with REGRET 0 or 1.", icon: "✨", hidden: true },
+  deadHeat:    { name: "DEAD HEAT",                desc: "Draw the same stat (tie) twice in a row.", icon: "🤝", hidden: true },
+  nightOwl:    { name: "LAST ORDERS REGULAR",      desc: "Play after 11pm.", icon: "🌙", hidden: true },
+  breakfast:   { name: "BREAKFAST CLUB",           desc: "Win five breakfast rounds in one game.", icon: "🌅", hidden: true },
+  potFull:     { name: "POT HEAD",                 desc: "Win a pot with 8+ cards.", icon: "🍳", hidden: true }
+};
+let achState = null;
+function achLoad(){
+  if (achState) return achState;
+  try { achState = JSON.parse(localStorage.getItem(ACH_LS) || "{}"); } catch(e){ achState = {}; }
+  if (!achState.unlocked) achState.unlocked = {};
+  if (!achState.burgerRun) achState.burgerRun = 0;
+  if (!achState.carpetWins) achState.carpetWins = 0;
+  if (!achState.tieRun) achState.tieRun = 0;
+  if (!achState.breakfastWins) achState.breakfastWins = 0;
+  return achState;
+}
+function achSave(){ try { localStorage.setItem(ACH_LS, JSON.stringify(achState)); } catch(e){} }
+function achUnlock(key){
+  const st = achLoad();
+  if (st.unlocked[key]) return;
+  st.unlocked[key] = Date.now();
+  achSave();
+  const def = ACHIEVE_DEFS[key];
+  if (def){
+    try {
+      bonusToast(def.icon + " ACHIEVEMENT — " + def.name);
+      // golden pill via bonusToast; also a small badge moment via showCombo-style pop
+      const c = document.getElementById("comboPop");
+      if (c){ c.textContent = def.icon + " " + def.name; c.classList.add("show"); setTimeout(() => c.classList.remove("show"), 2400); }
+      updateAchChip();
+    } catch(e){}
+    try { AudioFX.reward(); } catch(e){}
+  }
+}
+function achCount(){ const st = achLoad(); return Object.keys(st.unlocked).length; }
+function achTotal(){ return Object.keys(ACHIEVE_DEFS).length; }
+function updateAchChip(){
+  const c = document.getElementById("achChip");
+  if (c) c.textContent = Object.keys(achLoad().unlocked).length + "/" + achTotal();
+}
+function achCheck(event, data){
+  const st = achLoad();
+  const now = new Date();
+  try {
+    if (event === "streak"){
+      if (data >= 7) achUnlock("firstBacon");
+      if (data >= 8) achUnlock("curryKing");
+    }
+    if (event === "roundWin"){
+      if (data && data.cardCat === "CARPET" || (data && data.statKey === "carpet")){
+        st.carpetWins = (st.carpetWins || 0) + 1;
+        if (st.carpetWins >= 3) achUnlock("carpetMatch");
+        achSave();
+      }
+      if (data && data.cardCat === "BREAKFAST"){
+        st.breakfastWins = (st.breakfastWins || 0) + 1;
+        if (st.breakfastWins >= 5) achUnlock("breakfast");
+        achSave();
+      }
+      if (data && data.cardCat === "BURGER"){
+        st.burgerRun = (st.burgerRun || 0) + 1;
+        if (st.burgerRun >= 3) achUnlock("fatCunt");
+        achSave();
+      } else { st.burgerRun = 0; achSave(); }
+      if (data && typeof data.regret === "number" && data.regret <= 1) achUnlock("zeroRegret");
+      if (data && data.tie){
+        st.tieRun = (st.tieRun || 0) + 1;
+        if (st.tieRun >= 2) achUnlock("deadHeat");
+        achSave();
+      } else { st.tieRun = 0; achSave(); }
+      if (data && data.potSize && data.potSize >= 8) achUnlock("potFull");
+    }
+    if (event === "loseToColdDrink") achUnlock("ghey");
+    if (event === "bossWaveClear") achUnlock("bossKiller");
+    if (event === "score") { if (data >= 5000) achUnlock("bigPunter"); }
+    if (event === "shitterClear") achUnlock("shitterFound");
+    if (event === "fartOffWin") achUnlock("fartChampion");
+    if (event === "bogFullClear") achUnlock("bogSurvivor");
+    if (event === "pubPlayed"){
+      st.pubs = st.pubs || {};
+      if (data && data.pub) st.pubs[data.pub] = true;
+      if (st.pubs && Object.keys(st.pubs).length >= 3) achUnlock("pubCrawling");
+      achSave();
+    }
+    if (event === "gameStarted" && now.getHours() >= 23) achUnlock("nightOwl");
+  } catch(e){}
+}
+function renderAchievements(){
+  boardsRenderToken++; // discard any in-flight leaderboard fetch
+  const list = document.getElementById("boardsList");
+  const st = achLoad();
+  list.innerHTML = "";
+  document.getElementById("boardsStatus").textContent = "TROPHIES: " + Object.keys(st.unlocked).length + " / " + achTotal();
+  for (const [key, def] of Object.entries(ACHIEVE_DEFS)){
+    const unlocked = !!st.unlocked[key];
+    const row = document.createElement("div");
+    row.className = "brow-ach" + (unlocked ? "" : " locked");
+    row.innerHTML = '<span class="ach-ico">' + (unlocked ? def.icon : "❓") + '</span><div><div class="ach-name">' + (unlocked ? def.name : "???") + '</div><div class="ach-desc">' + (unlocked ? def.desc : "Hidden until you earn it.") + '</div></div>';
+    list.appendChild(row);
+  }
+}
+el("tabAch").addEventListener("click", () => { AudioFX.click(); setBoardTab("ach"); });
 /* ==================== 7. WIRING ==================== */
 /* ---------- home chip wiring ---------- */
 function updateHomeChip(){
