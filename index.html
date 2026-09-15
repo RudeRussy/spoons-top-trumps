@@ -266,7 +266,7 @@ body::before{ content:""; position:fixed; inset:0; z-index:-2; pointer-events:no
 
 /* ---------- In-flow bonus strip (main window) ---------- */
 #stage{ min-height:100dvh; padding-bottom:max(34px, calc(env(safe-area-inset-bottom) + 72px)); }
-@media (max-width:420px){
+@media (max-width:560px){
   /* thumb-zone separation: round actions keep clear of the bottom-right HOME FAB */
   #roundActions{ padding-right:84px !important; }
 }
@@ -736,7 +736,7 @@ footer{ text-align:center; color:#7b7264; font-size:11px; padding:12px 16px 18px
   .stat-label{ flex-basis:78px; }
   .card{ width:min(330px,46vw); }
 }
-@media (max-width:420px){
+@media (max-width:560px){
   .card-name{ font-size:13px; min-height:calc(2 * 13px * 1.12); }
   #hud{ padding:8px 10px; gap:8px; }
   .brand{ font-size:13px; }
@@ -854,24 +854,17 @@ header#hud .score > *{ flex:0 0 auto; }
 
 /* 561-780: compact single-row, rail hides overflow nicely */
 @media (max-width:780px) and (min-width:561px){
-  header#hud .score{ flex:1 1 0; min-width:0; max-width:calc(100% - 210px); }
+  header#hud{ justify-content:space-between; }
+  header#hud .brand{ max-width:38vw; }
+  header#hud .score{ flex:0 0 auto; width:calc(100% - 220px); overflow:hidden; }
+  header#hud .score > *:not(#scoreChip):not(.combo){ display:none; }
   #hudButtons{ flex:0 0 auto; }
   #aiChip, .chip.round:last-of-type, #bonusPill{ display:none; }
 }
-/* 421-560: very tight; keep buttons, collapse brand + score to minimum */
-@media (max-width:560px) and (min-width:421px){
-  header#hud{ gap:6px; }
-  header#hud .brand{ font-size:13px; max-width:130px; }
-  header#hud .brand small{ display:none; }
-  #hudButtons{ flex:0 0 auto; gap:4px; }
-  .hudbtn, #homeChip{ width:40px; min-width:40px; height:40px; min-height:40px; }
-  header#hud .score{ flex:0 0 auto; min-width:0; max-width:calc(100% - 188px); overflow:hidden; }
-  header#hud .score > *:not(#scoreChip):not(.combo){ display:none; }
-  #aiChip, .chip.round:last-of-type, #bonusPill{ display:none; }
-}
+
 
 /* Narrow phones: title row + even button row + chip rail */
-@media (max-width:420px){
+@media (max-width:560px){
   header#hud{
     flex-wrap:wrap;
     justify-content:space-between;
@@ -1279,7 +1272,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "hud-final-22-r27";
+  const BUILD_STAMP = "hud-pill-24-r29";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
