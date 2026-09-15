@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>SPOONS TOP TRUMPS ARCADE</title>
 <meta name="theme-color" content="#0b0e12">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Spoons Top Trumps ARCADE">
 <meta property="og:description" content="201 real Wetherspoons menu items. 6 stats. Arcade waves, win streaks, the Landlord. Highest wins — except Price and Regret, where lower wins.">
@@ -322,6 +325,19 @@ body::before{ content:""; position:fixed; inset:0; z-index:-2; pointer-events:no
 }
 #fartMan .fm-cloud{ position:absolute; left:62px; bottom:6px; font-size:28px; opacity:0; }
 #fartMan.farting .fm-cloud{ animation:fmCloud 1.2s ease-out forwards; }
+
+
+/* ---------- Bonus READY pill ---------- */
+#bonusPill{
+  display:none;
+  background:linear-gradient(90deg,#7a1f3d,#b07b2a);
+  color:#fff; border:2px solid #e3b23c; border-radius:10px;
+  padding:6px 10px; font-size:11px; font-weight:900; letter-spacing:.06em;
+  white-space:nowrap; min-height:28px; align-items:center;
+}
+#bonusPill.show{ display:inline-flex; }
+@keyframes pillPulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(227,178,60,.7);} 50%{ box-shadow:0 0 0 8px rgba(227,178,60,0);} }
+#bonusPill.show{ animation:pillPulse 1.2s infinite; }
 
 /* ---------- Title ---------- */
 #screen-title{ text-align:center; padding-top:4vh; position:relative; }
@@ -938,6 +954,7 @@ header#hud .score > *{ flex:0 0 auto; }
   <div class="brand">SPOONS <em>TOP TRUMPS</em><small id="modeLabel">ARCADE</small></div>
   <div class="score">
     <span id="scoreChip">0</span>
+    <span id="bonusPill" title="Bonus round armed — tap NEXT at the end of this round">🎁 BONUS READY — TAP NEXT</span>
     <span class="chip combo" id="comboChip">🥓 STREAK ×2</span>
     <span class="chip round" id="waveChip"><span id="waveChipLabel">WAVE</span> <b id="countWave">1</b></span>
     <span id="chipPlayer"><span id="chipPlayerLabel">YOU</span> <b id="countPlayer">—</b></span>
@@ -1280,7 +1297,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: self-heal stale phone cache ---------- */
-  const BUILD_STAMP = "fatman-visible-21a-r26a";
+  const BUILD_STAMP = "bonus-pill-23-r28";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){ localStorage.setItem("spoons_build", BUILD_STAMP); location.reload(true); }
@@ -3190,6 +3207,7 @@ function showCombo(mult){
 function renderHud(){
   const lastPot = renderHud._lastPot || 0;
   try { renderBonusScratch(); } catch(e){}
+  try { updateBonusPill(); } catch(e){}
   const potNow = game.pot.length;
   el("scoreChip").textContent = String(game.score).padStart(6, "0");
   el("modeLabel").textContent = MODES[game.mode].label;
@@ -3744,18 +3762,19 @@ function maybeTriggerFartOff(){
   AudioFX.fart();
 }
 function maybeTriggerBogRoll(force){
-  // wave clears: 40% chance, boss gate: guaranteed — once per game
+  // wave clears: GUARANTEED offer (user couldn't find the game at 40%)
   if (game.brOffered) return;
-  if (!force && Math.random() > 0.4) return;
   game.brOffered = true;
   offerBonus("bogroll");
   bonusToast("🧻 BOG ROLL: A CLEAN CUBICLE JUST OPENED. FINISH THE ROUND…");
+  try { updateBonusPill(); } catch(e){}
 }
 
 /* ==================== MID-GAME BONUS DISPATCH ==================== */
 const pendingBonus = { queue: [] };
 function offerBonus(type){ if (!pendingBonus.queue.includes(type)) pendingBonus.queue.push(type); }
 function maybePendingBonus(){ // returns true if a bonus round took over
+  try { updateBonusPill(); } catch(e){}
   const t = pendingBonus.queue.shift();
   if (!t) return false;
   if (t === "fartoff"){ foMidGameStart(); return true; }
@@ -3783,6 +3802,7 @@ function brMidGameEnd(escapedWith){
   }
   AudioFX.resumeMusic();
   renderNextButton();
+  try { updateBonusPill(); } catch(e){}
 }
 
 function foMidGameStart(){
@@ -3860,6 +3880,12 @@ function fartManShow(soundMs){
       setTimeout(() => { man.classList.remove("show", "walk"); }, 1300);
     }, 1800 + Math.max(700, soundMs || 900));
   } catch(e){}
+}
+
+function updateBonusPill(){
+  const p = document.getElementById("bonusPill");
+  if (!p) return;
+  p.classList.toggle("show", pendingBonus.queue.length > 0);
 }
 /* ==================== 7. WIRING ==================== */
 /* ---------- home chip wiring ---------- */
