@@ -298,29 +298,29 @@ body::before{ content:""; position:fixed; inset:0; z-index:-2; pointer-events:no
 
 /* ---------- Pixel Fart Man (streak 4+ walk-on) ---------- */
 #fartMan{
-  position:absolute; bottom:6px; left:-60px; width:12px; height:18px;
+  --fm-scale:4;
+  position:absolute; bottom:6px; left:-80px; width:56px; height:64px;
   z-index:5; image-rendering:pixelated; pointer-events:none;
   transform-origin:bottom left;
   transition:left 2.2s linear;
   display:none;
 }
 #fartMan.show{ display:block; }
-#fartMan .fm-body{ width:12px; height:18px; position:relative; }
-/* skin tone + underpants drawn via box-shadow pixels (1px = 2px visual) */
-#fartMan .fm-px{ position:absolute; width:2px; height:2px; }
-#fartMan.walk .fm-px{ }
+#fartMan .fm-body{ width:56px; height:64px; position:relative; }
+/* fat pixel man: each logical pixel = 4 CSS px */
+#fartMan .fm-px{ position:absolute; width:4px; height:4px; }
 @keyframes fmWalk{
-  0%{ transform:translateY(0); } 25%{ transform:translateY(-1px); }
-  50%{ transform:translateY(0); } 75%{ transform:translateY(-1px); } 100%{ transform:translateY(0); }
+  0%{ transform:translateY(0); } 25%{ transform:translateY(calc(var(--fm-scale) * -2px)); }
+  50%{ transform:translateY(0); } 75%{ transform:translateY(calc(var(--fm-scale) * -2px)); } 100%{ transform:translateY(0); }
 }
-#fartMan.walk{ animation:fmWalk .3s steps(2) infinite; }
-#fartMan.drop .fm-pants{ transform:translateY(4px); }
+#fartMan.walk{ animation:fmWalk .35s steps(2) infinite; }
+#fartMan.drop .fm-pants{ transform:translateY(calc(var(--fm-scale) * 5px)); }
 .fm-pants{ transition:transform .25s steps(2); }
 @keyframes fmCloud{
   0%{ opacity:0; transform:scale(.3); } 15%{ opacity:.95; transform:scale(1.1); }
-  100%{ opacity:0; transform:scale(1.8) translateY(-8px); }
+  100%{ opacity:0; transform:scale(1.8) translateY(calc(var(--fm-scale) * -10px)); }
 }
-#fartMan .fm-cloud{ position:absolute; left:16px; bottom:2px; font-size:14px; opacity:0; }
+#fartMan .fm-cloud{ position:absolute; left:62px; bottom:6px; font-size:28px; opacity:0; }
 #fartMan.farting .fm-cloud{ animation:fmCloud 1.2s ease-out forwards; }
 
 /* ---------- Title ---------- */
@@ -735,13 +735,16 @@ header#hud{
   flex-wrap:nowrap;
   align-items:center;
   gap:10px;
-  padding:max(10px, env(safe-area-inset-top)) 92px 10px 12px;
+  padding:max(10px, env(safe-area-inset-top)) 12px 10px 12px;
   min-height:54px;
 }
-header#hud .brand{ flex:0 0 auto; line-height:1.15; }
+header#hud .brand{
+  flex:0 0 auto;
+  line-height:1.15;
+}
 header#hud .brand small{
   display:block;
-  font-size:11px;                 /* was 6-7 px on phones */
+  font-size:11px;
   letter-spacing:.12em;
   margin-top:3px;
 }
@@ -760,12 +763,12 @@ header#hud .brand small{
 }
 #chipPlayer b{ font-size:13px; margin-left:4px; }
 header#hud .score{
-  flex:1 1 auto;
-  min-width:120px;
+  flex:1 1 0;
+  min-width:0;
   display:flex;
   align-items:center;
   gap:8px;
-  flex-wrap:nowrap;              /* stop chips stacking vertically */
+  flex-wrap:nowrap;
   overflow-x:auto;
   overscroll-behavior-x:contain;
   -webkit-overflow-scrolling:touch;
@@ -773,31 +776,70 @@ header#hud .score{
   -ms-overflow-style:none;
   padding-right:4px;
 }
+#hudButtons{ flex:0 0 auto; display:flex; gap:6px; }
 header#hud .score::-webkit-scrollbar{ display:none; }
 header#hud .score > *{ flex:0 0 auto; }
 .chip, .chip.combo, .chip.demo{
-  font-size:11px;                 /* combo/demo were 9-10 px */
+  font-size:11px;
   white-space:nowrap;
 }
 .chip b, #chipPlayer b{ font-size:13px; }
 .chip.combo, .chip.demo{ min-height:28px; }
 #scoreChip{ font-size:12px; white-space:nowrap; padding-right:2px; }
-.scratch{ font-size:12px; white-space:nowrap; min-height:28px; }
-.scratch .pips{ white-space:nowrap; letter-spacing:1.5px; }
+
+/* Bonus scratch captions */
+.bonus-strip{ gap:8px; }
+.scratch{
+  display:inline-flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:1px;
+  background:rgba(20,25,32,.8);
+  border:1px solid rgba(242,232,213,.28);
+  border-radius:10px;
+  padding:4px 8px;
+  font-size:13px;
+  line-height:1.1;
+}
+.scratch .scratch-caption{
+  font-size:8px;
+  font-weight:800;
+  letter-spacing:.08em;
+  color:var(--gold);
+  white-space:nowrap;
+}
+.scratch .scratch-body{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+}
+.scratch .pips{
+  font-style:normal;
+  letter-spacing:2px;
+  color:rgba(242,232,213,.35);
+  text-shadow:none;
+}
+.scratch .pips i{ font-style:normal; }
+.scratch.arm{ border-color:#e3b23c; animation:chipPulse 1s ease-in-out infinite; }
+.scratch.arm .pips{ color:#e3b23c; }
+.scratch .pips .on{ color:#e3b23c; text-shadow:0 0 6px rgba(227,178,60,.8); }
+.scratch .pips .gold{ color:#ffd700; text-shadow:0 0 8px rgba(255,215,0,.9); }
+
 .hudbtn{
   min-width:44px;
-  min-height:44px;                /* was 34 px */
+  min-height:44px;
   padding:0 6px;
   font-size:16px;
   border-radius:10px;
+  flex:1 1 0;
 }
 #homeChip{
   position:fixed;
-  top:auto !important;
+  top:auto;
   right:max(14px, env(safe-area-inset-right));
   bottom:max(18px, calc(env(safe-area-inset-bottom) + 10px));
   z-index:85;
-  display:none;                   /* toggled via .show by updateHomeChip() */
+  display:none;
   min-width:56px;
   min-height:56px;
   width:56px;
@@ -818,7 +860,15 @@ header#hud .score > *{ flex:0 0 auto; }
 }
 #homeChip.show{ display:flex; }
 #homeChip::before{ content:"🏠"; font-size:24px; }
-#homeChip{ font-size:0; }        /* hide the literal HOME label, icon-only FAB */
+#homeChip{ font-size:0; }
+#hudButtons{ flex:0 0 auto; display:flex; gap:6px; }
+
+@media (max-width:780px) and (min-width:421px){
+  /* tablets/small desktops: shrink the score rail so buttons never overlap */
+  header#hud .score{ flex:1 1 0; min-width:0; }
+  #hudButtons{ flex:0 0 auto; }
+  #aiChip, .chip.round:last-of-type{ display:none; }
+}
 @media (max-width:420px){
   /* phones: row1 TITLE ONLY, row2 buttons evenly spaced, row3 chip rail */
   header#hud{
@@ -828,24 +878,34 @@ header#hud .score > *{ flex:0 0 auto; }
   }
   header#hud .brand{ font-size:15px; flex:1 1 100%; min-width:0; }
   header#hud .brand em{ display:none; }
-  header#hud > div[style*="display:flex"]{
-    order:2; flex:1 1 100%;
+  #hudButtons{
+    order:2;
+    flex:1 1 100%;
+    display:flex;
     justify-content:space-evenly;
     gap:0;
     margin-top:0;
   }
+  .hudbtn, #homeChip{
+    flex:1 1 0;
+    min-width:44px;
+    max-width:25%;
+  }
   .hudbtn{ padding:0; min-width:44px; min-height:44px; font-size:16px; }
   #homeChip{
-    position:static !important;
-    inset:auto !important;
-    top:auto !important; bottom:auto !important; right:auto !important; left:auto !important;
+    position:static;
+    inset:auto;
+    top:auto; bottom:auto; right:auto; left:auto;
     order:2;
-    min-width:56px; min-height:44px; width:auto; height:44px;
+    min-width:44px;
+    min-height:44px;
+    width:auto;
+    height:44px;
     border-radius:12px;
     padding:0 12px;
     font-size:0;
   }
-  #homeChip.show{ display:flex; align-items:center; gap:4px; font-size:0; }
+  #homeChip.show{ display:inline-flex; align-items:center; gap:4px; font-size:0; }
   #homeChip::before{ content:"🏠"; font-size:15px; }
   header#hud .score{
     flex:1 1 100%;
@@ -856,16 +916,13 @@ header#hud .score > *{ flex:0 0 auto; }
     min-height:30px;
   }
   #scoreChip{ font-size:13px; min-width:74px; justify-content:center; }
-  /* everything fits: tighter pills, smaller labels */
   .chip{ padding:4px 6px; font-size:10px; min-height:24px; }
   .chip b{ font-size:11px; }
   .scratch{ min-height:24px; font-size:11px; padding:2px 6px; }
   .scratch .pips{ letter-spacing:1px; }
-  /* low-value chips leave the phone rail: they show on the table anyway */
   #aiChip, .chip.round:last-of-type{ display:none; }
 }
 @media (max-width:380px){
-  /* very narrow: labels collapse to icon+number */
   .score .chip:not(#scoreChip):not(.combo) > span,
   #chipPlayerLabel, #waveChipLabel{ display:none; }
 }
@@ -889,7 +946,7 @@ header#hud .score > *{ flex:0 0 auto; }
     <span class="chip round">BEST <b id="countBest">0</b></span>
   </div>
   <span class="chip demo" id="demoChip" style="display:none;">DEMO</span>
-  <div style="display:flex;gap:6px;">
+  <div id="hudButtons" style="display:flex;">
     <button class="hudbtn" id="btnMusic" title="Music (N)" aria-label="Toggle music">🎵</button>
     <button class="hudbtn" id="btnMute" title="Mute (M)" aria-label="Toggle sound effects">🔊</button>
     <button class="hudbtn" id="btnPause" title="Pause (P)" aria-label="Pause menu">⏸</button>
@@ -957,9 +1014,15 @@ header#hud .score > *{ flex:0 0 auto; }
   <!-- TABLE -->
   <section id="screen-table" class="screen hidden">
     <div class="bonus-strip">
-      <span class="scratch" id="scratchFart" title="STREAK ×4 = LANDLORD"><b>💨</b><i class="pips" id="foPips">····</i></span>
+      <span class="scratch" id="scratchFart" title="STREAK ×4 = LANDLORD">
+        <span class="scratch-caption">💨 FART OFF — STREAK ×4</span>
+        <span class="scratch-body"><b>💨</b><i class="pips" id="foPips">····</i></span>
+      </span>
       <span id="bonusToastSlot"></span>
-      <span class="scratch" id="scratchBog" title="WAVE CLEAR = CUBICLE ROLL"><b>🧻</b><i class="pips" id="brPips">····</i></span>
+      <span class="scratch" id="scratchBog" title="WAVE CLEAR = CUBICLE ROLL">
+        <span class="scratch-caption">🧻 BOG ROLL — WIN A WAVE</span>
+        <span class="scratch-body"><b>🧻</b><i class="pips" id="brPips">····</i></span>
+      </span>
     </div>
     <div class="table">
       <div class="side">
@@ -977,10 +1040,11 @@ header#hud .score > *{ flex:0 0 auto; }
   
   <div id="fartMan" aria-hidden="true">
     <div class="fm-body">
-      <i class="fm-px" style="left:-100px; top:-100px; width:2px; height:2px; box-shadow:106px 102px 0 0 #e8b088,108px 102px 0 0 #e8b088,110px 102px 0 0 #e8b088,112px 102px 0 0 #e8b088,114px 102px 0 0 #e8b088,106px 104px 0 0 #e8b088,108px 104px 0 0 #e8b088,110px 104px 0 0 #e8b088,112px 104px 0 0 #e8b088,106px 106px 0 0 #e8b088,108px 106px 0 0 #e8b088,112px 106px 0 0 #e8b088,106px 108px 0 0 #e8b088,108px 108px 0 0 #e8b088,110px 108px 0 0 #e8b088,112px 108px 0 0 #e8b088,104px 110px 0 0 #e8b088,114px 110px 0 0 #e8b088,108px 112px 0 0 #e8b088,110px 112px 0 0 #e8b088,104px 114px 0 0 #e8b088,106px 114px 0 0 #e8b088,108px 114px 0 0 #e8b088,110px 114px 0 0 #e8b088,112px 114px 0 0 #e8b088,114px 114px 0 0 #e8b088,104px 116px 0 0 #e8b088,106px 116px 0 0 #e8b088,108px 116px 0 0 #e8b088,110px 116px 0 0 #e8b088,112px 116px 0 0 #e8b088,114px 116px 0 0 #e8b088,102px 118px 0 0 #e8b088,104px 118px 0 0 #e8b088,114px 118px 0 0 #e8b088,116px 118px 0 0 #e8b088,102px 120px 0 0 #e8b088,104px 120px 0 0 #e8b088,114px 120px 0 0 #e8b088,116px 120px 0 0 #e8b088,108px 126px 0 0 #e8b088,110px 126px 0 0 #e8b088,106px 128px 0 0 #e8b088,108px 128px 0 0 #e8b088,110px 128px 0 0 #e8b088,112px 128px 0 0 #e8b088,106px 130px 0 0 #e8b088,108px 130px 0 0 #e8b088,110px 130px 0 0 #e8b088,112px 130px 0 0 #e8b088,106px 132px 0 0 #e8b088,108px 132px 0 0 #e8b088,110px 132px 0 0 #e8b088,112px 132px 0 0 #e8b088;"></i>
-      <i class="fm-px" style="left:-100px; top:-100px; width:2px; height:2px; box-shadow:106px 100px 0 0 #4a3524,108px 100px 0 0 #4a3524,110px 100px 0 0 #4a3524,112px 100px 0 0 #4a3524,104px 102px 0 0 #4a3524,114px 102px 0 0 #4a3524;"></i>
-      <i class="fm-px" style="left:-100px; top:-100px; width:2px; height:2px; box-shadow:106px 134px 0 0 #2b2b2b,108px 134px 0 0 #2b2b2b,110px 134px 0 0 #2b2b2b,112px 134px 0 0 #2b2b2b;"></i>
-      <i class="fm-pants fm-px" style="left:-100px; top:-100px; width:2px; height:2px; box-shadow:104px 118px 0 0 #d94f4f,106px 118px 0 0 #d94f4f,108px 118px 0 0 #d94f4f,110px 118px 0 0 #d94f4f,112px 118px 0 0 #d94f4f,114px 118px 0 0 #d94f4f,104px 120px 0 0 #d94f4f,106px 120px 0 0 #d94f4f,108px 120px 0 0 #d94f4f,110px 120px 0 0 #d94f4f,112px 120px 0 0 #d94f4f,114px 120px 0 0 #d94f4f,104px 122px 0 0 #d94f4f,106px 122px 0 0 #d94f4f,108px 122px 0 0 #d94f4f,110px 122px 0 0 #d94f4f,112px 122px 0 0 #d94f4f,114px 122px 0 0 #d94f4f,104px 124px 0 0 #d94f4f,106px 124px 0 0 #d94f4f,108px 124px 0 0 #d94f4f,110px 124px 0 0 #d94f4f,112px 124px 0 0 #d94f4f,114px 124px 0 0 #d94f4f;"></i>
+      <i class="fm-px" style="left:-100px; top:-100px; width:4px; height:4px; box-shadow:16px 0px 0 0 #4a3524,20px 0px 0 0 #4a3524,24px 0px 0 0 #4a3524,28px 0px 0 0 #4a3524,32px 0px 0 0 #4a3524,36px 0px 0 0 #4a3524,12px 4px 0 0 #4a3524,16px 4px 0 0 #4a3524,20px 4px 0 0 #4a3524,24px 4px 0 0 #4a3524,28px 4px 0 0 #4a3524,32px 4px 0 0 #4a3524,36px 4px 0 0 #4a3524,40px 4px 0 0 #4a3524,8px 8px 0 0 #4a3524,12px 8px 0 0 #4a3524,16px 8px 0 0 #4a3524,20px 8px 0 0 #4a3524,24px 8px 0 0 #4a3524,28px 8px 0 0 #4a3524,32px 8px 0 0 #4a3524,36px 8px 0 0 #4a3524,40px 8px 0 0 #4a3524,44px 8px 0 0 #4a3524,8px 12px 0 0 #4a3524,12px 12px 0 0 #4a3524,40px 12px 0 0 #4a3524,44px 12px 0 0 #4a3524,8px 16px 0 0 #4a3524,40px 16px 0 0 #4a3524,8px 20px 0 0 #4a3524,40px 20px 0 0 #4a3524,8px 24px 0 0 #4a3524,40px 24px 0 0 #4a3524;"></i>
+      <i class="fm-px" style="left:-100px; top:-100px; width:4px; height:4px; box-shadow:16px 12px 0 0 #e8b088,20px 12px 0 0 #e8b088,24px 12px 0 0 #e8b088,28px 12px 0 0 #e8b088,32px 12px 0 0 #e8b088,36px 12px 0 0 #e8b088,12px 16px 0 0 #e8b088,16px 16px 0 0 #e8b088,20px 16px 0 0 #e8b088,24px 16px 0 0 #e8b088,28px 16px 0 0 #e8b088,32px 16px 0 0 #e8b088,36px 16px 0 0 #e8b088,12px 20px 0 0 #e8b088,16px 20px 0 0 #e8b088,24px 20px 0 0 #e8b088,28px 20px 0 0 #e8b088,36px 20px 0 0 #e8b088,12px 24px 0 0 #e8b088,16px 24px 0 0 #e8b088,20px 24px 0 0 #e8b088,24px 24px 0 0 #e8b088,28px 24px 0 0 #e8b088,32px 24px 0 0 #e8b088,36px 24px 0 0 #e8b088,12px 28px 0 0 #e8b088,16px 28px 0 0 #e8b088,20px 28px 0 0 #e8b088,24px 28px 0 0 #e8b088,28px 28px 0 0 #e8b088,32px 28px 0 0 #e8b088,36px 28px 0 0 #e8b088,40px 28px 0 0 #e8b088,12px 32px 0 0 #e8b088,16px 32px 0 0 #e8b088,20px 32px 0 0 #e8b088,32px 32px 0 0 #e8b088,36px 32px 0 0 #e8b088,40px 32px 0 0 #e8b088,16px 36px 0 0 #e8b088,20px 36px 0 0 #e8b088,32px 36px 0 0 #e8b088,36px 36px 0 0 #e8b088,20px 40px 0 0 #e8b088,24px 40px 0 0 #e8b088,28px 40px 0 0 #e8b088,32px 40px 0 0 #e8b088,4px 44px 0 0 #e8b088,8px 44px 0 0 #e8b088,12px 44px 0 0 #e8b088,16px 44px 0 0 #e8b088,20px 44px 0 0 #e8b088,24px 44px 0 0 #e8b088,28px 44px 0 0 #e8b088,32px 44px 0 0 #e8b088,36px 44px 0 0 #e8b088,40px 44px 0 0 #e8b088,44px 44px 0 0 #e8b088,48px 44px 0 0 #e8b088;"></i>
+      <i class="fm-px" style="left:-100px; top:-100px; width:4px; height:4px; box-shadow:20px 20px 0 0 #cfa080,32px 20px 0 0 #cfa080,24px 32px 0 0 #cfa080,28px 32px 0 0 #cfa080,8px 36px 0 0 #cfa080,12px 36px 0 0 #cfa080,24px 36px 0 0 #cfa080,28px 36px 0 0 #cfa080,40px 36px 0 0 #cfa080,44px 36px 0 0 #cfa080,4px 40px 0 0 #cfa080,8px 40px 0 0 #cfa080,12px 40px 0 0 #cfa080,16px 40px 0 0 #cfa080,36px 40px 0 0 #cfa080,40px 40px 0 0 #cfa080,44px 40px 0 0 #cfa080,48px 40px 0 0 #cfa080;"></i>
+      <i class="fm-pants fm-px" style="left:-100px; top:-100px; width:4px; height:4px; box-shadow:0px 48px 0 0 #d94f4f,4px 48px 0 0 #d94f4f,8px 48px 0 0 #d94f4f,12px 48px 0 0 #d94f4f,16px 48px 0 0 #d94f4f,20px 48px 0 0 #d94f4f,24px 48px 0 0 #d94f4f,28px 48px 0 0 #d94f4f,32px 48px 0 0 #d94f4f,36px 48px 0 0 #d94f4f,40px 48px 0 0 #d94f4f,44px 48px 0 0 #d94f4f,48px 48px 0 0 #d94f4f,52px 48px 0 0 #d94f4f,0px 52px 0 0 #d94f4f,4px 52px 0 0 #d94f4f,8px 52px 0 0 #d94f4f,12px 52px 0 0 #d94f4f,16px 52px 0 0 #d94f4f,20px 52px 0 0 #d94f4f,24px 52px 0 0 #d94f4f,28px 52px 0 0 #d94f4f,32px 52px 0 0 #d94f4f,36px 52px 0 0 #d94f4f,40px 52px 0 0 #d94f4f,44px 52px 0 0 #d94f4f,48px 52px 0 0 #d94f4f,52px 52px 0 0 #d94f4f;"></i>
+      <i class="fm-px" style="left:-100px; top:-100px; width:4px; height:4px; box-shadow:8px 56px 0 0 #2b2b2b,12px 56px 0 0 #2b2b2b,48px 56px 0 0 #2b2b2b,52px 56px 0 0 #2b2b2b,8px 60px 0 0 #2b2b2b,12px 60px 0 0 #2b2b2b,48px 60px 0 0 #2b2b2b,52px 60px 0 0 #2b2b2b;"></i>
       <b class="fm-cloud">💨</b>
     </div>
   </div>
@@ -1216,7 +1280,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: self-heal stale phone cache ---------- */
-  const BUILD_STAMP = "fartman-20-r25";
+  const BUILD_STAMP = "fartman-21-r26";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){ localStorage.setItem("spoons_build", BUILD_STAMP); location.reload(true); }
@@ -3676,7 +3740,7 @@ function maybeTriggerFartOff(){
   if (game.foOffered) return;
   game.foOffered = true;
   offerBonus("fartoff");
-  bonusToast("🎩 THE LANDLORD WANTS A WORD. FINISH THIS ROUND…");
+  bonusToast("💨 FART OFF: THE LANDLORD WANTS A WORD. FINISH THIS ROUND…");
   AudioFX.fart();
 }
 function maybeTriggerBogRoll(force){
@@ -3685,7 +3749,7 @@ function maybeTriggerBogRoll(force){
   if (!force && Math.random() > 0.4) return;
   game.brOffered = true;
   offerBonus("bogroll");
-  bonusToast("🧻 A CLEAN CUBICLE JUST OPENED. FINISH THE ROUND…");
+  bonusToast("🧻 BOG ROLL: A CLEAN CUBICLE JUST OPENED. FINISH THE ROUND…");
 }
 
 /* ==================== MID-GAME BONUS DISPATCH ==================== */
