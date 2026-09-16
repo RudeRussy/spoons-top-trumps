@@ -1460,7 +1460,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "fart-march-30-r35";
+  const BUILD_STAMP = "funk-theme-31-r36";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -1822,13 +1822,22 @@ function musicTick(){
   musicStep++;
 }
 
-function startMusic(){
+let funkAudio = null;
+  function startMusic(){
     stopMusic();
     if (!musicOn || muted) return;
-    const c = ac(); if (!c) return;
-    musicTimer = setInterval(musicTick, 117); // lock-in step; boss re-arms on wave change
+    try {
+      if (!funkAudio){ funkAudio = new Audio("sfx/theme-funk.mp3"); funkAudio.loop = true; funkAudio.volume = 0.85; }
+      funkAudio.currentTime = 0;
+      const p = funkAudio.play();
+      if (p && p.catch) p.catch(() => {});
+      musicTimer = setInterval(() => { /* audio element handles its own loop */ }, 1000);
+    } catch(e){}
   }
-  function stopMusic(){ if (musicTimer){ clearInterval(musicTimer); musicTimer = null; } }
+  function stopMusic(){
+    try { if (funkAudio){ funkAudio.pause(); funkAudio.currentTime = 0; } } catch(e){}
+    if (musicTimer){ clearInterval(musicTimer); musicTimer = null; }
+  }
   function resumeMusic(){ if (musicOn && !muted && !musicTimer) startMusic(); }
   return {
     unlock(){
@@ -1854,6 +1863,7 @@ function startMusic(){
       } catch (e) {}
     },
     debugMusic(){ return { step: musicStep, timer: !!musicTimer, theme: "fart-march" }; },
+    funkState(){ try { return { playing: funkAudio && !funkAudio.paused && !funkAudio.ended, t: funkAudio.currentTime, dur: funkAudio.duration }; } catch(e){ return null; } },
     themes(){ return { march: DRUMS }; },
     click(){ tone(220, 0.06, "square", 0.045); },
     deal(){ noise(0.09, 0.04); tone(160, 0.05, "triangle", 0.03, 0.02); },
