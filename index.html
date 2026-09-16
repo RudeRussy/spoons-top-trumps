@@ -1460,7 +1460,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "addiction-27-r32";
+  const BUILD_STAMP = "beat-fix-29-r34";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -1828,18 +1828,13 @@ function activeMusicTheme(){
   if (game.phase === "over") return { N: N_B, BASS: BASS_B, LEAD: LEAD_B, ARP: ARP_B, DRUMS: DRUMS_B, STEP_MS: Math.round((60/100)*1000/4) };
   return { N: N, BASS: BASS, LEAD: LEAD, ARP: ARP, DRUMS: DRUMS_A, STEP_MS: Math.round((60/128)*1000/4) };
 }
-let musicLastStepAt = 0;
 function musicTick(){
   if (!musicOn || muted) return;
   const T = activeMusicTheme();
   const sms = T.STEP_MS;
-  // theme-aware pacing: schedule notes only when the theme's step interval elapsed
-  const now = performance.now();
-  if (musicLastStepAt && now - musicLastStepAt < sms - 8) return; // not yet due
-  musicLastStepAt = now;
   const s = musicStep % 128;
   if (T.BASS[s]) tone(T.BASS[s], sms * 0.85, "triangle", 0.055);
-  if (T.LEAD[s]) tone(T.LEAD[s], sms * 0.75, T.DRUMS === DRUMS_B ? "triangle" : "square", 0.045);
+  if (T.LEAD[s]) tone(T.LEAD[s], sms * 0.6, T.DRUMS === DRUMS_B ? "triangle" : "square", 0.045);
   if (T.ARP[s]) tone(T.ARP[s], sms * 0.55, "square", 0.015);
   if (T.DRUMS.kick[s]) tone(55, sms * 0.9, "sine", T.DRUMS === DRUMS_C ? 0.07 : 0.08);
   if (T.DRUMS.hat[s]) noise(sms * 0.2, 0.02);
@@ -1851,7 +1846,7 @@ function startMusic(){
     stopMusic();
     if (!musicOn || muted) return;
     const c = ac(); if (!c) return;
-    musicTimer = setInterval(musicTick, 103); // fastest theme step; musicTick self-gates per theme
+    musicTimer = setInterval(musicTick, 117); // lock-in step; boss re-arms on wave change
   }
   function stopMusic(){ if (musicTimer){ clearInterval(musicTimer); musicTimer = null; } }
   function resumeMusic(){ if (musicOn && !muted && !musicTimer) startMusic(); }
