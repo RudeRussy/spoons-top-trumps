@@ -4,43 +4,37 @@ const fs = require('fs');
 
 const wait = ms => new Promise(r => setTimeout(r, ms));
 const TABLE_CENTER_X = 195;
+const filePath = 'file://' + path.resolve(__dirname, 'index.html');
 
 (async () => {
-  const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
-  const page = await browser.newPage();
-  await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2 });
+  const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'], protocolTimeout: 120000 });
 
   const errors = [];
-  page.on('pageerror', err => errors.push('pageerror: ' + err.message));
-  page.on('console', msg => { if (msg.type() === 'error') errors.push('console.error: ' + msg.text()); });
-
-  function filePath(){ return 'file://' + path.resolve(__dirname, 'index.html') + '?nocache=' + Date.now(); }
-
-  async function gotoFresh(){
-    await page.goto(filePath(), { waitUntil: 'domcontentloaded' });
+  async function freshPage(){
+    const context = await browser.createBrowserContext();
+    const page = await context.newPage();
+    await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2 });
+    page.on('pageerror', err => errors.push('pageerror: ' + err.message));
+    page.on('console', msg => { if (msg.type() === 'error') errors.push('console.error: ' + msg.text()); });
+    await page.goto(filePath, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => document.getElementById('buildChip').textContent !== '—', { timeout: 10000 });
-    await page.evaluate(() => localStorage.clear());
+    return { context, page };
   }
 
   const results = {};
 
-  // ===== Phase 1: fresh signup, play one round, check NEXT/cards/fart/quit leak =====
-  await gotoFresh();
+  // ===== Phase 1 =====
+  let { context: ctx1, page } = await freshPage();
   results.build = await page.evaluate(() => document.getElementById('buildChip').textContent);
 
   await page.click('#btnArcade');
   await page.waitForFunction(() => document.getElementById('orderPanel').classList.contains('open'), { timeout: 10000 });
   await wait(300);
-  const handle = 'TEST' + Math.floor(Math.random() * 100000);
-  await page.evaluate(h => {
-    document.getElementById('signupName').value = h;
-    document.getElementById('signupPub').value = 'TEST LOCAL';
-    doSignup();
-  }, handle);
+  const handle = 'T' + Math.floor(Math.random() * 100000);
+  await page.evaluate(h => { document.getElementById('signupName').value = h; document.getElementById('signupPub').value = 'TEST LOCAL'; doSignup(); }, handle);
   await page.waitForFunction(() => !document.getElementById('screen-table').classList.contains('hidden'), { timeout: 15000 });
   await wait(300);
 
-  // play a round
   await page.waitForSelector('#playerCard .stat', { timeout: 10000 });
   const stats = await page.$$('#playerCard .stat');
   if (stats[0]) await stats[0].click();
@@ -89,23 +83,20 @@ const TABLE_CENTER_X = 195;
   results.scoreBeforeQuit = scoreBeforeQuit;
   results.scoreAfterQuit = scoreAfterQuit;
   results.scoreLeakFixed = scoreAfterQuit.trim() === '000000';
+  await ctx1.close();
 
-  // ===== Phase 2: fresh game autoplayed to game over, check breakdown =====
-  await gotoFresh();
-  await page.click('#btnArcade');
-  await page.waitForFunction(() => document.getElementById('orderPanel').classList.contains('open'), { timeout: 10000 });
+  // ===== Phase 2: game-over breakdown =====
+  let { context: ctx2, page: p2 } = await freshPage();
+  await p2.click('#btnArcade');
+  await p2.waitForFunction(() => document.getElementById('orderPanel').classList.contains('open'), { timeout: 10000 });
   await wait(300);
-  const handle2 = 'TEST2' + Math.floor(Math.random() * 100000);
-  await page.evaluate(h => {
-    document.getElementById('signupName').value = h;
-    document.getElementById('signupPub').value = 'TEST LOCAL';
-    doSignup();
-  }, handle2);
-  await page.waitForFunction(() => !document.getElementById('screen-table').classList.contains('hidden'), { timeout: 15000 });
+  const handle2 = 'T2' + Math.floor(Math.random() * 100000);
+  await p2.evaluate(h => { document.getElementById('signupName').value = h; document.getElementById('signupPub').value = 'TEST LOCAL'; doSignup(); }, handle2);
+  await p2.waitForFunction(() => !document.getElementById('screen-table').classList.contains('hidden'), { timeout: 15000 });
   await wait(300);
 
-  await page.evaluate(async () => {
-    let guard = 600;
+  await p2.evaluate(async () => {
+    let guard = 1200;
     while (game.phase !== 'over' && guard--) {
       if (game.phase === 'play' && game.turnOwner === 'player') {
         const btn = document.querySelector('#playerCard .stat');
@@ -114,58 +105,54 @@ const TABLE_CENTER_X = 195;
         const b = document.getElementById('btnNext');
         if (b) b.click();
       }
-      await new Promise(r => setTimeout(r, 50));
+      await new Promise(r => setTimeout(r, 80));
     }
   });
-  await page.waitForFunction(() => !document.getElementById('screen-over').classList.contains('hidden'), { timeout: 45000 });
-  const breakdown = await page.evaluate(() => {
+  await p2.waitForFunction(() => !document.getElementById('screen-over').classList.contains('hidden'), { timeout: 120000 });
+  const breakdown = await p2.evaluate(() => {
     const box = document.getElementById('scoreBreakdown');
     return { visible: box.style.display !== 'none', rows: box.querySelectorAll('.sb-row').length, totalText: box.textContent.slice(0, 160) };
   });
   results.breakdown = breakdown;
+  await ctx2.close();
 
   // ===== Phase 3: duplicate-name rejection =====
-  await gotoFresh();
-  // First register a name
-  await page.click('#btnArcade');
-  await page.waitForFunction(() => document.getElementById('orderPanel').classList.contains('open'), { timeout: 10000 });
+  let { context: ctx3, page: p3 } = await freshPage();
+  await p3.click('#btnArcade');
+  await p3.waitForFunction(() => document.getElementById('orderPanel').classList.contains('open'), { timeout: 10000 });
   await wait(300);
-  const dupHandle = 'DUPE' + Math.floor(Math.random() * 100000);
-  await page.evaluate(h => {
-    document.getElementById('signupName').value = h;
-    document.getElementById('signupPub').value = 'TEST LOCAL';
-    doSignup();
-  }, dupHandle);
-  await page.waitForFunction(() => !document.getElementById('screen-table').classList.contains('hidden'), { timeout: 15000 });
-  // Submit a result so name appears on board
-  await page.evaluate(() => {
+  const dupHandle = 'D' + Math.floor(Math.random() * 100000);
+  await p3.evaluate(h => { document.getElementById('signupName').value = h; document.getElementById('signupPub').value = 'TEST LOCAL'; doSignup(); }, dupHandle);
+  await p3.waitForFunction(() => !document.getElementById('screen-table').classList.contains('hidden'), { timeout: 15000 });
+  await wait(300);
+  // Submit this name to the global board so it is registered
+  await p3.evaluate(async () => {
     game.score = 1234;
-    game.phase = 'over';
-    showScreen('over');
+    await boardSubmit({ win: true, expectedElo: 1200 });
   });
   await wait(500);
-  // Use a fresh browser context? Can't easily, but we can clear localStorage me and try to sign up again with same name while boardCache now contains it.
-  await page.evaluate(() => localStorage.removeItem('spoons.me'));
-  await page.click('#homeChip');
-  await page.waitForFunction(() => !document.getElementById('screen-title').classList.contains('hidden'), { timeout: 5000 });
-  await page.click('#btnArcade');
-  await page.waitForFunction(() => document.getElementById('orderPanel').classList.contains('open'), { timeout: 10000 });
+  // Remove device claim and order unlock so signup wall reappears
+  await p3.evaluate(() => {
+    localStorage.removeItem('spoons.me');
+    localStorage.removeItem('spoons.hasOrdered');
+  });
+  await p3.click('#homeChip');
+  await p3.waitForFunction(() => !document.getElementById('screen-title').classList.contains('hidden'), { timeout: 5000 });
+  await p3.click('#btnArcade');
+  await p3.waitForFunction(() => document.getElementById('orderPanel').classList.contains('open'), { timeout: 10000 });
   await wait(400);
-  await page.waitForFunction(() => typeof boardCache !== 'undefined' && boardCache && !!boardCache.players, { timeout: 15000 });
-  await page.evaluate(h => {
-    document.getElementById('signupName').value = h;
-    document.getElementById('signupPub').value = 'TEST LOCAL';
-    doSignup();
-  }, dupHandle);
+  await p3.waitForFunction(() => typeof boardCache !== 'undefined' && boardCache && !!boardCache.players, { timeout: 15000 });
+  await p3.evaluate(h => { document.getElementById('signupName').value = h; document.getElementById('signupPub').value = 'TEST LOCAL'; doSignup(); }, dupHandle);
   await wait(500);
-  const dupError = await page.evaluate(() => {
+  const dupError = await p3.evaluate(() => {
     const e = document.getElementById('signupNameError');
     return e && e.style.display !== 'none' && e.textContent.includes('TAKEN');
   });
   results.duplicateNameRejected = dupError;
 
-  await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2 });
-  await page.screenshot({ path: path.join(__dirname, 'e2e-addiction.png'), fullPage: true });
+  await p3.setViewport({ width: 390, height: 844, deviceScaleFactor: 2 });
+  await p3.screenshot({ path: path.join(__dirname, 'e2e-addiction.png'), fullPage: true });
+  await ctx3.close();
   await browser.close();
 
   const out = { ...results, pageErrors: errors, passed: results.nextCentred && results.cardsEqualHeight && results.scoreLeakFixed && breakdown.visible && dupError && errors.length === 0 };
