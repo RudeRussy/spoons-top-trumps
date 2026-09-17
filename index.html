@@ -2989,6 +2989,10 @@ header#hud .score > *:not(#scoreChip):not(.combo){
     <h1>SPOONS<br><span class="red">TOP TRUMPS</span></h1>
 
     <p class="title-tag">★ 210 CARDS · THE ENTIRE MENU · 6 STATS ★</p>
+    <div id="welcomeBack" class="welcome-back-wrap" style="display:none;">
+      <div class="welcome-back">WELCOME BACK, PLAYER</div>
+      <div class="welcome-stats">BEST SCORE 0 · BEST WAVE 0 · TROPHIES 0/0</div>
+    </div>
     <p class="title-sub">
       <b>201 real Spoons menu items.</b> Pick a stat. Highest wins — except <b>Price</b> &amp; <b>Regret</b>, where lower wins.
       Survive the waves, beat the Landlord, brag to your mate.
@@ -4275,11 +4279,25 @@ async function boardSubmit(result){
 function ensureSignup(){
   const panel = document.getElementById("signupPanel");
   if (!panel) return;
-  panel.style.display = isSignedUp() ? "none" : "";
+  const m2 = me();
+  panel.style.display = m2 ? "none" : "";
   const who = document.getElementById("signedInAs");
-  if (who){ const m2 = me(); who.style.display = m2 ? "" : "none"; if (m2) who.textContent = "PLAYING AS " + m2.name + " · " + m2.pub.toUpperCase(); }
+  if (who){ who.style.display = m2 ? "" : "none"; if (m2) who.textContent = "PLAYING AS " + m2.name + " · " + m2.pub.toUpperCase(); }
   const errEl = document.getElementById("signupNameError");
   if (errEl) errEl.style.display = "none";
+}
+function renderWelcomeBack(){
+  const slot = document.getElementById("welcomeBack");
+  if (!slot) return;
+  const m2 = me();
+  if (!m2){ slot.style.display = "none"; return; }
+  slot.style.display = "";
+  const best = highScore("arcade");
+  const wave = bestWave();
+  const ach = achCount();
+  const total = achTotal();
+  slot.innerHTML = '<div class="welcome-back">WELCOME BACK, ' + m2.name + '</div>' +
+    '<div class="welcome-stats">BEST SCORE ' + best + ' · BEST WAVE ' + wave + ' · TROPHIES ' + ach + '/' + total + '</div>';
 }
 function doSignup(){
   const nEl = document.getElementById("signupName");
@@ -4302,6 +4320,7 @@ function doSignup(){
   try { localStorage.setItem(LS_BOARD_ME, JSON.stringify(m)); } catch(e){}
   if (errEl) errEl.style.display = "none";
   ensureSignup();
+  renderWelcomeBack();
   AudioFX.coin();
   renderBoards("global");
   // resume the start flow the player was in the middle of
@@ -5114,12 +5133,13 @@ function endGame(){
   if (!game.pvp.remote && mode !== "pvp") submitMyResult(mode === "arcade" ? game.score > 0 : you > ai);
   const isArcade = mode === "arcade";
   if (isArcade && game.score > highScore("arcade")) try { localStorage.setItem("spoons.high.arcade", String(game.score)); } catch(e){}
+  if (isArcade && game.wave > bestWave()) try { localStorage.setItem("spoons.best.wave", String(game.wave)); } catch(e){}
   document.getElementById("overScore").textContent =
     isArcade ? "SCORE " + game.score + " · HIGH " + highScore("arcade") : "SCORE " + game.score + " · BEST " + highScore(mode);
   renderScoreBreakdown();
   document.getElementById("overStats").innerHTML =
     "ROUNDS " + game.roundsPlayed + " · LONGEST STREAK " + game.bestStreak +
-    " · BIGGEST POT " + game.biggestPot +
+    " · BIGGEST POT " + game.biggestPot + (isArcade ? " · BEST WAVE " + bestWave() : "") +
     "<br>GO-TO WEAPON: " + topStatLine();
   if (isArcade){
     if (tag) tag.textContent = "INSERT COIN";
@@ -5207,6 +5227,10 @@ function renderLeaderboard(mode){
   document.getElementById("leaderboard").innerHTML =
     board.map((b, i) => (i + 1) + ". " + b.ini + " — " + b.sc).join("<br>");
 }
+function bestWave(){
+  try { const v = localStorage.getItem("spoons.best.wave"); return v ? parseInt(v, 10) || 0 : 0; }
+  catch(e){ return 0; }
+}
 function refreshBests(){
   const ba = document.getElementById("bestArcade");
   if (ba) ba.textContent = "ARCADE · BEST " + highScore("arcade");
@@ -5226,7 +5250,7 @@ function showScreen(name){
   if (name !== "bonus") closeBonus();
   if (name === "title"){ AudioFX.stopMusic(); openOnlinePanel(false); closeSpoonsPanel(); closeRewardScreen(); updateShitterChip(); openOrderPanel(false); Spoons.restoreNational(); stopAttract(); }
   try { if (typeof updateHomeChip === "function") updateHomeChip(); } catch(e){}
-  if (name === "title"){ try { refreshBests(); renderHud(); } catch(e){} }
+  if (name === "title"){ try { refreshBests(); renderHud(); ensureSignup(); renderWelcomeBack(); } catch(e){} }
   try {
     if (window.__spoonsNav !== name){
       window.__spoonsNav = name;
@@ -6500,6 +6524,9 @@ if (__roomParam){
 }
 refreshBests();
 updatePlayingAt();
+ensureSignup();
+renderWelcomeBack();
+boardRead().then(() => { ensureSignup(); renderWelcomeBack(); }).catch(() => {});
 updateOrderHint();
 game.demo = false;
 Spoons.preloadMyPub();
