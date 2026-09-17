@@ -2201,6 +2201,9 @@ header#hud .score > *{
   flex-direction:column;
   gap:8px;
 }
+.signup-panel.shake{
+  animation:shakeS .25s;
+}
 
 .signup-panel label{
   color:var(--muted);
@@ -3681,7 +3684,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "fi-38-r43";
+  const BUILD_STAMP = "signup-fix-39-r44";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
