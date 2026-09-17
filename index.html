@@ -5620,7 +5620,7 @@ function foPreload(){
 }
 const fo = { on:false, holding:false, holdStart:0, meter:0, raf:0, you:0, ai:0, busy:false, mid:false, epoch:0 };
 function foShow(on_){
-  if (!on_){ fo.epoch++; if (fo.raf){ cancelAnimationFrame(fo.raf); fo.raf = 0; } fo.on = false; fo.holding = false; }
+  if (!on_){ fo.epoch++; if (fo.raf){ cancelAnimationFrame(fo.raf); fo.raf = 0; } fo.on = false; fo.holding = false; if (game.phase === "play" && !game.paused) AudioFX.resumeMusic(); }
   el("screen-fartoff").classList.toggle("hidden", !on_);
   if (on_){ foPreload(); foLog("FIRST TO 3. HOLD AND LET RIP."); try { updateHomeChip(); } catch(e){} }
 }
@@ -5729,7 +5729,7 @@ function openFartOff(){
 /* ==================== BOG ROLL ROULETTE ==================== */
 const br = { on:false, cleared:0, banked:0, paperDoor:-1, doors:[], busy:false, mid:false, epoch:0 };
 function brShow(on_){
-  if (!on_){ br.epoch++; br.on = false; br.busy = false; }
+  if (!on_){ br.epoch++; br.on = false; br.busy = false; if (game.phase === "play" && !game.paused) AudioFX.resumeMusic(); }
   el("screen-bogroll").classList.toggle("hidden", !on_);
   if (on_){ try { updateHomeChip(); } catch(e){} }
 }
