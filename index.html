@@ -3678,7 +3678,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "addiction-37-r42";
+  const BUILD_STAMP = "fi-38-r43";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -6564,8 +6564,9 @@ function fiBuildWave(){
   // clear old bums, keep player
   arena.querySelectorAll(".fi-bum").forEach(b => b.remove());
   fi.bums = [];
-  const usable = 100 - fi.leftEdge - fi.rightEdge - fi.widthPct;
-  const startX = fi.leftEdge + fi.widthPct/2 + (usable - (fi.cols*(fi.widthPct+fi.gapPct)))/2;
+  const span = fi.cols * fi.widthPct + (fi.cols - 1) * fi.gapPct;
+  const usable = fi.rightEdge - fi.leftEdge - fi.widthPct;
+  const startX = fi.leftEdge + fi.widthPct/2 + (usable - span)/2;
   for (let r = 0; r < fi.rows; r++){
     for (let c = 0; c < fi.cols; c++){
       const b = document.createElement("div");
@@ -6595,10 +6596,10 @@ function fiFire(){
   b.className = "fi-bolt";
   b.textContent = "🧻";
   b.style.left = fi.playerX + "%";
-  b.style.bottom = "48px";
-  arena.appendChild(b);
   const rect = arena.getBoundingClientRect();
-  const yPct = (rect.height - 48) / rect.height * 100;
+  const yPct = 100 - (44 / rect.height * 100);
+  b.style.top = yPct + "%";
+  arena.appendChild(b);
   fi.bolts.push({ el:b, x:fi.playerX, y:yPct });
 }
 
@@ -6695,8 +6696,8 @@ function fiUpdate(){
     let hit = null;
     for (const b of fi.bums){
       if (b.dead) continue;
-      if (bolt.x > b.x - fi.widthPct/2 && bolt.x < b.x + fi.widthPct/2 &&
-          bolt.y > b.y - fi.heightPct/2 && bolt.y < b.y + fi.heightPct/2){
+      if (bolt.x > b.x - fi.widthPct && bolt.x < b.x + fi.widthPct &&
+          bolt.y > b.y - fi.heightPct && bolt.y < b.y + fi.heightPct){
         hit = b; break;
       }
     }
@@ -6797,9 +6798,9 @@ function fiEnd(banked, reason){
   if (fi.mid){
     if (banked > 0){
       addScore(banked, "FART INVADERS BANKED", "walked away with " + banked);
-      setVerdict('<div class="verdict-line wave-clear">🚀 FART INVADERS BANKED — +' + banked + '</div><div class="verdict-sub">' + (reason || "YOU MADE IT OUT") + ' · TABLE RESUMES</div>');
+      setVerdict('<div class="verdict-line wave-clear">🚀 FART INVADERS BANKED — +' + banked + ' </div><div class="verdict-sub">' + (reason || "YOU MADE IT OUT") + ' · TABLE RESUMES</div>');
     } else {
-      setVerdict('<div class="verdict-line wave-clear">💩 FART INVADERS: YOU GOT SPLATTERED — NOTHING BANKED</div><div class="verdict-sub">' + (reason || "OH NO! THAT'S DISGUSTING!") + ' · TABLE RESUMES</div>');
+      setVerdict('<div class="verdict-line wave-clear">💩 FART INVADERS: YOU GOT SPLATTERED — NOTHING BANKED</div> <div class="verdict-sub">' + (reason ? reason + " — NOTHING BANKED" : "OH NO! THAT'S DISGUSTING! — NOTHING BANKED") + ' · TABLE RESUMES</div>');
     }
     AudioFX.resumeMusic();
     renderNextButton();
