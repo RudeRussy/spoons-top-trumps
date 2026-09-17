@@ -3381,7 +3381,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "cleanup-32-r37";
+  const BUILD_STAMP = "cleanup-34-r39";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -3709,6 +3709,7 @@ const MUSIC_TRACKS = [
 ];
 let musicTrackIdx = 0;
 
+  let funkAudio = null;
   function startMusic(){
     stopMusic();
     if (!musicOn || muted) return;
