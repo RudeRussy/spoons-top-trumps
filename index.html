@@ -5143,7 +5143,6 @@ function endGame(){
     " · BIGGEST POT " + game.biggestPot + (isArcade ? " · BEST WAVE " + bestWave() : "") +
     "<br>GO-TO WEAPON: " + topStatLine();
   if (isArcade){
-    if (tag) tag.textContent = "INSERT COIN";
     if (rematchBtn){ rematchBtn.textContent = "INSERT COIN"; rematchBtn.className = "btn btn-cream insert-coin"; }
   }
     if (game.score > 0){
