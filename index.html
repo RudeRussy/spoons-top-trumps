@@ -2946,6 +2946,112 @@ header#hud .score > *:not(#scoreChip):not(.combo){
 }
 }
 
+
+/* ---------- addiction features ---------- */
+.chip.token{
+  background:linear-gradient(135deg, #6a4c93, #3d2b54);
+  color:#fff;
+  border:1px solid rgba(255,255,255,.25);
+  font-family:var(--font-arcade);
+  font-size:9px;
+}
+.chip.gold-sticker{
+  background:linear-gradient(135deg, #ffd700, #c9a227);
+  color:#1a1200;
+  border:1px solid rgba(255,255,255,.35);
+}
+.card.gold{
+  border:3px solid #ffc94d;
+  box-shadow:0 0 0 2px rgba(255,201,77,.45), 0 18px 40px rgba(0,0,0,.5), inset 0 0 0 2px rgba(255,201,77,.55);
+}
+.gold-stat-badge{
+  position:absolute;
+  top:8px;
+  right:8px;
+  background:linear-gradient(135deg,#ffd700,#b8860b);
+  color:#1a1200;
+  font-family:var(--font-arcade);
+  font-size:9px;
+  padding:3px 6px;
+  border-radius:8px;
+  z-index:var(--z-card-overlay);
+  font-weight:800;
+  box-shadow:0 2px 6px rgba(0,0,0,.35);
+}
+.scoreFly.mega-fart{
+  font-family:var(--font-arcade);
+  font-size:22px;
+  color:#fff;
+  text-shadow:0 0 12px var(--red),0 0 24px var(--gold);
+  background:rgba(20,25,32,.75);
+  border:2px solid var(--gold);
+  border-radius:14px;
+  padding:12px 18px;
+}
+#fartMan.mega-tint{ filter:sepia(1) hue-rotate(-50deg) saturate(2) brightness(1.2); }
+.sparkle{
+  position:fixed;
+  left:50%;
+  top:40%;
+  transform:translate(-50%,-50%);
+  font-size:48px;
+  pointer-events:none;
+  z-index:var(--z-toast);
+  animation:sparklePop .8s ease-out forwards;
+}
+@keyframes sparklePop{
+  0%{transform:translate(-50%,-50%) scale(0); opacity:0;}
+  40%{transform:translate(-50%,-50%) scale(1.4); opacity:1;}
+  100%{transform:translate(-50%,-50%) scale(1); opacity:0;}
+}
+#fartMeterChip{
+  background:#2b3a6b;
+  color:#fff;
+  border:1px solid #4a6ac7;
+}
+#noChargesOverlay{
+  position:fixed;
+  inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:var(--z-modal);
+  background:rgba(11,14,18,.92);
+}
+#noChargesOverlay.open{
+  display:flex;
+}
+.no-charges-box{
+  background:#141920;
+  border:2px solid var(--red);
+  border-radius:16px;
+  padding:24px;
+  max-width:340px;
+  text-align:center;
+  color:var(--cream);
+}
+.no-charges-box h3{
+  font-family:var(--font-arcade);
+  color:var(--red);
+  font-size:13px;
+  margin-bottom:10px;
+}
+.captain-wrap{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+  margin:8px 0;
+}
+.modebtn.b-lockin{
+  background:linear-gradient(180deg,#5c1a1a,#3d1010);
+  border:2px solid var(--red);
+}
+.modebtn.b-lockin:disabled, .modebtn.b-lockin.locked{
+  opacity:.5;
+  filter:grayscale(.6);
+}
+
 </style>
 </head>
 <body>
@@ -2956,6 +3062,7 @@ header#hud .score > *:not(#scoreChip):not(.combo){
 <header id="hud">
   <div class="brand">SPOONS <em>TOP TRUMPS</em><small id="modeLabel">ARCADE</small></div>
   <div class="score">
+    <span class="chip token" id="nearMissChip" style="display:none;" title="Free rematch token held">🎟️ REMATCH</span>
     <span id="scoreChip">0</span>
     <span id="bonusPill" title="Bonus round armed — tap NEXT at the end of this round">🎁 BONUS READY — TAP NEXT</span>
     <span class="chip combo" id="comboChip">🥓 STREAK ×2</span>
@@ -2993,12 +3100,18 @@ header#hud .score > *:not(#scoreChip):not(.combo){
       <div class="welcome-back">WELCOME BACK, PLAYER</div>
       <div class="welcome-stats">BEST SCORE 0 · BEST WAVE 0 · TROPHIES 0/0</div>
     </div>
+    <div id="captainWrap" class="captain-wrap" style="display:none;">
+      <span class="chip gold-sticker" id="captainChip">🧢 CAPTAIN</span>
+      <button class="btn btn-cream" id="captainShare">📲 BRAG ON WHATSAPP</button>
+    </div>
     <p class="title-sub">
       <b>201 real Spoons menu items.</b> Pick a stat. Highest wins — except <b>Price</b> &amp; <b>Regret</b>, where lower wins.
       Survive the waves, beat the Landlord, brag to your mate.
     </p>
+    <span class="chip" id="fartMeterChip" style="display:none;">💨 FART METER: 3/3</span>
     <div class="modes title-main">
       <button class="modebtn b-arcade hero" id="btnArcade">PLAY<small id="bestArcade">ARCADE · BEST 0</small></button>
+      <button class="modebtn b-lockin" id="btnLockin" disabled title="Beat Arcade Wave 3 to unlock">🔒 LOCKED<small>BEAT ARCADE WAVE 3 TO OPEN</small></button>
       <button class="modebtn b-pvp duel" id="btnPvp">DUEL<small>PASS &amp; PLAY · SAME DECK</small></button>
     </div>
     <div id="playingAt" class="title-tag" style="display:none;margin-top:8px;"></div>
@@ -3157,6 +3270,17 @@ header#hud .score > *:not(#scoreChip):not(.combo){
     <button class="btn btn-ghost" id="btnQuit" style="color:#f2e8d5;">QUIT TO TITLE</button>
   </div>
 </div>
+
+<!-- NO CHARGES OVERLAY -->
+<div id="noChargesOverlay" role="dialog" aria-modal="true" aria-label="No bonus charges">
+  <div class="no-charges-box">
+    <h3>💨 THE LANDLORD'S SEALED THE SEWERS</h3>
+    <p id="noChargesMsg">COME BACK TOMORROW — THE LANDLORD'S SEALED THE SEWERS.</p>
+    <p id="noChargesCountdown" style="font-family:var(--font-arcade);font-size:12px;color:var(--gold);">...</p>
+    <button class="btn btn-cream" id="btnNoChargesBack">BACK</button>
+  </div>
+</div>
+
 <!-- ORDER PANEL -->
 <div id="orderPanel" role="dialog" aria-modal="true" aria-label="Order to play">
   <div class="order-inner">
@@ -3304,6 +3428,7 @@ header#hud .score > *:not(#scoreChip):not(.combo){
         <button class="linkbtn on" id="tabGlobal">WORLD</button> ·
         <button class="linkbtn" id="tabPub">MY SPOONS</button> ·
         <button class="linkbtn" id="tabPubPlayer">PLAYERS AT MY SPOONS</button> ·
+        <button class="linkbtn" id="tabLockin">🔒 LOCK-IN</button> ·
         <button class="linkbtn" id="tabAch">🏆 <span id="achChip">0</span></button>
       </div>
       <div class="boards-list" id="boardsList"></div>
@@ -3384,7 +3509,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "fixes-36-r41";
+  const BUILD_STAMP = "addiction-37-r42";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -3650,6 +3775,9 @@ const statByKey = key => STATS.find(s => s.key === key);
 /* 0.1s of silence as a data URI — keeps an <audio> media session alive on iOS,
    bypassing the physical silent switch for WebAudio. */
 const FART_FILES = ["sfx/fart-alt.mp3", "sfx/fart-bad-chili.mp3", "sfx/fart-chair.mp3", "sfx/fart-computer.mp3", "sfx/fart-crazy.mp3", "sfx/fart-innocent.mp3", "sfx/fart-pig.mp3", "sfx/fart-push.mp3", "sfx/fart-real.mp3", "sfx/fart-reverb.mp3", "sfx/fart-s1.mp3", "sfx/fart-s2.mp3", "sfx/fart-s3.mp3", "sfx/fart-s4.mp3", "sfx/fart-s5.mp3", "sfx/fart-trumpet.mp3", "sfx/fart-wav506.mp3"];
+const MEGA_LONG_FILES = ["sfx/mega-long.mp3","sfx/mega-epic.mp3","sfx/mega-agonized.mp3","sfx/mega-cavern.mp3"];
+const MEGA_COMEDY_FILES = ["sfx/mega-oldman.mp3","sfx/mega-groan.mp3","sfx/mega-grandad.mp3","sfx/mega-burp.mp3","sfx/mega-juicy.mp3"];
+const MEGA_TOON_FILES = ["sfx/mega-toon1.mp3","sfx/mega-toon2.mp3","sfx/mega-toon3.mp3","sfx/mega-toon4.mp3","sfx/mega-short1.mp3"];
 const SILENT_WAV = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
 const AudioFX = (() => {
   let ctx = null;
@@ -3661,9 +3789,16 @@ const AudioFX = (() => {
   let mediaAudio = null;
   let shitterWinAudio = null, shitterLoseAudio = null;
   const FART_POOL = [];
+  const MEGA_POOL = [];
   function preloadFarts(){
     if (FART_POOL.length || !FART_FILES.length) return;
     FART_FILES.forEach(src => { try { const a = new Audio(src); a.preload = "auto"; a.load(); FART_POOL.push(a); } catch(e){} });
+  }
+  function preloadMegas(){
+    if (MEGA_POOL.length) return;
+    [...MEGA_LONG_FILES, ...MEGA_COMEDY_FILES, ...MEGA_TOON_FILES].forEach(src => {
+      try { const a = new Audio(src); a.preload = "auto"; a.load(); MEGA_POOL.push({ src, a }); } catch(e){}
+    });
   }
   let fartAudio = null;
   function ac(){
@@ -3809,6 +3944,32 @@ let musicTrackIdx = 0;
         if (!shitterLoseAudio) shitterLoseAudio = new Audio("sfx/shitter-lose.mp3");
         shitterLoseAudio.currentTime = 0; shitterLoseAudio.volume = 0.9;
         const p = shitterLoseAudio.play(); if (p && p.catch) p.catch(() => {});
+      } catch(e){}
+    },
+    megaFart(streak){
+      try {
+        preloadMegas();
+        const long = MEGA_LONG_FILES[Math.floor(Math.random() * MEGA_LONG_FILES.length)];
+        const comedy = MEGA_COMEDY_FILES[Math.floor(Math.random() * MEGA_COMEDY_FILES.length)];
+        [long, comedy].forEach((src, i) => {
+          const a = new Audio(src);
+          a.preload = "auto"; a.load();
+          a.volume = 0.9;
+          a.playbackRate = 0.85 + Math.random() * 0.3;
+          const p = a.play(); if (p && p.catch) p.catch(() => {});
+        });
+      } catch(e){}
+      try { shake("shake-hard"); } catch(e){}
+      try {
+        const pop = document.createElement("div");
+        pop.className = "scoreFly mega-fart";
+        pop.textContent = "💥 MEGA FART STREAK ×" + streak;
+        document.body.appendChild(pop);
+        setTimeout(() => pop.remove(), 1500);
+      } catch(e){}
+      try {
+        const man = document.getElementById("fartMan");
+        if (man){ man.classList.add("mega-tint"); setTimeout(() => man.classList.remove("mega-tint"), 600); }
       } catch(e){}
     },
     synthFart(){
@@ -4149,8 +4310,8 @@ function onSpoonsItemClick(e){
   Spoons.loadChunk(pub.f);
 }
 function setBoardTab(tab){
-  ["tabGlobal", "tabPub", "tabPubPlayer", "tabAch"].forEach(id => document.getElementById(id).classList.toggle("on", false));
-  document.getElementById(tab === "global" ? "tabGlobal" : tab === "pub" ? "tabPub" : tab === "pubplayer" ? "tabPubPlayer" : "tabAch").classList.add("on");
+  ["tabGlobal", "tabPub", "tabPubPlayer", "tabLockin", "tabAch"].forEach(id => document.getElementById(id).classList.toggle("on", false));
+  document.getElementById(tab === "global" ? "tabGlobal" : tab === "pub" ? "tabPub" : tab === "pubplayer" ? "tabPubPlayer" : tab === "lockin" ? "tabLockin" : "tabAch").classList.add("on");
   if (tab === "ach") renderAchievements();
   else renderBoards(tab);
 }
@@ -4300,6 +4461,7 @@ function renderWelcomeBack(){
   const total = achTotal();
   slot.innerHTML = '<div class="welcome-back">WELCOME BACK, ' + m2.name + '</div>' +
     '<div class="welcome-stats">BEST SCORE ' + best + ' · BEST WAVE ' + wave + ' · TROPHIES ' + ach + '/' + total + '</div>';
+  updateCaptainChip();
 }
 function doSignup(){
   const nEl = document.getElementById("signupName");
@@ -4339,7 +4501,7 @@ function doSignup(){
 
 /* ---- boards UI ---- */
 function boardsTitleFor(tab){
-  return tab === "global" ? "WORLD TOP 20" : tab === "pub" ? "TOP SPOONS PUBS" : "PLAYERS AT MY SPOONS";
+  return tab === "global" ? "WORLD TOP 20" : tab === "pub" ? "TOP SPOONS PUBS" : tab === "lockin" ? "🔒 LOCK-IN" : "PLAYERS AT MY SPOONS";
 }
 let boardsRenderToken = 0;
 async function renderBoards(tab){
@@ -4742,6 +4904,7 @@ function aiChooseStat(aiCard, level){
 /* ==================== 4. STATE + MODES ==================== */
 const MODES = {
   arcade:  { label:"ARCADE",        startPlayer:6, waves:true,  endless:false, winPts:100 },
+  lockin:  { label:"LOCK-IN",       startPlayer:6, waves:true,  endless:false, winPts:100, lockin:true },
   classic: { label:"CLASSIC 9V9",   startPlayer:0, waves:false, endless:false, winPts:100 }, // startPlayer 0 → split whole menu
   endless: { label:"ENDLESS",       startPlayer:6, waves:false, endless:true,  winPts:150 },
   pvp:     { label:"PVP",           startPlayer:0, waves:false, endless:false, winPts:0 },
@@ -4799,6 +4962,8 @@ function startGame(mode){
   game.roundsPlayed = 0; game.statWins = {}; game.pickHistory = {};
   resetScoreLedger();
   game.wave = 1; game.aiLevel = M.waves ? 0 : 1;
+  game.waveDrops = 0;
+  game.lockinMultiplier = 1;
   game.pvp.picker = "p1";
   game.pvp.captures = { p1:0, p2:0 };
   game.pvp.matchWinner = null;
@@ -4818,7 +4983,8 @@ function startGame(mode){
       const pool1 = cardsForStage(stageForWave(1));
       const inPlay1 = new Set([...game.playerDeck, ...game.bag]);
       const fresh1 = pool1.filter(c => !inPlay1.has(c)).sort(() => Math.random() - 0.5);
-      game.aiDeck = fresh1.slice(0, Math.min(4 + game.wave, 12));
+      const aiCount = M.lockin ? (3 + game.wave * 2) : Math.min(4 + game.wave, 12);
+      game.aiDeck = fresh1.slice(0, aiCount);
     } else game.aiDeck = [];
   } else { // classic: whole menu split
     const sh = shuffle(CARDS.slice());
@@ -4876,10 +5042,22 @@ function beginRound(){
     if (!game.playerDeck.length){ endGame(); return; }
   } else if (!game.playerDeck.length || !game.aiDeck.length){ endGame(); return; }
   game.phase = "play";
-  game.playerCard = game.playerDeck.shift();
-  game.aiCard = game.mode === "endless"
-    ? drawFromBag(1)[0]
-    : game.aiDeck.shift();
+  if (hasNearMissToken() && game.nearMissStoredAi && game.mode !== "pvp" && !game.pvp.remote){
+    consumeNearMissToken();
+    game.playerCard = game.playerDeck.shift();
+    const stored = game.nearMissStoredAi;
+    const idx = game.aiDeck.indexOf(stored);
+    if (idx >= 0) game.aiDeck.splice(idx, 1);
+    game.aiCard = stored;
+    game.nearMissStoredAi = null;
+    game.turnOwner = "player";
+    bonusToast("🎟️ REMATCH — same AI card, pick again");
+  } else {
+    game.playerCard = game.playerDeck.shift();
+    game.aiCard = game.mode === "endless"
+      ? drawFromBag(1)[0]
+      : game.aiDeck.shift();
+  }
   if (MODES[game.mode].waves && game.aiCard){
     // stage integrity: the AI only deals from the current menu stage
     const pool = cardsForStage(stageForWave(game.wave));
@@ -5003,11 +5181,25 @@ function resolveRound(){
     addScore(pts, "ROUND WIN", base + " base + " + marginPts + " margin × " + mult + " streak");
     if (game.streak >= 2) showCombo(game.streak);
     if (game.streak >= 2) AudioFX.bacon(game.streak);
+    if (game.streak >= 8 && game.streak % 8 === 0) AudioFX.megaFart(game.streak);
+    // Mystery menu card drop: 25% chance per win, guarantee at least 1 per wave, max 2
+    if (game.waveDrops < 2 && (Math.random() < 0.25 || (game.aiDeck.length === 0 && game.waveDrops === 0))){
+      doMysteryDrop();
+    }
+    if (game.streak >= 2) AudioFX.bacon(game.streak);
     AudioFX.win(game.streak); shake("shake-soft");
   } else if (winner === "ai"){
     game.streak = 0;
     try { if (game.aiCard && game.aiCard.cat === "COLD DRINK") achCheck("loseToColdDrink"); } catch(e){}
     AudioFX.lose(); shake("shake-hard");
+    if (margin === 1){
+      game.nearMissStoredAi = game.aiCard;
+      const granted = grantNearMissToken();
+      if (granted){
+        game.turnOwner = "player";
+        bonusToast("NEAR MISS! Free rematch token — use it on the next round");
+      }
+    }
   } else {
     AudioFX.draw();
     try { achCheck("roundWin", { tie: true }); } catch(e){}
@@ -5025,21 +5217,30 @@ function resolveRound(){
     addScore(bonus, "WAVE " + oldWave + " CLEAR", "500 × " + oldWave);
     game.wave++;
     game.aiLevel = aiLevelForWave(game.wave);
-    // Infinite-wave support: if player deck is running low, top it up from the bag so deep runs stay alive.
-    if (game.playerDeck.length < 3){ const topUp = Math.min(6 - game.playerDeck.length, 6); game.playerDeck = game.playerDeck.concat(drawFromBag(topUp)); }
-    // Wave 8+ survival bonus: a fresh card for clearing the wave.
-    if (oldWave >= 8){ game.playerDeck.push(drawFromBag(1)[0]); bonusToast("🛟 WAVE " + oldWave + " SURVIVAL BONUS · +1 CARD"); }
-    const stage = stageForWave(game.wave);
-    const stagePool = cardsForStage(stage);
-    // sweep: leftover AI cards from the previous stage go back to the bag
-    game.aiDeck = game.aiDeck.filter(c => stagePool.includes(c));
-    const inPlay = new Set([...game.playerDeck, ...game.aiDeck, ...game.pot]);
-    const fresh = stagePool.filter(c => !inPlay.has(c));
-    game.aiDeck = game.aiDeck.concat(
-      fresh.length >= 4
-        ? fresh.sort(() => Math.random() - 0.5).slice(0, Math.min(4 + game.wave, 12) - game.aiDeck.length)
-        : drawFromBag(Math.min(4 + game.wave, 12) - game.aiDeck.length) // stage exhausted: full-deck fallback
-    );
+    game.waveDrops = 0;
+    if (MODES[game.mode].lockin){
+      game.lockinMultiplier = 1 + (game.wave - 1) * 0.5;
+      const newAi = drawFromBag(2);
+      game.aiDeck.push(...newAi);
+      const newPlayer = drawFromBag(1)[0];
+      if (newPlayer) game.playerDeck.push(newPlayer);
+    } else {
+      // Infinite-wave support: if player deck is running low, top it up from the bag so deep runs stay alive.
+      if (game.playerDeck.length < 3){ const topUp = Math.min(6 - game.playerDeck.length, 6); game.playerDeck = game.playerDeck.concat(drawFromBag(topUp)); }
+      // Wave 8+ survival bonus: a fresh card for clearing the wave.
+      if (oldWave >= 8){ game.playerDeck.push(drawFromBag(1)[0]); bonusToast("🛟 WAVE " + oldWave + " SURVIVAL BONUS · +1 CARD"); }
+      const stage = stageForWave(game.wave);
+      const stagePool = cardsForStage(stage);
+      // sweep: leftover AI cards from the previous stage go back to the bag
+      game.aiDeck = game.aiDeck.filter(c => stagePool.includes(c));
+      const inPlay = new Set([...game.playerDeck, ...game.aiDeck, ...game.pot]);
+      const fresh = stagePool.filter(c => !inPlay.has(c));
+      game.aiDeck = game.aiDeck.concat(
+        fresh.length >= 4
+          ? fresh.sort(() => Math.random() - 0.5).slice(0, Math.min(4 + game.wave, 12) - game.aiDeck.length)
+          : drawFromBag(Math.min(4 + game.wave, 12) - game.aiDeck.length) // stage exhausted: full-deck fallback
+      );
+    }
     renderHud();
     AudioFX.wave();
     const boss = isBossWave(game.wave);
@@ -5048,6 +5249,7 @@ function resolveRound(){
       '<div class="verdict-sub">+' + bonus + ' · ' + (boss ? '⚔️ BOSS — THE LANDLORD · ' : '') + st.tag + ' · ' + game.aiDeck.length + ' CARDS</div>');
     if (boss){ shake("shake-hard"); try { maybeTriggerBogRoll(true); achCheck("bossWaveClear"); } catch(e){} }
     else { try { maybeTriggerBogRoll(false); } catch(e){} }
+    if (oldWave >= 3) try { unlockLockin(); } catch(e){}
     renderNextButton();
     return;
   }
@@ -5135,6 +5337,15 @@ function endGame(){
   if (!game.pvp.remote && mode !== "pvp") submitMyResult(mode === "arcade" ? game.score > 0 : you > ai);
   if (isArcade && game.score > highScore("arcade")) try { localStorage.setItem("spoons.high.arcade", String(game.score)); } catch(e){}
   if (isArcade && game.wave > bestWave()) try { localStorage.setItem("spoons.best.wave", String(game.wave)); } catch(e){}
+  if (isArcade){
+    try {
+      const m = me();
+      if (m && m.name && m.pub){
+        saveCaptainWeek(game.score);
+        saveCaptainEntry(m.name, m.pub, game.score);
+      }
+    } catch(e){}
+  }
   document.getElementById("overScore").textContent =
     isArcade ? "SCORE " + game.score + " · HIGH " + highScore("arcade") : "SCORE " + game.score + " · BEST " + highScore(mode);
   renderScoreBreakdown();
@@ -5204,6 +5415,163 @@ function topStatLine(){
   return st.label + " ×" + entries[0][1];
 }
 
+/* ---------- Landlord's Lock-In survival mode ---------- */
+const LOCKIN_UNLOCK_LS = "spoons.lockin.unlocked";
+function isLockinUnlocked(){
+  try { return localStorage.getItem(LOCKIN_UNLOCK_LS) === "1"; }
+  catch(e){ return false; }
+}
+function unlockLockin(){
+  if (isLockinUnlocked()) return false;
+  try { localStorage.setItem(LOCKIN_UNLOCK_LS, "1"); } catch(e){}
+  bonusToast("🔒 LOCK-IN UNLOCKED — THE LANDLORD'S HOLDING THE DOOR SHUT");
+  updateLockinButton();
+  return true;
+}
+function updateLockinButton(){
+  const btn = document.getElementById("btnLockin");
+  if (!btn) return;
+  const unlocked = isLockinUnlocked();
+  btn.disabled = !unlocked;
+  btn.classList.toggle("locked", !unlocked);
+  btn.innerHTML = (unlocked ? "🔒 LOCK-IN" : "🔒 LOCKED") + '<small>BEAT ARCADE WAVE 3 TO OPEN</small>';
+}
+
+/* ---------- WhatsApp captain's armband ---------- */
+function getISOWeek(d){
+  const date = new Date(d.getTime());
+  date.setHours(0,0,0,0);
+  date.setDate(date.getDate() + 4 - (date.getDay() || 7));
+  const yearStart = new Date(date.getFullYear(), 0, 1);
+  const weekNo = Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+  return date.getFullYear() + "-W" + String(weekNo).padStart(2, "0");
+}
+const CAPTAIN_WEEK_LS = "spoons.captain.week";
+const CAPTAIN_BOARD_LS_PREFIX = "spoons.captain.board.";
+function loadCaptainWeek(){
+  const week = getISOWeek(new Date());
+  try {
+    const v = localStorage.getItem(CAPTAIN_WEEK_LS);
+    if (v){ const o = JSON.parse(v); if (o.week === week) return o; }
+  } catch(e){}
+  return { week, score: 0 };
+}
+function saveCaptainWeek(score){
+  const week = getISOWeek(new Date());
+  const cur = loadCaptainWeek();
+  if (score > cur.score){
+    const next = { week, score };
+    try { localStorage.setItem(CAPTAIN_WEEK_LS, JSON.stringify(next)); } catch(e){}
+  }
+}
+function getCaptainBoard(week){
+  const key = CAPTAIN_BOARD_LS_PREFIX + week;
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : []; }
+  catch(e){ return []; }
+}
+function saveCaptainEntry(name, pub, score){
+  const week = getISOWeek(new Date());
+  const board = getCaptainBoard(week).filter(e => e.name !== name);
+  board.push({ name, pub, score });
+  board.sort((a, b) => b.score - a.score);
+  try { localStorage.setItem(CAPTAIN_BOARD_LS_PREFIX + week, JSON.stringify(board.slice(0, 20))); } catch(e){}
+}
+function getCaptainInfo(){
+  const m = me();
+  if (!m || !m.pub) return null;
+  const week = getISOWeek(new Date());
+  const board = getCaptainBoard(week).filter(e => (e.pub || "").toLowerCase() === m.pub.toLowerCase());
+  const best = board[0] || null;
+  const mine = board.find(e => e.name === m.name);
+  const isCaptain = best && best.name === m.name && best.score > 0;
+  return { isCaptain, name: m.name, pub: m.pub, score: mine ? mine.score : 0, week, bestScore: best ? best.score : 0 };
+}
+function shareCaptainURL(info){
+  const text = "I'm CAPTAIN of " + info.pub + " this week on Spoons Top Trumps — score " + info.score + ". Come take my armband: https://ruderussy.github.io/spoons-top-trumps/";
+  return "https://wa.me/?text=" + encodeURIComponent(text);
+}
+function updateCaptainChip(){
+  const wrap = document.getElementById("captainWrap");
+  if (!wrap) return;
+  const info = getCaptainInfo();
+  if (info && info.isCaptain){
+    wrap.style.display = "";
+    const chip = document.getElementById("captainChip");
+    const btn = document.getElementById("captainShare");
+    if (chip) chip.textContent = "🧢 CAPTAIN: " + info.name;
+    if (btn) btn.dataset.url = shareCaptainURL(info);
+  } else if (wrap){
+    wrap.style.display = "none";
+  }
+}
+
+/* ---------- fart meter daily charges ---------- */
+const FARTMETER_LS = "spoons.fartmeter";
+function toISODate(d){ return d.toISOString().slice(0,10); }
+function getFartMeter(){
+  const today = toISODate(new Date());
+  try {
+    const v = localStorage.getItem(FARTMETER_LS);
+    if (v){
+      const o = JSON.parse(v);
+      if (o.date === today) return { date: today, charges: Math.min(3, Math.max(0, o.charges || 0)) };
+    }
+  } catch(e){}
+  const fresh = { date: today, charges: 3 };
+  try { localStorage.setItem(FARTMETER_LS, JSON.stringify(fresh)); } catch(e){}
+  return fresh;
+}
+function consumeFartMeterCharge(){
+  const m = getFartMeter();
+  if (m.charges <= 0) return false;
+  m.charges--;
+  try { localStorage.setItem(FARTMETER_LS, JSON.stringify(m)); } catch(e){}
+  return true;
+}
+function fartMeterCountdownText(){
+  const now = new Date();
+  const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  const sec = Math.max(0, Math.ceil((midnight - now) / 1000));
+  const h = Math.floor(sec / 3600), mm = Math.floor((sec % 3600) / 60), ss = sec % 60;
+  return String(h).padStart(2,'0') + ':' + String(mm).padStart(2,'0') + ':' + String(ss).padStart(2,'0');
+}
+function showNoCharges(){
+  const ov = el("noChargesOverlay");
+  const msg = el("noChargesMsg");
+  const cnt = el("noChargesCountdown");
+  if (!ov || !msg || !cnt) return;
+  msg.textContent = "COME BACK TOMORROW — THE LANDLORD'S SEALED THE SEWERS";
+  cnt.textContent = "SEWERS REOPEN IN " + fartMeterCountdownText();
+  ov.classList.add("open");
+  const t = setInterval(() => {
+    if (!ov.classList.contains("open")){ clearInterval(t); return; }
+    cnt.textContent = "SEWERS REOPEN IN " + fartMeterCountdownText();
+  }, 1000);
+}
+function hideNoCharges(){ const ov = el("noChargesOverlay"); if (ov) ov.classList.remove("open"); }
+function updateFartMeterChip(){
+  const chip = el("fartMeterChip");
+  if (!chip) return;
+  const m = getFartMeter();
+  chip.textContent = "💨 FART METER: " + m.charges + "/3";
+  chip.style.display = "";
+}
+
+/* ---------- near-miss rematch token ---------- */
+const NEARMISS_LS = "spoons.nearmiss.token";
+function hasNearMissToken(){
+  try { return localStorage.getItem(NEARMISS_LS) === "1"; }
+  catch(e){ return false; }
+}
+function grantNearMissToken(){
+  if (hasNearMissToken()) return false;
+  try { localStorage.setItem(NEARMISS_LS, "1"); } catch(e){}
+  return true;
+}
+function consumeNearMissToken(){
+  try { localStorage.removeItem(NEARMISS_LS); } catch(e){}
+}
+
 /* ---------- high scores ---------- */
 function highScore(mode){
   try { const v = localStorage.getItem("spoons.high." + mode); return v ? parseInt(v, 10) || 0 : 0; }
@@ -5214,7 +5582,8 @@ function saveScore(mode, initials, score){
   const key = "spoons.board." + mode;
   let board = [];
   try { board = JSON.parse(localStorage.getItem(key)) || []; } catch (e) { board = []; }
-  board.push({ ini: initials, sc: score });
+  const m = me();
+  board.push({ ini: initials, sc: score, pub: (m && m.pub) || "" });
   board.sort((a, b) => b.sc - a.sc);
   board = board.slice(0, 5);
   try { localStorage.setItem(key, JSON.stringify(board)); } catch(e){}
@@ -5230,6 +5599,42 @@ function renderLeaderboard(mode){
 function bestWave(){
   try { const v = localStorage.getItem("spoons.best.wave"); return v ? parseInt(v, 10) || 0 : 0; }
   catch(e){ return 0; }
+}
+
+/* ---------- mystery menu card drops ---------- */
+function doMysteryDrop(){
+  game.waveDrops = (game.waveDrops || 0) + 1;
+  let pool = game.bag && game.bag.length ? game.bag : CARDS.filter(c => {
+    const inPlay = new Set([...game.playerDeck, ...game.aiDeck, ...game.pot, game.playerCard, game.aiCard]);
+    return !inPlay.has(c);
+  });
+  if (!pool.length) pool = CARDS.slice();
+  const card = pool[Math.floor(Math.random() * pool.length)];
+  // remove from bag if present
+  const bi = game.bag.indexOf(card);
+  if (bi >= 0) game.bag.splice(bi, 1);
+  const isGold = Math.random() < 0.05;
+  if (isGold){
+    const keys = ["kcal","grease","hang","carpet","dodge","mess","speed"].filter(k => typeof card[k] === "number");
+    const key = keys.length ? keys[Math.floor(Math.random() * keys.length)] : "kcal";
+    card.__gold = true;
+    card.__boostedStat = key;
+    card.__boostedValue = Math.max(1, Math.round(card[key] * 1.5));
+    bonusToast("📦 MYSTERY MENU DROP! GOLD +50% " + key.toUpperCase());
+  } else {
+    bonusToast("📦 MYSTERY MENU DROP!");
+  }
+  game.playerDeck.push(card);
+  sparkleDrop();
+}
+function sparkleDrop(){
+  try {
+    const s = document.createElement("div");
+    s.className = "sparkle";
+    s.textContent = "✨";
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 900);
+  } catch(e){}
 }
 function refreshBests(){
   const ba = document.getElementById("bestArcade");
@@ -5250,7 +5655,7 @@ function showScreen(name){
   if (name !== "bonus") closeBonus();
   if (name === "title"){ AudioFX.stopMusic(); openOnlinePanel(false); closeSpoonsPanel(); closeRewardScreen(); updateShitterChip(); openOrderPanel(false); Spoons.restoreNational(); stopAttract(); }
   try { if (typeof updateHomeChip === "function") updateHomeChip(); } catch(e){}
-  if (name === "title"){ try { refreshBests(); renderHud(); ensureSignup(); renderWelcomeBack(); } catch(e){} }
+  if (name === "title"){ try { refreshBests(); renderHud(); ensureSignup(); renderWelcomeBack(); updateFartMeterChip(); updateCaptainChip(); updateLockinButton(); } catch(e){} }
   try {
     if (window.__spoonsNav !== name){
       window.__spoonsNav = name;
@@ -5345,7 +5750,8 @@ function renderHud(){
 }
 
 function statRowHTML(st, card, opts){
-  const value = st.get(card);
+  const value = (card.__gold && card.__boostedStat === st.key && typeof card.__boostedValue === "number")
+    ? card.__boostedValue : st.get(card);
   const arrow = st.higherWins ? "▲" : "▼";
   const pct = Math.round(Math.max(0, Math.min(1, value / st.max)) * 100);
   const selected = opts && opts.selectedKey === st.key ? " selected" : "";
@@ -5365,8 +5771,10 @@ function cardFaceHTML(card, opts){
   const rows = STATS.map((st, i) => statRowHTML(st, card, Object.assign({}, opts, { index: i }))).join("");
   const diet = card.diet === "VG" ? '<span class="diet-chip">VG</span>'
     : card.diet === "V" ? '<span class="diet-chip v">V</span>' : "";
+  const gold = card.__gold ? " gold" : "";
+  const badge = card.__gold ? '<div class="gold-stat-badge">+' + Math.round((card.__boostedValue / (st.get(card)||1) - 1) * 100) + '% ' + (statByKey(card.__boostedStat)?.label || card.__boostedStat).toUpperCase() + '</div>' : "";
   const deal = opts.deal ? " deal" : "";
-  return '<article class="card' + deal + '">' +
+  return '<article class="card' + deal + gold + '">' + badge +
     '<div class="card-art">' + card.art + "</div>" +
     '<div class="card-body">' +
       '<div class="card-topline"><button class="cat-chip" data-cat="' + card.cat + '">' + (CAT_LABEL[card.cat] || card.cat) + "</button>" + diet + "</div>" +
@@ -5741,6 +6149,9 @@ function foEnd(won){
   setTimeout(() => { if (fo.epoch === myEpoch && !fo.mid && fo.on === false && !el("screen-fartoff").classList.contains("hidden")){ fo.on = true; fo.busy = false; } }, 50);
 }
 function openFartOff(){
+  const m = getFartMeter();
+  if (m.charges <= 0){ showNoCharges(); return; }
+  consumeFartMeterCharge(); updateFartMeterChip();
   AudioFX.unlock();
   foShow(true);
   fo.on = true; fo.busy = false; fo.you = 0; fo.ai = 0;
@@ -5836,6 +6247,9 @@ function brPick(d, btn){
   }
 }
 function openBogRoll(){
+  const m = getFartMeter();
+  if (m.charges <= 0){ showNoCharges(); return; }
+  consumeFartMeterCharge(); updateFartMeterChip();
   AudioFX.unlock();
   brShow(true);
   br.on = true; br.busy = false; br.cleared = 0; br.banked = 0;
@@ -6120,6 +6534,7 @@ function renderAchievements(){
     list.appendChild(row);
   }
 }
+el("tabLockin").addEventListener("click", () => { AudioFX.click(); setBoardTab("lockin"); });
 el("tabAch").addEventListener("click", () => { AudioFX.click(); setBoardTab("ach"); });
 /* ==================== 7. WIRING ==================== */
 /* ---------- home chip wiring ---------- */
@@ -6155,7 +6570,14 @@ document.getElementById("homeChip").addEventListener("click", function(){
 // chip syncs via showScreen/closeBonus/bonusBack wiring (no polling — keeps jsdom suites exiting)
 
 el("btnArcade").addEventListener("click", () => { onModeStartRequested("arcade"); });
+el("btnLockin").addEventListener("click", () => { if (isLockinUnlocked()){ AudioFX.click(); startGame("lockin"); } });
 el("btnShitter").addEventListener("click", () => { openBonus(); });
+const captainShareBtn = el("captainShare");
+if (captainShareBtn) captainShareBtn.addEventListener("click", () => {
+  const url = captainShareBtn.dataset.url;
+  if (url) window.open(url, "_blank");
+});
+const btnNoChargesBack = el("btnNoChargesBack"); if (btnNoChargesBack) btnNoChargesBack.addEventListener("click", () => { AudioFX.click(); hideNoCharges(); });
 const btnFartOff = el("btnFartOff"); if (btnFartOff) btnFartOff.addEventListener("click", () => { AudioFX.click(); openFartOff(); });
 el("foBack").addEventListener("click", () => { AudioFX.click(); foShow(false); showScreen("title"); });
 const btnBogRoll = el("btnBogRoll"); if (btnBogRoll) btnBogRoll.addEventListener("click", () => { AudioFX.click(); openBogRoll(); });
