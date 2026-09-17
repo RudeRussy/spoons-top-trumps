@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en-GB">
 <head>
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" href="favicon-512.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>SPOONS TOP TRUMPS ARCADE</title>
@@ -4618,6 +4621,20 @@ function ensureSignup(){
   if (who){ who.style.display = m2 ? "" : "none"; if (m2) who.textContent = "PLAYING AS " + m2.name + " · " + m2.pub.toUpperCase(); }
   const errEl = document.getElementById("signupNameError");
   if (errEl) errEl.style.display = "none";
+  if (!m2){
+    const nEl = document.getElementById("signupName");
+    const pEl = document.getElementById("signupPub");
+    if (pEl && !(pEl.value || "").trim()){
+      try {
+        const stored = localStorage.getItem(LS_BOARD_ME);
+        if (stored){
+          const rec = JSON.parse(stored);
+          if (rec && rec.pub) pEl.value = rec.pub;
+        }
+      } catch(e){}
+    }
+    if (nEl){ try { nEl.focus(); } catch(e){} }
+  }
 }
 function renderWelcomeBack(){
   const slot = document.getElementById("welcomeBack");
@@ -4633,14 +4650,32 @@ function renderWelcomeBack(){
     '<div class="welcome-stats">BEST SCORE ' + best + ' · BEST WAVE ' + wave + ' · TROPHIES ' + ach + '/' + total + '</div>';
   updateCaptainChip();
 }
+function signupShake(){
+  const panel = document.querySelector(".signup-panel");
+  if (!panel) return;
+  panel.classList.remove("shake");
+  void panel.offsetWidth;
+  panel.classList.add("shake");
+  setTimeout(() => panel.classList.remove("shake"), 400);
+}
 function doSignup(){
   const nEl = document.getElementById("signupName");
   const pEl = document.getElementById("signupPub");
   const errEl = document.getElementById("signupNameError");
   const name = (nEl.value || "").trim().toUpperCase();
   const pub = (pEl.value || "").trim();
-  if (name.length < 3 || name.length > 8){ errEl.style.display = "none"; nEl.focus(); return; }
-  if (pub.length < 3 || pub.length > 24){ errEl.style.display = "none"; pEl.focus(); return; }
+  if (name.length < 3 || name.length > 8){
+    if (errEl){ errEl.textContent = "❌ HANDLE NEEDS 3–8 LETTERS"; errEl.style.display = ""; }
+    nEl.focus();
+    signupShake();
+    return;
+  }
+  if (pub.length < 3 || pub.length > 24){
+    if (errEl){ errEl.textContent = "❌ NAME YOUR LOCAL (3–24 LETTERS)"; errEl.style.display = ""; }
+    pEl.focus();
+    signupShake();
+    return;
+  }
   // device-claim check: if name exists on global board and this device does not own it, reject
   const existing = boardCache && boardCache.players && boardCache.players[name];
   const myRecord = me();
