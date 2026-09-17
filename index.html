@@ -5005,6 +5005,10 @@ function resolveRound(){
     addScore(bonus, "WAVE " + oldWave + " CLEAR", "500 × " + oldWave);
     game.wave++;
     game.aiLevel = aiLevelForWave(game.wave);
+    // Infinite-wave support: if player deck is running low, top it up from the bag so deep runs stay alive.
+    if (game.playerDeck.length < 3){ const topUp = Math.min(6 - game.playerDeck.length, 6); game.playerDeck = game.playerDeck.concat(drawFromBag(topUp)); }
+    // Wave 8+ survival bonus: a fresh card for clearing the wave.
+    if (oldWave >= 8){ game.playerDeck.push(drawFromBag(1)[0]); bonusToast("🛟 WAVE " + oldWave + " SURVIVAL BONUS · +1 CARD"); }
     const stage = stageForWave(game.wave);
     const stagePool = cardsForStage(stage);
     // sweep: leftover AI cards from the previous stage go back to the bag
