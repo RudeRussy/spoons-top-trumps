@@ -3380,7 +3380,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "banner-fix-35-r40";
+  const BUILD_STAMP = "fixes-36-r41";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -4871,6 +4871,11 @@ function beginRound(){
   const pvp = game.mode === "pvp";
   const duel = MODES[game.mode].duel;
   renderHud();
+  if (MODES[game.mode].waves && game.turnOwner === "player"){
+    const st = stageForWave(game.wave);
+    setVerdict('<div class="verdict-line wave-clear">' + st.tag + '</div>' +
+      '<div class="verdict-sub">WAVE ' + game.wave + ' — beat ' + game.aiDeck.length + ' AI cards to advance. Lose all your cards and it is game over.</div>');
+  }
   if (duel){
     el("sideLabelPlayer").textContent = "PLAYER " + game.duel.player + " — PICK A STAT";
     el("sideLabelAi").textContent = isBossWave(game.wave) ? "THE LANDLORD" : "THE SPOONS";
@@ -5070,6 +5075,13 @@ function endGame(){
   const tag = document.getElementById("overTag");
   const rematchBtn = document.getElementById("btnRematch");
   if (tag) tag.textContent = "";
+  if (isArcade && you === 0){
+    if (tag) tag.textContent = "YOUR LAST CARD WENT TO THE SPOONS";
+  } else if (isArcade && ai === 0){
+    if (tag) tag.textContent = "THE HOUSE IS EMPTY — YOU CLEARED THE MENU";
+  } else if (isArcade && you > 0 && ai > 0){
+    if (tag) tag.textContent = "THE LANDLORD CALLED TIME";
+  }
   if (mode === "pvp"){
     if (game.pvp.matchWinner){
       title.textContent = game.pvp.matchWinner === "p1" ? "PLAYER 1 WINS THE MATCH" : "PLAYER 2 WINS THE MATCH";
@@ -5277,6 +5289,7 @@ function renderHud(){
   el("scoreChip").textContent = String(game.score).padStart(6, "0");
   el("modeLabel").textContent = MODES[game.mode].label;
   el("countPlayer").textContent = game.playerDeck.length;
+  el("countAi").textContent = game.aiDeck.length;
   el("countPot").textContent = game.pot.length;
   const chipPlayerLabel = el("chipPlayerLabel"), chipAiLabel = el("chipAiLabel"), waveChip = el("waveChip"), aiChip = el("aiChip");
   if (game.mode === "pvp"){
