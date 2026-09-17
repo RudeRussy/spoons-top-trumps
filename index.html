@@ -3709,9 +3709,9 @@ const MUSIC_TRACKS = [
   { file: "sfx/theme-funk.mp3", name: "FUNK MACHINE" },
   { file: "sfx/theme-funk-gameloop.mp3", name: "FUNK GAME LOOP (MacLeod)", name2: "CC BY 3.0" },
   { file: "sfx/theme-cold-funk.mp3", name: "COLD FUNK CHILL" },
-  { file: "sfx/tom-and-fifi.mp3", name: "TOM & FIFI (SHORT)" }
+  { file: "sfx/tom-and-fifi.mp3", name: "TOM & FIFI (SHORT)" },
+  { file: "sfx/tom-and-fifi-ext.mp3", name: "TOM & FIFI (EXTENDED)" }
 ];
-// NOTE: TOM & FIFI (EXTENDED) sfx/tom-and-fifi-ext.mp3 was not available when this fix ran; add it to MUSIC_TRACKS when generated.
 let musicTrackIdx = 0;
 
   let funkAudio = null;
@@ -4894,8 +4894,7 @@ function beginRound(){
   renderHud();
   if (MODES[game.mode].waves && game.turnOwner === "player"){
     const st = stageForWave(game.wave);
-    setVerdict('<div class="verdict-line wave-clear">' + st.tag + '</div>' +
-      '<div class="verdict-sub">WAVE ' + game.wave + ' — beat ' + game.aiDeck.length + ' AI cards to advance. Lose all your cards and it is game over.</div>');
+    bonusToast('WAVE ' + game.wave + ' — beat ' + game.aiDeck.length + ' AI cards to advance. Lose all your cards and it is game over.');
   }
   if (duel){
     el("sideLabelPlayer").textContent = "PLAYER " + game.duel.player + " — PICK A STAT";
@@ -5099,6 +5098,7 @@ function endGame(){
   const title = document.getElementById("overTitle");
   const tag = document.getElementById("overTag");
   const rematchBtn = document.getElementById("btnRematch");
+  const isArcade = mode === "arcade";
   if (tag) tag.textContent = "";
   if (isArcade && you === 0){
     if (tag) tag.textContent = "YOUR LAST CARD WENT TO THE SPOONS";
@@ -5133,7 +5133,6 @@ function endGame(){
     title.className = "lose";
   }
   if (!game.pvp.remote && mode !== "pvp") submitMyResult(mode === "arcade" ? game.score > 0 : you > ai);
-  const isArcade = mode === "arcade";
   if (isArcade && game.score > highScore("arcade")) try { localStorage.setItem("spoons.high.arcade", String(game.score)); } catch(e){}
   if (isArcade && game.wave > bestWave()) try { localStorage.setItem("spoons.best.wave", String(game.wave)); } catch(e){}
   document.getElementById("overScore").textContent =
