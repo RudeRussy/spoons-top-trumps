@@ -1460,7 +1460,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "funk-theme-31-r36";
+  const BUILD_STAMP = "trackpicker-33-r38";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -1823,11 +1823,23 @@ function musicTick(){
 }
 
 let funkAudio = null;
+
+const MUSIC_TRACKS = [
+  { file: "sfx/theme-funk.mp3", name: "FUNK MACHINE" },
+  { file: "sfx/theme-funk-gameloop.mp3", name: "FUNK GAME LOOP (MacLeod)", name2: "CC BY 3.0" },
+  { file: "sfx/theme-cold-funk.mp3", name: "COLD FUNK CHILL" }
+];
+let musicTrackIdx = 0;
+
   function startMusic(){
     stopMusic();
     if (!musicOn || muted) return;
     try {
-      if (!funkAudio){ funkAudio = new Audio("sfx/theme-funk.mp3"); funkAudio.loop = true; funkAudio.volume = 0.85; }
+      const track = MUSIC_TRACKS[musicTrackIdx % MUSIC_TRACKS.length];
+      if (!funkAudio || funkAudio.dataset.src !== track.file){
+        funkAudio = new Audio(track.file); funkAudio.loop = true; funkAudio.volume = 0.85;
+        funkAudio.dataset.src = track.file;
+      }
       funkAudio.currentTime = 0;
       const p = funkAudio.play();
       if (p && p.catch) p.catch(() => {});
@@ -1864,6 +1876,8 @@ let funkAudio = null;
     },
     debugMusic(){ return { step: musicStep, timer: !!musicTimer, theme: "fart-march" }; },
     funkState(){ try { return { playing: funkAudio && !funkAudio.paused && !funkAudio.ended, t: funkAudio.currentTime, dur: funkAudio.duration }; } catch(e){ return null; } },
+    cycleTrack(){ musicTrackIdx = (musicTrackIdx + 1) % MUSIC_TRACKS.length; const n = MUSIC_TRACKS[musicTrackIdx].name; if (musicTimer){ startMusic(); } return n; },
+    trackName(){ return MUSIC_TRACKS[musicTrackIdx % MUSIC_TRACKS.length].name; },
     themes(){ return { march: DRUMS }; },
     click(){ tone(220, 0.06, "square", 0.045); },
     deal(){ noise(0.09, 0.04); tone(160, 0.05, "triangle", 0.03, 0.02); },
@@ -4339,6 +4353,11 @@ el("btnMusic").addEventListener("click", () => {
   const on = AudioFX.toggleMusic();
   el("btnMusic").textContent = on ? "🎵" : "🎵̸";
   el("btnMusic").style.opacity = on ? "1" : "0.45";
+  // long-press not needed: each double-click advances the track
+});
+el("btnMusic").addEventListener("dblclick", () => {
+  const n = AudioFX.cycleTrack();
+  bonusToast("🎵 TRACK: " + n);
 });
 el("btnMusic").textContent = AudioFX.musicEnabled() ? "🎵" : "🎵̸";
 el("btnMusic").style.opacity = AudioFX.musicEnabled() ? "1" : "0.45";
