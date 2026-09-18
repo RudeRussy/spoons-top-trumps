@@ -4060,12 +4060,15 @@ const REWARDS = {
   document.addEventListener("visibilitychange", () => {
     try {
       if (document.hidden){ if (musicTimer){ clearInterval(musicTimer); musicTimer = null; } }
-      else if (musicOn && !muted && !musicTimer && game.phase !== "title") startMusic();
+      else if (musicOn && !muted && !musicTimer && game.phase !== "title"){
+        AudioFX.unlock(); // re-prime iOS silent-keeper media session killed by backgrounding
+        if (!startMusic()) resumeMusicAfterUserGesture();
+      }
     } catch(e){}
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "autorefresh-45-r50";
+  const BUILD_STAMP = "music-resume-46-r51";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -4503,16 +4506,25 @@ let musicTrackIdx = 0;
           musicTrackIdx = (musicTrackIdx + 1) % MUSIC_TRACKS.length;
           resumeMusicAfterUserGesture();
         });
+        funkAudio.addEventListener('stalled', () => {
+          // network hiccup: nudge it
+          setTimeout(() => { try { if (funkAudio.paused && musicOn && !muted) tryPlayFunk(); } catch(e){} }, 1200);
+        });
+        funkAudio.preload = "auto";
       }
       funkAudio.currentTime = 0;
       tryPlayFunk();
       musicTimer = setInterval(() => { /* playlist advances via 'ended' event */ }, 1000);
       if (musicWatchdog) clearInterval(musicWatchdog);
       musicWatchdog = setInterval(() => {
-        if (!musicOn || muted || document.hidden || game.phase === "title") return;
-        if (funkAudio && funkAudio.paused) tryPlayFunk();
-      }, 30000);
-    } catch(e){}
+        if (!musicOn || muted || document.hidden) return;
+        if (funkAudio && funkAudio.paused && game.phase !== "title"){
+          try { AudioFX.unlock(); } catch(e){}
+          tryPlayFunk();
+        }
+      }, 10000);
+      return !(funkAudio && funkAudio.paused);
+    } catch(e){ return false; }
   }
   function stopMusic(){
     try { if (funkAudio){ funkAudio.pause(); funkAudio.currentTime = 0; } } catch(e){}
