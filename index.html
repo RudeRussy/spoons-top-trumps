@@ -3202,6 +3202,227 @@ header#hud .score > *:not(#scoreChip):not(.combo){
   animation:fiSplatSlide 2.2s ease-in forwards;
 }
 
+
+/* ---------- login-42-r47: title decongest + auth ---------- */
+.duck-banner{
+  margin-bottom:8px;
+  padding:4px 0;
+}
+.duck-track{
+  animation:duckscroll 32s linear infinite;
+}
+.duck-unit{
+  font-size:13px;
+  margin-right:40px;
+}
+.title-strip{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+  margin:6px auto 8px;
+  max-width:min(100%, 460px);
+  min-height:34px;
+}
+.title-strip .chip{
+  font-size:9px;
+  padding:4px 10px;
+}
+.title-strip #captainShare{
+  font-size:10px;
+  padding:6px 10px;
+  min-height:28px;
+  min-width:auto;
+}
+#welcomeBack{
+  width:100%;
+  text-align:center;
+}
+.welcome-back{
+  font-family:var(--font-arcade);
+  color:var(--gold);
+  font-size:11px;
+  letter-spacing:.08em;
+  line-height:1.4;
+}
+.welcome-stats{
+  color:var(--cream);
+  font-size:10px;
+  letter-spacing:.04em;
+  margin-top:3px;
+  line-height:1.3;
+}
+.welcome-stats .offline{
+  color:#ff8a8a;
+  margin-left:6px;
+}
+#btnMenu{
+  position:absolute;
+  top:10px;
+  right:10px;
+  z-index:var(--z-homechip);
+}
+#menuPanel{
+  position:fixed;
+  inset:0;
+  z-index:var(--z-panel);
+  display:none;
+  place-items:center;
+  background:#040609;
+}
+#menuPanel.open{
+  display:grid;
+}
+.menu-inner{
+  max-width:340px;
+  width:calc(100% - 32px);
+  padding:22px 20px;
+  background:#141920;
+  border:1px solid rgba(242,232,213,.25);
+  border-radius:14px;
+  text-align:center;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.menu-head{
+  font-family:var(--font-arcade);
+  color:var(--gold);
+  font-size:14px;
+  letter-spacing:.1em;
+  margin-bottom:4px;
+}
+.menu-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.menu-grid button{
+  background:rgba(20,25,32,.92);
+  color:var(--cream);
+  border:1px solid rgba(242,232,213,.2);
+  border-radius:10px;
+  padding:12px 10px;
+  min-height:48px;
+  font-weight:800;
+  letter-spacing:.04em;
+  font-size:12px;
+  cursor:pointer;
+}
+.menu-grid button:hover{ background:rgba(242,232,213,.12); }
+.menu-grid button.small{ font-size:11px; }
+.auth-tabs{
+  display:flex;
+  gap:8px;
+  margin:4px -4px 12px;
+}
+.auth-tab{
+  flex:1;
+  background:rgba(20,25,32,.85);
+  color:var(--muted);
+  border:2px solid rgba(242,232,213,.18);
+  border-radius:10px;
+  padding:14px 8px;
+  font-family:var(--font-arcade);
+  font-size:12px;
+  letter-spacing:.06em;
+  cursor:pointer;
+}
+.auth-tab.on{
+  background:var(--gold);
+  color:#1a1200;
+  border-color:var(--gold);
+  box-shadow:0 4px 0 #b07b2a;
+}
+.signup-panel label{
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  font-size:10px;
+  font-weight:800;
+}
+.signup-panel input{
+  font-size:15px;
+}
+.signup-panel input[type="password"]{
+  font-family:var(--font-arcade);
+  letter-spacing:.2em;
+  text-align:center;
+}
+.linkbtn.logout{
+  font-size:10px;
+  color:#ff8a8a;
+  padding:2px 4px;
+}
+@media (max-width:420px){
+  .title-strip{ gap:6px; }
+  .title-strip .chip{ padding:3px 7px; font-size:8px; }
+  .welcome-back{ font-size:9px; }
+  .welcome-stats{ font-size:9px; }
+  .menu-grid button{ min-height:48px; font-size:11px; }
+}
+
+
+#howtoPanel{
+  position:fixed;
+  inset:0;
+  z-index:var(--z-panel);
+  display:none;
+  place-items:center;
+  background:#040609;
+}
+#howtoPanel.open{ display:grid; }
+
+
+#spoonsPanel{
+  position:fixed;
+  inset:0;
+  z-index:var(--z-panel);
+  align-items:flex-start;
+  justify-content:center;
+  padding:18px 14px max(18px, env(safe-area-inset-bottom));
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+#spoonsPanel.hidden{ display:none; }
+#spoonsPanel:not(.hidden){ display:flex; }
+.spoons-overlay-inner{
+  width:min(100%, 420px);
+  max-height:calc(100dvh - 36px - env(safe-area-inset-bottom));
+  background:rgba(20,25,32,.95);
+  border:1px solid rgba(242,232,213,.25);
+  border-radius:14px;
+  padding:16px 14px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  overflow:hidden;
+}
+.spoons-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+}
+#spoonsList{
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  max-height:min(56dvh, 420px);
+}
+
+
+#captainShare{
+  min-width:44px;
+  min-height:44px;
+  padding:8px 12px;
+}
+.order-hint .link{
+  display:inline-flex;
+  align-items:center;
+  min-height:44px;
+  padding:4px 8px;
+}
+
 </style>
 </head>
 <body>
@@ -3234,59 +3455,44 @@ header#hud .score > *:not(#scoreChip):not(.combo){
 
   <!-- TITLE -->
   <section id="screen-title" class="screen">
-    <div class="duck-banner" id="duckBanner" aria-hidden="true">
-      <div class="duck-track">
-        <span class="duck-unit">🦆 <span class="duck-sign">SPOONS TOP TRUMPS</span></span>
-        <span class="duck-unit">🦆 <span class="duck-sign">210 CARDS</span></span>
-        <span class="duck-unit">🦆 <span class="duck-sign">NO COPYRIGHT INFRINGEMENT</span></span>
-        <span class="duck-unit">🦆 <span class="duck-sign">FIFI DID NOWT</span></span>
-        <span class="duck-unit">🦆 <span class="duck-sign">LAST ORDERS ARE YOURS</span></span>
-</div>
+  <button class="hudbtn" id="btnMenu" aria-label="Menu">☰</button>
+  <div class="duck-banner" id="duckBanner" aria-hidden="true">
+    <div class="duck-track">
+      <span class="duck-unit">🦆 <span class="duck-sign">SPOONS TOP TRUMPS</span></span>
+      <span class="duck-unit">🦆 <span class="duck-sign">210 CARDS</span></span>
+      <span class="duck-unit">🦆 <span class="duck-sign">NO COPYRIGHT INFRINGEMENT</span></span>
+      <span class="duck-unit">🦆 <span class="duck-sign">FIFI DID NOWT</span></span>
+      <span class="duck-unit">🦆 <span class="duck-sign">LAST ORDERS ARE YOURS</span></span>
     </div>
-    <h1>SPOONS<br><span class="red">TOP TRUMPS</span></h1>
+  </div>
+  <h1>SPOONS<br><span class="red">TOP TRUMPS</span></h1>
 
-    <p class="title-tag">★ 210 CARDS · THE ENTIRE MENU · 6 STATS ★</p>
-    <div id="welcomeBack" class="welcome-back-wrap" style="display:none;">
+  <p class="title-tag">★ 210 CARDS · THE ENTIRE MENU · 6 STATS ★</p>
+
+  <div class="title-strip" id="titleStrip" style="display:none;">
+    <div id="welcomeBack" style="display:none;">
       <div class="welcome-back">WELCOME BACK, PLAYER</div>
       <div class="welcome-stats">BEST SCORE 0 · BEST WAVE 0 · TROPHIES 0/0</div>
     </div>
-    <div id="captainWrap" class="captain-wrap" style="display:none;">
-      <span class="chip gold-sticker" id="captainChip">🧢 CAPTAIN</span>
-      <button class="btn btn-cream" id="captainShare">📲 BRAG ON WHATSAPP</button>
-    </div>
-    <p class="title-sub">
-      <b>201 real Spoons menu items.</b> Pick a stat. Highest wins — except <b>Price</b> &amp; <b>Regret</b>, where lower wins.
-      Survive the waves, beat the Landlord, brag to your mate.
-    </p>
+    <span class="chip gold-sticker" id="captainChip" style="display:none;">🧢 CAPTAIN</span>
+    <button class="btn btn-cream" id="captainShare" style="display:none;">📲 BRAG</button>
     <span class="chip" id="fartMeterChip" style="display:none;">💨 FART METER: 3/3</span>
-    <div class="modes title-main">
-      <button class="modebtn b-arcade hero" id="btnArcade">PLAY<small id="bestArcade">ARCADE · BEST 0</small></button>
-      <button class="modebtn b-lockin" id="btnLockin" disabled title="Beat Arcade Wave 3 to unlock">🔒 LOCKED<small>BEAT ARCADE WAVE 3 TO OPEN</small></button>
-      <button class="modebtn b-pvp duel" id="btnPvp">DUEL<small>PASS &amp; PLAY · SAME DECK</small></button>
-    </div>
-    <div id="playingAt" class="title-tag" style="display:none;margin-top:8px;"></div>
-    <div class="order-hint" id="orderHint">
-      ORDER TO PLAY · <button class="link" id="btnOrderInfo">HOW IT WORKS</button>
-    </div>
-    <div class="title-links">
-      <button class="linkbtn" id="btnSpoons">CHOOSE YOUR SPOONS</button> ·
-      <button class="linkbtn" id="btnOnline">ONLINE</button> ·
-      <button class="linkbtn" id="btnBrowser">BROWSE</button> ·
-      <button class="linkbtn" id="btnBoards">BOARDS</button> · <button class="linkbtn" id="btnShitter" title="???" style="opacity:.55">🚽 ???</button> ·
-      <button class="linkbtn" id="btnHowTitle">HOW TO PLAY</button>
-    </div>
-    
-    <details class="howto" id="howto">
-      <summary>How to play</summary>
-      <ul>
-        <li>Your card is face up; THE SPOONS is face down. Tap a stat to play.</li>
-        <li>Higher wins — except <b>PRICE</b> and <b>REGRET</b>, where lower wins.</li>
-        <li>Winner takes both cards. Draws stack the <b>pot</b>; the next winner hoovers it.</li>
-        <li>Win rounds in a row for a <b>streak multiplier</b> — stack the bacon 🥓🥓 — hit 4 and the pig shows up 🐖💨. Chain 3+ and the points get silly.</li>
-        <li>On a computer: <b>1–6</b> pick stat · <b>ENTER</b> next · <b>M</b> mute · <b>P</b> pause. On a phone, everything is a tap.</li>
-      </ul>
-    </details>
-  </section>
+  </div>
+
+  <p class="title-sub">
+    <b>201 real Spoons menu items.</b> Pick a stat. Highest wins — except <b>Price</b> &amp; <b>Regret</b>, where lower wins.
+    Survive the waves, beat the Landlord, brag to your mate.
+  </p>
+  <div class="modes title-main">
+    <button class="modebtn b-arcade hero" id="btnArcade">PLAY<small id="bestArcade">ARCADE · BEST 0</small></button>
+    <button class="modebtn b-lockin" id="btnLockin" disabled title="Beat Arcade Wave 3 to unlock">🔒 LOCKED<small>BEAT ARCADE WAVE 3 TO OPEN</small></button>
+    <button class="modebtn b-pvp duel" id="btnPvp">DUEL<small>PASS &amp; PLAY · SAME DECK</small></button>
+  </div>
+  <div id="playingAt" class="title-tag" style="display:none;margin-top:8px;"></div>
+  <div class="order-hint" id="orderHint">
+    ORDER TO PLAY · <button class="link" id="btnOrderInfo">HOW IT WORKS</button>
+  </div>
+</section>
 
   <!-- HANDOFF -->
   <section id="screen-handoff" class="screen hidden">
@@ -3442,13 +3648,19 @@ header#hud .score > *:not(#scoreChip):not(.combo){
     <p>Order at the bar or the Wetherspoon app, then scan the QR on your receipt to play.</p>
     <div class="order-bar">HONOUR SYSTEM · TAP BELOW</div>
     <div class="signup-panel" id="signupPanel" style="display:none;">
-      <div class="signup-head">WHO'S PLAYING? (FOR THE LEADERBOARD)</div>
+      <div class="signup-head" id="signupHead">ACCOUNT</div>
+      <div class="auth-tabs">
+        <button class="auth-tab on" id="tabNew" data-tab="new">NEW PLAYER</button>
+        <button class="auth-tab" id="tabLogin" data-tab="login">LOG IN</button>
+      </div>
       <label for="signupName">YOUR HANDLE (3-8)</label>
       <input id="signupName" maxlength="8" placeholder="RUS" autocomplete="off" inputmode="text">
-      <div id="signupNameError" style="display:none;color:var(--red);font-size:10px;font-weight:800;letter-spacing:.05em;"></div>
-      <label for="signupPub">NAME YOUR LOCAL (3-24)</label>
+      <label for="signupPub" id="signupPubLabel">NAME YOUR LOCAL (3-24)</label>
       <input id="signupPub" maxlength="24" placeholder="MY LOCAL" autocomplete="off" inputmode="text">
-      <div id="signupClaimNote" style="color:var(--muted);font-size:10px;letter-spacing:.03em;">This device remembers your handle. Same name on a new phone? You’ll need a new one.</div>
+      <label for="signupPin" id="signupPinLabel">PIN (4-8 DIGITS)</label>
+      <input id="signupPin" type="password" maxlength="8" placeholder="••••" autocomplete="new-password" inputmode="numeric" pattern="[0-9]*">
+      <div id="signupNameError" style="display:none;color:var(--red);font-size:10px;font-weight:800;letter-spacing:.05em;"></div>
+      <div id="signupClaimNote" style="color:var(--muted);font-size:10px;letter-spacing:.03em;">This handle is yours on any device. Remember your PIN.</div>
       <button class="btn btn-cream" id="btnSignupGo">LET'S GO</button>
     </div>
     <div id="signedInAs" style="display:none;font-size:11px;font-weight:800;color:var(--gold);margin:4px 0;letter-spacing:.5px;"></div>
@@ -3497,21 +3709,59 @@ header#hud .score > *:not(#scoreChip):not(.combo){
       </div>
     </div>
 
-    <div id="spoonsPanel" class="online-panel hidden">
-      <div class="online-row">
-        <div id="spoonsStatus" class="online-status" style="color:var(--cream);">CHOOSE YOUR SPOONS</div>
-      </div>
-      <div class="online-row">
-        <input id="spoonsSearch" placeholder="Search pubs…" autocomplete="off" inputmode="text">
-      </div>
-      <div class="online-row" style="justify-content:flex-start;">
-        <span id="spoonsCount" class="count"></span>
-      </div>
-      <div id="spoonsList"></div>
-      <div class="online-row">
-        <button class="btn btn-ghost" id="btnSpoonsBack" style="color:#f2e8d5;">BACK</button>
+    <div id="spoonsPanel" class="online-panel hidden" role="dialog" aria-modal="true" aria-label="Choose your spoons">
+      <div class="spoons-overlay-inner">
+        <div class="spoons-head">
+          <div id="spoonsStatus" class="online-status" style="color:var(--cream);">CHOOSE YOUR SPOONS</div>
+          <button class="btn btn-ghost" id="btnSpoonsBack" style="color:#f2e8d5;">✕ CLOSE</button>
+        </div>
+        <div class="online-row">
+          <input id="spoonsSearch" placeholder="Search pubs…" autocomplete="off" inputmode="text">
+        </div>
+        <div class="online-row" style="justify-content:flex-start;">
+          <span id="spoonsCount" class="count"></span>
+        </div>
+        <div id="spoonsList"></div>
       </div>
     </div>
+
+<!-- HOW TO PLAY PANEL -->
+<div id="howtoPanel" role="dialog" aria-modal="true" aria-label="How to play">
+  <div class="menu-inner" style="max-width:560px;">
+    <div class="menu-head">❓ HOW TO PLAY</div>
+    <div class="howto" style="display:block;text-align:left;max-width:100%;font-size:13px;">
+      <ul>
+        <li>Your card is face up; THE SPOONS is face down. Tap a stat to play.</li>
+        <li>Higher wins — except <b>PRICE</b> and <b>REGRET</b>, where lower wins.</li>
+        <li>Winner takes both cards. Draws stack the <b>pot</b>; the next winner hoovers it.</li>
+        <li>Win rounds in a row for a <b>streak multiplier</b> — stack the bacon 🥓🥓 — hit 4 and the pig shows up 🐖💨. Chain 3+ and the points get silly.</li>
+        <li>On a computer: <b>1–6</b> pick stat · <b>ENTER</b> next · <b>M</b> mute · <b>P</b> pause. On a phone, everything is a tap.</li>
+      </ul>
+    </div>
+    <div class="order-actions">
+      <button class="btn btn-ghost" id="btnHowtoClose" style="color:#f2e8d5;">✕ CLOSE</button>
+    </div>
+  </div>
+</div>
+
+<!-- MENU PANEL -->
+<div id="menuPanel" role="dialog" aria-modal="true" aria-label="Menu">
+  <div class="menu-inner">
+    <div class="menu-head">☰ MENU</div>
+    <div class="menu-grid">
+      <button id="btnMenuSpoons">🍺 CHOOSE YOUR SPOONS</button>
+      <button id="btnMenuOnline">🌐 ONLINE PVP</button>
+      <button id="btnMenuBrowser">📖 BROWSER</button>
+      <button id="btnMenuBoards">🏆 BOARDS</button>
+      <button id="btnMenuShitter">🚽 SHITTER</button>
+      <button id="btnMenuHow">❓ HOW TO PLAY</button>
+    </div>
+    <div class="order-actions">
+      <button class="btn btn-ghost" id="btnMenuClose" style="color:#f2e8d5;">✕ CLOSE</button>
+    </div>
+  </div>
+</div>
+
 <footer>
   Real menu data (Sep 2026 — prices &amp; calories approximate, vary per pub) · vibe stats are house opinion · unofficial, unaffiliated, unbothered. · build <span id="buildChip">—</span></footer>
 
@@ -3684,7 +3934,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "freeze-fix-41-r46";
+  const BUILD_STAMP = "login-42-r47";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -4447,9 +4697,14 @@ const Spoons = (() => {
 
 let spoonsPubs = null;
 function openSpoonsPanel(){
+  // close any overlapping panel so the tap isn't swallowed
+  try { openMenuPanel(false); } catch(e){}
+  try { el("howtoPanel").classList.remove("open"); } catch(e){}
+  try { openOnlinePanel(false); } catch(e){}
   const panel = el("spoonsPanel");
   if (!panel) return;
   panel.classList.remove("hidden");
+  panel.style.zIndex = "9999";
   updateSpoonsHeader();
   if (!spoonsPubs){
     Spoons.loadPubs().then(list => { spoonsPubs = list; renderSpoonsList(); });
@@ -4457,8 +4712,9 @@ function openSpoonsPanel(){
   renderSpoonsList();
   const pub = Spoons.myPub();
   if (pub) Spoons.loadChunk(pub.f);
+  try { el("spoonsSearch").focus(); } catch(e){}
 }
-function closeSpoonsPanel(){ const p = el("spoonsPanel"); if (p) p.classList.add("hidden"); }
+function closeSpoonsPanel(){ const p = el("spoonsPanel"); if (p){ p.classList.add("hidden"); p.style.zIndex = ""; } }
 function updateSpoonsHeader(){
   const pub = Spoons.myPub();
   const st = el("spoonsStatus");
@@ -4527,10 +4783,13 @@ function updatePlayingAt(){
 const BOARD_KEY = "spoons-board-v2";
 const BOARD_API = "https://textdb.online/" + BOARD_KEY;               // read: raw JSON text
 const BOARD_WRITE = "https://textdb.online/update/?key=" + BOARD_KEY + "&value="; // write: value=<uriencoded json>
+
 const LS_BOARD_ME = "spoons.me";
 const LS_BOARD_CACHE = "spoons.boardCache";
-let boardCache = null;      // last known players map
+const LS_SYNC = "spoons.sync";
+let boardCache = null;
 let submitting = false;
+let lastSyncUp = 0;
 
 function me(){
   try { const v = localStorage.getItem(LS_BOARD_ME); return v ? JSON.parse(v) : null; }
@@ -4538,16 +4797,165 @@ function me(){
 }
 function isSignedUp(){ return !!me(); }
 
+/* ---------- textdb helpers: every call must send our user-agent ---------- */
+function spoonsFetch(url, opts){
+  opts = Object.assign({}, opts || {});
+  if (!opts.headers) opts.headers = {};
+  opts.headers["User-Agent"] = "SpoonsTopTrumpsBot/1.0";
+  return fetchWithTimeout(url, opts);
+}
+
+function accountKey(handle){ return "spoons-acct-" + (handle || "").toLowerCase(); }
+function accountReadUrl(handle){ return "https://textdb.online/" + accountKey(handle); }
+function accountWriteUrl(handle, value){ return "https://textdb.online/update/?key=" + accountKey(handle) + "&value=" + encodeURIComponent(value); }
+
+/* Client-side PIN hash: deterrent-grade, not bank-grade. Salt includes handle to discourage rainbow tables. */
+async function pinHash(handle, pin){
+  const salt = "spoons$2026" + (handle || "").toLowerCase();
+  const msg = salt + "::" + pin;
+  const enc = new TextEncoder();
+  const buf = await crypto.subtle.digest("SHA-256", enc.encode(msg));
+  const arr = new Uint8Array(buf);
+  let hex = "";
+  for (let i = 0; i < arr.length; i++) hex += arr[i].toString(16).padStart(2, "0");
+  return hex;
+}
+
+async function fetchAccountBlob(handle){
+  try {
+    const r = await spoonsFetch(accountReadUrl(handle));
+    if (!r.ok) return { ok: false, status: r.status };
+    const txt = (await r.text()).trim();
+    if (!txt) return { ok: false, status: "empty" };
+    const o = JSON.parse(txt);
+    if (!o || o.v !== 1 || !o.ph) return { ok: false, status: "bad" };
+    return { ok: true, blob: o };
+  } catch(e){ return { ok: false, status: "err" }; }
+}
+
+async function writeAccountBlob(handle, blob){
+  const url = accountWriteUrl(handle, JSON.stringify(blob));
+  if (url.length > 7000) throw new Error("blob too large");
+  const r = await spoonsFetch(url, { cache: "no-store" });
+  if (!r.ok) throw new Error("status " + r.status);
+  const j = await r.json().catch(() => null);
+  if (!j || j.status !== 1) throw new Error("write rejected");
+  return true;
+}
+
+function makeProg(){
+  const ach = achLoad();
+  return {
+    highArcade: highScore("arcade") || 0,
+    bestWave: bestWave() || 0,
+    bestStreak: Math.max(0, game.bestStreak || 0),
+    elo: 0,
+    wins: 0,
+    losses: 0,
+    games: 0,
+    achievements: ach,
+    shitter: false,
+    lockin: isLockinUnlocked(),
+    nearmissTokens: hasNearMissToken() ? 1 : 0,
+    captainWeek: (() => { try { const c = loadCaptainWeek(); return c || { week:"", score:0 }; } catch(e){ return { week:"", score:0 }; } })(),
+    fartmeter: getFartMeter(),
+    recentCards: []
+  };
+}
+
+function mergeProg(cloud){
+  if (!cloud) return;
+  try {
+    if (typeof cloud.highArcade === "number" && cloud.highArcade > highScore("arcade")){
+      localStorage.setItem("spoons.high.arcade", String(cloud.highArcade));
+    }
+    if (typeof cloud.bestWave === "number" && cloud.bestWave > bestWave()){
+      localStorage.setItem("spoons.best.wave", String(cloud.bestWave));
+    }
+    if (typeof cloud.bestStreak === "number") {
+      game.bestStreak = Math.max(game.bestStreak || 0, cloud.bestStreak);
+    }
+    if (cloud.lockin && !isLockinUnlocked()){
+      try { localStorage.setItem(LOCKIN_UNLOCK_LS, "1"); } catch(e){}
+    }
+    if (cloud.nearmissTokens && !hasNearMissToken()){
+      try { localStorage.setItem(NEARMISS_LS, "1"); } catch(e){}
+    }
+    if (cloud.fartmeter && cloud.fartmeter.date && typeof cloud.fartmeter.charges === "number"){
+      try { localStorage.setItem(FARTMETER_LS, JSON.stringify(cloud.fartmeter)); } catch(e){}
+    }
+    if (cloud.achievements && cloud.achievements.unlocked){
+      const local = achLoad();
+      let changed = false;
+      for (const k of Object.keys(cloud.achievements.unlocked)){
+        if (!local.unlocked[k]){ local.unlocked[k] = cloud.achievements.unlocked[k]; changed = true; }
+      }
+      if (changed) achSave();
+    }
+  } catch(e){}
+}
+
+async function syncUp(force){
+  const sync = me();
+  if (!sync || !sync.name) return false;
+  const now = Date.now();
+  if (!force && now - lastSyncUp < 60000) return false;
+  try {
+    const cloud = await fetchAccountBlob(sync.name);
+    const prog = makeProg();
+    if (cloud.ok && cloud.blob && cloud.blob.prog){
+      const c = cloud.blob.prog;
+      prog.highArcade = Math.max(prog.highArcade, c.highArcade || 0);
+      prog.bestWave = Math.max(prog.bestWave, c.bestWave || 0);
+      prog.bestStreak = Math.max(prog.bestStreak, c.bestStreak || 0);
+      if (c.achievements && c.achievements.unlocked){
+        const base = prog.achievements || { unlocked:{} };
+        for (const k of Object.keys(c.achievements.unlocked)) base.unlocked[k] = c.achievements.unlocked[k];
+        prog.achievements = base;
+      }
+    }
+    const blob = { v:1, h:sync.name, ph:sync.ph, pub:sync.pub, t:Date.now(), prog:prog };
+    await writeAccountBlob(sync.name, blob);
+    lastSyncUp = now;
+    window.__lastSyncStatus = "synced";
+    return true;
+  } catch(e){
+    window.__lastSyncStatus = "offline";
+    return false;
+  }
+}
+
+async function syncDown(){
+  const sync = me();
+  if (!sync || !sync.name) return false;
+  try {
+    const cloud = await fetchAccountBlob(sync.name);
+    if (!cloud.ok){
+      window.__lastSyncStatus = "offline";
+      return false;
+    }
+    if (cloud.blob.ph !== sync.ph){
+      window.__lastSyncStatus = "pin-mismatch";
+      return false;
+    }
+    mergeProg(cloud.blob.prog);
+    window.__lastSyncStatus = "synced";
+    return true;
+  } catch(e){
+    window.__lastSyncStatus = "offline";
+    return false;
+  }
+}
+
 async function boardRead(){
   try {
     if (typeof fetch !== "function") throw new Error("no fetch");
-    const r = await fetchWithTimeout(BOARD_API, { cache: "no-store" });
+    const r = await spoonsFetch(BOARD_API, { cache: "no-store" });
     if (!r.ok) throw new Error("status " + r.status);
     const txt = (await r.text()).trim();
     if (!txt) throw new Error("empty");
     const doc = JSON.parse(txt);
     if (!doc || typeof doc !== "object" || !doc.players || typeof doc.players !== "object" || Array.isArray(doc.players)) throw new Error("bad doc");
-    // shape check: every player entry must be an object with numeric elo
     for (const k of Object.keys(doc.players)){
       const p = doc.players[k];
       if (!p || typeof p !== "object" || typeof p.elo !== "number" || !isFinite(p.elo)) { delete doc.players[k]; }
@@ -4564,33 +4972,30 @@ async function boardRead(){
 async function boardWrite(doc){
   const payload = encodeURIComponent(JSON.stringify({ players: doc.players, pubs: doc.pubs || {} }));
   if (BOARD_WRITE.length + payload.length > 7000) {
-    // URL-safe guard: drop pubs (players are the leaderboard) rather than truncate corrupt
     const slim = encodeURIComponent(JSON.stringify({ players: doc.players, pubs: {} }));
-    if (BOARD_WRITE.length + slim.length <= 7000) {
-      const r0 = await fetchWithTimeout(BOARD_WRITE + slim, { cache: "no-store" });
+    if (BOARD_WRITE.length + slim.length <= 7000){
+      const r0 = await spoonsFetch(BOARD_WRITE + slim, { cache: "no-store" });
       if (!r0.ok) throw new Error("write " + r0.status);
       const j0 = await r0.json().catch(() => null);
       if (!j0 || j0.status !== 1) throw new Error("write rejected");
       return true;
     }
-    // still too big: prune to top 60 players by elo
     const entries = Object.entries(doc.players).sort((a, b) => (b[1].elo || 0) - (a[1].elo || 0)).slice(0, 60);
     const tiny = encodeURIComponent(JSON.stringify({ players: Object.fromEntries(entries), pubs: {} }));
     if (BOARD_WRITE.length + tiny.length > 7000) throw new Error("doc too large");
-    const r1 = await fetchWithTimeout(BOARD_WRITE + tiny, { cache: "no-store" });
+    const r1 = await spoonsFetch(BOARD_WRITE + tiny, { cache: "no-store" });
     if (!r1.ok) throw new Error("write " + r1.status);
     const j1 = await r1.json().catch(() => null);
     if (!j1 || j1.status !== 1) throw new Error("write rejected");
     return true;
   }
-  const r = await fetchWithTimeout(BOARD_WRITE + payload, { cache: "no-store" });
+  const r = await spoonsFetch(BOARD_WRITE + payload, { cache: "no-store" });
   if (!r.ok) throw new Error("write " + r.status);
   const j = await r.json().catch(() => null);
   if (!j || j.status !== 1) throw new Error("write rejected");
   return true;
 }
 
-/* Submit my result after a finished game. Retries up to 3x with re-read (race-safe-ish). */
 async function boardSubmit(result){
   const m = me(); if (!m || submitting) return false;
   submitting = true;
@@ -4613,7 +5018,6 @@ async function boardSubmit(result){
       if (p.elo > pb.topElo) pb.topElo = p.elo;
       pubs[key] = pb;
       const next = { players: Object.assign({}, players, { [m.name]: p }), pubs };
-      // cap the doc: top 120 by elo + always me
       const entries = Object.entries(next.players);
       if (entries.length > 130){
         entries.sort((a, b) => (b[1].elo || 0) - (a[1].elo || 0));
@@ -4631,44 +5035,74 @@ async function boardSubmit(result){
   } finally { submitting = false; }
 }
 
-/* ---- signup UI ---- */
+/* ---------- account UI ---------- */
+let authTab = "new";
+function setAuthTab(tab){
+  authTab = tab;
+  document.getElementById("tabNew").classList.toggle("on", tab === "new");
+  document.getElementById("tabLogin").classList.toggle("on", tab === "login");
+  const pubLabel = document.getElementById("signupPubLabel");
+  const pubInput = document.getElementById("signupPub");
+  const note = document.getElementById("signupClaimNote");
+  if (tab === "login"){
+    if (pubLabel) pubLabel.style.display = "none";
+    if (pubInput) pubInput.style.display = "none";
+    if (note) note.textContent = "Log in to sync your progress from any device.";
+  } else {
+    if (pubLabel) pubLabel.style.display = "";
+    if (pubInput) pubInput.style.display = "";
+    if (note) note.textContent = "This handle is yours on any device. Remember your PIN.";
+  }
+}
+function showSignupError(msg){
+  const errEl = document.getElementById("signupNameError");
+  if (errEl){ errEl.textContent = "❌ " + msg; errEl.style.display = ""; }
+  signupShake();
+}
+function clearSignupError(){
+  const errEl = document.getElementById("signupNameError");
+  if (errEl){ errEl.textContent = ""; errEl.style.display = "none"; }
+}
 function ensureSignup(){
   const panel = document.getElementById("signupPanel");
   if (!panel) return;
   const m2 = me();
   panel.style.display = m2 ? "none" : "";
   const who = document.getElementById("signedInAs");
-  if (who){ who.style.display = m2 ? "" : "none"; if (m2) who.textContent = "PLAYING AS " + m2.name + " · " + m2.pub.toUpperCase(); }
-  const errEl = document.getElementById("signupNameError");
-  if (errEl) errEl.style.display = "none";
+  if (who){ who.style.display = m2 ? "" : "none"; if (m2) who.innerHTML = 'PLAYING AS <b style="color:var(--gold);">' + escapeHtml(m2.name) + '</b> · ' + escapeHtml((m2.pub || "").toUpperCase()) + ' · <button class="linkbtn logout" id="btnLogout">LOG OUT</button>'; }
   if (!m2){
     const nEl = document.getElementById("signupName");
     const pEl = document.getElementById("signupPub");
+    if (nEl){ try { setTimeout(() => nEl.focus(), 50); } catch(e){} }
     if (pEl && !(pEl.value || "").trim()){
       try {
         const stored = localStorage.getItem(LS_BOARD_ME);
-        if (stored){
-          const rec = JSON.parse(stored);
-          if (rec && rec.pub) pEl.value = rec.pub;
-        }
+        if (stored){ const rec = JSON.parse(stored); if (rec && rec.pub) pEl.value = rec.pub; }
       } catch(e){}
     }
-    if (nEl){ try { nEl.focus(); } catch(e){} }
   }
+  clearSignupError();
 }
 function renderWelcomeBack(){
+  const strip = document.getElementById("titleStrip");
   const slot = document.getElementById("welcomeBack");
-  if (!slot) return;
   const m2 = me();
-  if (!m2){ slot.style.display = "none"; return; }
-  slot.style.display = "";
-  const best = highScore("arcade");
-  const wave = bestWave();
-  const ach = achCount();
-  const total = achTotal();
-  slot.innerHTML = '<div class="welcome-back">WELCOME BACK, ' + m2.name + '</div>' +
-    '<div class="welcome-stats">BEST SCORE ' + best + ' · BEST WAVE ' + wave + ' · TROPHIES ' + ach + '/' + total + '</div>';
+  if (!strip) return;
+  if (!m2){ strip.style.display = "none"; return; }
+  strip.style.display = "";
+  if (slot){
+    slot.style.display = "";
+    const best = highScore("arcade");
+    const wave = bestWave();
+    const ach = achCount();
+    const total = achTotal();
+    const status = window.__lastSyncStatus;
+    const offline = status === "offline" ? '<span class="offline">OFFLINE</span>' : "";
+    slot.innerHTML = '<div class="welcome-back">WELCOME BACK, ' + escapeHtml(m2.name) + ' · <button class="linkbtn logout" id="btnLogoutTitle">LOG OUT</button></div>' +
+      '<div class="welcome-stats">BEST SCORE ' + best + ' · BEST WAVE ' + wave + ' · TROPHIES ' + ach + '/' + total + offline + '</div>';
+  }
   updateCaptainChip();
+  updateFartMeterChip();
 }
 function signupShake(){
   const panel = document.querySelector(".signup-panel");
@@ -4678,41 +5112,91 @@ function signupShake(){
   panel.classList.add("shake");
   setTimeout(() => panel.classList.remove("shake"), 400);
 }
-function doSignup(){
-  const nEl = document.getElementById("signupName");
-  const pEl = document.getElementById("signupPub");
-  const errEl = document.getElementById("signupNameError");
-  const name = (nEl.value || "").trim().toUpperCase();
-  const pub = (pEl.value || "").trim();
-  if (name.length < 3 || name.length > 8){
-    if (errEl){ errEl.textContent = "❌ HANDLE NEEDS 3–8 LETTERS"; errEl.style.display = ""; }
-    nEl.focus();
-    signupShake();
-    return;
-  }
-  if (pub.length < 3 || pub.length > 24){
-    if (errEl){ errEl.textContent = "❌ NAME YOUR LOCAL (3–24 LETTERS)"; errEl.style.display = ""; }
-    pEl.focus();
-    signupShake();
-    return;
-  }
-  // device-claim check: if name exists on global board and this device does not own it, reject
-  const existing = boardCache && boardCache.players && boardCache.players[name];
-  const myRecord = me();
-  const ownByDevice = myRecord && myRecord.name === name;
-  if (existing && !ownByDevice){
-    if (errEl){ errEl.textContent = "❌ NAME TAKEN — PICK ANOTHER HANDLE"; errEl.style.display = ""; }
-    nEl.focus(); nEl.select();
-    return;
-  }
-  const m = { name, pub, since: Date.now() };
-  try { localStorage.setItem(LS_BOARD_ME, JSON.stringify(m)); } catch(e){}
-  if (errEl) errEl.style.display = "none";
+function doLogout(){
+  try {
+    localStorage.removeItem(LS_BOARD_ME);
+    localStorage.removeItem(LS_SYNC);
+  } catch(e){}
   ensureSignup();
   renderWelcomeBack();
+  refreshBests();
+  AudioFX.click();
+}
+async function doSignup(){
+  const nEl = document.getElementById("signupName");
+  const pEl = document.getElementById("signupPub");
+  const pinEl = document.getElementById("signupPin");
+  const name = (nEl.value || "").trim().toUpperCase();
+  const pub = (pEl.value || "").trim();
+  const pin = (pinEl.value || "").trim();
+  clearSignupError();
+  if (name.length < 3 || name.length > 8){ showSignupError("HANDLE NEEDS 3–8 LETTERS"); nEl.focus(); return; }
+  if (!/^[A-Z0-9]+$/.test(name)){ showSignupError("HANDLE LETTERS + NUMBERS ONLY"); nEl.focus(); return; }
+  if (pin.length < 4 || pin.length > 8 || !/^\d+$/.test(pin)){ showSignupError("PIN NEEDS 4–8 DIGITS"); pinEl.focus(); return; }
+  const ph = await pinHash(name, pin);
+  if (authTab === "login"){
+    const cloud = await fetchAccountBlob(name);
+    if (!cloud.ok){
+      if (cloud.status === 404 || cloud.status === "empty" || cloud.status === "bad"){
+        showSignupError("NO ACCOUNT — TRY NEW PLAYER");
+      } else {
+        showSignupError("CAN\'T REACH CLOUD — TRY AGAIN");
+      }
+      return;
+    }
+    if (cloud.blob.ph !== ph){ showSignupError("WRONG PIN"); pinEl.focus(); return; }
+    const m = { name, pub: cloud.blob.pub || "", ph };
+    try {
+      localStorage.setItem(LS_BOARD_ME, JSON.stringify(m));
+      localStorage.setItem(LS_SYNC, JSON.stringify({ h: name, ph }));
+    } catch(e){}
+    mergeProg(cloud.blob.prog);
+    AudioFX.coin();
+    ensureSignup();
+    renderWelcomeBack();
+    refreshBests();
+    const mode = game.pendingMode;
+    if (mode){
+      game.pendingMode = null;
+      game.demo = false;
+      setOrdered(true);
+      openOrderPanel(false);
+      AudioFX.unlock();
+      startGame(mode);
+    }
+    return;
+  }
+  // new player
+  if (pub.length < 3 || pub.length > 24){ showSignupError("NAME YOUR LOCAL (3–24 LETTERS)"); pEl.focus(); return; }
+  const taken = await fetchAccountBlob(name);
+  if (taken.ok){ showSignupError("NAME TAKEN — LOG IN INSTEAD"); nEl.focus(); return; }
+  // also respect the global display-name conflict check (device-claim)
+  const existing = boardCache && boardCache.players && boardCache.players[name];
+  if (existing && existing.pub && existing.pub.toLowerCase() !== pub.toLowerCase()){
+    showSignupError("NAME TAKEN ON BOARD — PICK ANOTHER");
+    nEl.focus();
+    return;
+  }
+  const prog = makeProg();
+  const blob = { v:1, h:name, ph, pub, t:Date.now(), prog };
+  let written = false;
+  try {
+    await writeAccountBlob(name, blob);
+    written = true;
+  } catch(e){
+    // fail-soft: account is local-only, sync later
+    try { bonusToast("OFFLINE — ACCOUNT LOCAL ONLY, SYNC LATER"); } catch(e2){}
+  }
+  const m = { name, pub, ph };
+  try {
+    localStorage.setItem(LS_BOARD_ME, JSON.stringify(m));
+    localStorage.setItem(LS_SYNC, JSON.stringify({ h:name, ph }));
+  } catch(e){}
+  
+  ensureSignup();
+  renderWelcomeBack();
+  refreshBests();
   AudioFX.coin();
-  renderBoards("global");
-  // resume the start flow the player was in the middle of
   if (game.pendingMode){
     const mode = game.pendingMode;
     game.pendingMode = null;
@@ -4723,7 +5207,6 @@ function doSignup(){
     startGame(mode);
   }
 }
-
 /* ---- boards UI ---- */
 function boardsTitleFor(tab){
   return tab === "global" ? "WORLD TOP 20" : tab === "pub" ? "TOP SPOONS PUBS" : tab === "lockin" ? "🔒 LOCK-IN" : "PLAYERS AT MY SPOONS";
@@ -5561,6 +6044,7 @@ function endGame(){
     title.className = "lose";
   }
   if (!game.pvp.remote && mode !== "pvp") submitMyResult(mode === "arcade" ? game.score > 0 : you > ai);
+  if (!game.pvp.remote && isSignedUp()){ try { syncUp(true).then(() => { renderWelcomeBack(); }); } catch(e){} }
   if (isArcade && game.score > highScore("arcade")) try { localStorage.setItem("spoons.high.arcade", String(game.score)); } catch(e){}
   if (isArcade && game.wave > bestWave()) try { localStorage.setItem("spoons.best.wave", String(game.wave)); } catch(e){}
   if (isArcade){
@@ -5879,7 +6363,7 @@ const BANTER = {
 function showScreen(name){
   for (const s of ["title", "table", "over", "handoff"]) el("screen-" + s).classList.toggle("hidden", s !== name);
   if (name !== "bonus") closeBonus();
-  if (name === "title"){ AudioFX.stopMusic(); openOnlinePanel(false); closeSpoonsPanel(); closeRewardScreen(); updateShitterChip(); openOrderPanel(false); Spoons.restoreNational(); stopAttract(); }
+  if (name === "title"){ AudioFX.stopMusic(); openOnlinePanel(false); closeSpoonsPanel(); closeRewardScreen(); updateShitterChip(); openOrderPanel(false); closeMenuPanel(); try { el("howtoPanel").classList.remove("open"); } catch(e){} Spoons.restoreNational(); stopAttract(); }
   try { if (typeof updateHomeChip === "function") updateHomeChip(); } catch(e){}
   if (name === "title"){ try { refreshBests(); renderHud(); ensureSignup(); renderWelcomeBack(); updateFartMeterChip(); updateCaptainChip(); updateLockinButton(); } catch(e){} }
   try {
@@ -5900,11 +6384,15 @@ const foOpen = !el("screen-fartoff").classList.contains("hidden");
 if (bonusOpen){ closeBonus(); history.pushState({ spoons: "bonus" }, "", location.href); return; }
   if (boardsOpen){ document.getElementById("boardsOverlay").classList.remove("open"); history.pushState({ spoons: "boards" }, "", location.href); return; }
   if (browserOpen){ document.getElementById("browser").classList.remove("open"); history.pushState({ spoons: "browser" }, "", location.href); return; }
+  const menuOpen = el("menuPanel") && el("menuPanel").classList.contains("open");
+  if (menuOpen){ closeMenuPanel(); history.pushState({ spoons: "menu" }, "", location.href); return; }
+  const howtoOpen = el("howtoPanel") && el("howtoPanel").classList.contains("open");
+  if (howtoOpen){ el("howtoPanel").classList.remove("open"); history.pushState({ spoons: "howto" }, "", location.href); return; }
   if (window.__spoonsNav && window.__spoonsNav !== "title"){
     window.__spoonsNav = "title";
     for (const s of ["table", "over", "handoff"]) el("screen-" + s).classList.add("hidden");
     el("screen-title").classList.remove("hidden");
-    AudioFX.stopMusic(); openOnlinePanel(false); closeSpoonsPanel(); closeRewardScreen(); updateShitterChip(); openOrderPanel(false); Spoons.restoreNational(); stopAttract();
+    AudioFX.stopMusic(); openOnlinePanel(false); closeSpoonsPanel(); closeRewardScreen(); updateShitterChip(); openOrderPanel(false); closeMenuPanel(); try { el("howtoPanel").classList.remove("open"); } catch(e){} Spoons.restoreNational(); stopAttract();
     // reset leaked game state on back-nav abandon
     game.score = 0; game.streak = 0; game.pot = []; pendingBonus.queue.length = 0;
     game.phase = "title"; game.demo = false; el("demoChip").style.display = "none";
@@ -7179,7 +7667,7 @@ document.getElementById("homeChip").addEventListener("click", function(){
 
 el("btnArcade").addEventListener("click", () => { onModeStartRequested("arcade"); });
 el("btnLockin").addEventListener("click", () => { if (isLockinUnlocked()){ AudioFX.click(); startGame("lockin"); } });
-el("btnShitter").addEventListener("click", () => { openBonus(); });
+
 const captainShareBtn = el("captainShare");
 if (captainShareBtn) captainShareBtn.addEventListener("click", () => {
   const url = captainShareBtn.dataset.url;
@@ -7210,8 +7698,8 @@ el("bonusBack").addEventListener("click", () => { AudioFX.click(); closeBonus();
 // el("btnClassic").addEventListener("click", () => { AudioFX.unlock(); startGame("classic"); });
 // el("btnEndless").addEventListener("click", () => { AudioFX.unlock(); startGame("endless"); });
 el("btnPvp").addEventListener("click", () => { onModeStartRequested("duel"); });
-el("btnOnline").addEventListener("click", () => { AudioFX.unlock(); openOnlinePanel(true); });
-el("btnSpoons").addEventListener("click", () => { AudioFX.click(); openSpoonsPanel(); });
+
+
 el("btnSpoonsBack").addEventListener("click", () => { AudioFX.click(); closeSpoonsPanel(); });
 el("btnHost").addEventListener("click", () => { AudioFX.click(); startHost(); });
 el("btnJoin").addEventListener("click", () => { AudioFX.click(); startJoin(el("roomCode").value); });
@@ -7247,7 +7735,7 @@ function suddenDeathDuel(){
   startArcadeRunForPlayer(1);
 }
 el("btnOverMenu").addEventListener("click", () => { game.demo = false; el("demoChip").style.display = "none"; refreshBests(); showScreen("title"); });
-el("btnBrowser").addEventListener("click", openBrowser);
+
 el("btnPauseBrowser").addEventListener("click", openBrowser);
 el("spoonsSearch").addEventListener("input", renderSpoonsList);
 el("spoonsList").addEventListener("click", onSpoonsItemClick);
@@ -7256,7 +7744,7 @@ el("spoonsStatus").addEventListener("click", e => {
   if (b){ Spoons.clearPub(); updateSpoonsHeader(); updatePlayingAt(); renderSpoonsList(); }
 });
 el("btnBrowserClose").addEventListener("click", closeBrowser);
-el("btnHowTitle").addEventListener("click", () => { const d = el("howto"); d.open = !d.open; });
+
 el("btnOrderInfo").addEventListener("click", onOrderInfo);
 el("btnHaveOrdered").addEventListener("click", onHaveOrdered);
 el("btnPlayDemo").addEventListener("click", onPlayDemo);
@@ -7279,10 +7767,7 @@ el("browserGrid").addEventListener("click", e => {
   const b = e.target.closest(".bcard");
   if (b) openDetail(b.dataset.name);
 });
-el("btnBoards").addEventListener("click", () => {
-  document.getElementById("boardsOverlay").classList.add("open");
-  renderBoards("global");
-});
+
 el("btnBoardsClose").addEventListener("click", () => {
   document.getElementById("boardsOverlay").classList.remove("open");
 });
@@ -7290,8 +7775,9 @@ el("tabGlobal").addEventListener("click", () => { setBoardTab("global"); });
 el("tabPub").addEventListener("click", () => { setBoardTab("pub"); });
 el("tabPubPlayer").addEventListener("click", () => { setBoardTab("pubplayer"); });
 el("btnSignupGo").addEventListener("click", doSignup);
-el("signupName").addEventListener("keydown", e => { if (e.key === "Enter") el("signupPub").focus(); });
+el("signupName").addEventListener("keydown", e => { if (e.key === "Enter"){ if (authTab === "login") el("signupPin").focus(); else el("signupPub").focus(); } });
 el("signupPub").addEventListener("keydown", e => { if (e.key === "Enter") doSignup(); });
+el("signupPin").addEventListener("keydown", e => { if (e.key === "Enter") doSignup(); });
 
 el("btnMute").addEventListener("click", () => {
   AudioFX.unlock();
@@ -7386,6 +7872,32 @@ document.addEventListener("keydown", e => {
   }
 });
 
+
+
+/* ---------- menu + auth wiring ---------- */
+el("btnMenu").addEventListener("click", () => { AudioFX.click(); openMenuPanel(true); });
+function openMenuPanel(show){ el("menuPanel").classList.toggle("open", show); }
+function closeMenuPanel(){ openMenuPanel(false); }
+el("btnMenuClose").addEventListener("click", () => { AudioFX.click(); closeMenuPanel(); });
+el("btnMenuSpoons").addEventListener("click", () => { AudioFX.click(); closeMenuPanel(); openSpoonsPanel(); });
+el("btnMenuOnline").addEventListener("click", () => { AudioFX.unlock(); closeMenuPanel(); openOnlinePanel(true); });
+el("btnMenuBrowser").addEventListener("click", () => { AudioFX.click(); closeMenuPanel(); openBrowser(); });
+el("btnMenuBoards").addEventListener("click", () => { closeMenuPanel(); document.getElementById("boardsOverlay").classList.add("open"); renderBoards("global"); });
+el("btnMenuShitter").addEventListener("click", () => { closeMenuPanel(); openBonus(); });
+el("btnMenuHow").addEventListener("click", () => { closeMenuPanel(); openHowTo(); });
+
+function openHowTo(){ el("howtoPanel").classList.add("open"); }
+el("btnHowtoClose").addEventListener("click", () => { AudioFX.click(); el("howtoPanel").classList.remove("open"); });
+
+
+document.getElementById("tabNew").addEventListener("click", () => { AudioFX.click(); setAuthTab("new"); });
+document.getElementById("tabLogin").addEventListener("click", () => { AudioFX.click(); setAuthTab("login"); });
+setAuthTab("new");
+
+document.addEventListener("click", e => {
+  const b = e.target.closest("#btnLogout, #btnLogoutTitle");
+  if (b){ e.preventDefault(); doLogout(); }
+});
 
 /* ---------- order unlock ---------- */
 const ORDER_LS = "spoons.hasOrdered";
@@ -7598,7 +8110,7 @@ refreshBests();
 updatePlayingAt();
 ensureSignup();
 renderWelcomeBack();
-boardRead().then(() => { ensureSignup(); renderWelcomeBack(); }).catch(() => {});
+syncDown().then(ok => { ensureSignup(); renderWelcomeBack(); if (!ok) boardRead().then(() => { ensureSignup(); renderWelcomeBack(); }).catch(() => {}); });
 updateOrderHint();
 game.demo = false;
 Spoons.preloadMyPub();
