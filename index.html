@@ -3684,7 +3684,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "signup-fix-39-r44";
+  const BUILD_STAMP = "freeze-fix-41-r46";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -3694,7 +3694,7 @@ const REWARDS = {
       localStorage.setItem("spoons_build", BUILD_STAMP);
     }
   } catch(e){}
-  try { document.getElementById("buildChip").textContent = BUILD_STAMP.slice(0, 12); } catch(e){}
+  try { document.getElementById("buildChip").textContent = BUILD_STAMP; } catch(e){}
 
 /* ==================== 1. DATA ==================== */
 // AUTO-GENERATED menu data — real prices/kcal from the 2026 Spoons menu
@@ -3965,6 +3965,9 @@ const AudioFX = (() => {
   let shitterWinAudio = null, shitterLoseAudio = null;
   const FART_POOL = [];
   const MEGA_POOL = [];
+  window.MEGA_POOL = MEGA_POOL;
+  window.MEGA_LONG_FILES = MEGA_LONG_FILES;
+  window.MEGA_COMEDY_FILES = MEGA_COMEDY_FILES;
   function preloadFarts(){
     if (FART_POOL.length || !FART_FILES.length) return;
     FART_FILES.forEach(src => { try { const a = new Audio(src); a.preload = "auto"; a.load(); FART_POOL.push(a); } catch(e){} });
@@ -3976,6 +3979,14 @@ const AudioFX = (() => {
     });
   }
   let fartAudio = null;
+  function fetchWithTimeout(url, opts, ms){
+    if (typeof fetch !== "function") throw new Error("no fetch");
+    ms = ms || 8000;
+    const ac = new AbortController();
+    const t = setTimeout(() => ac.abort(), ms);
+    return fetch(url, Object.assign({}, opts || {}, { signal: ac.signal })).finally(() => clearTimeout(t));
+  }
+  window.fetchWithTimeout = fetchWithTimeout;
   function ac(){
     if (!ctx){ try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } }
     if (ctx && ctx.state === "suspended") ctx.resume().catch(() => {});
@@ -4123,18 +4134,24 @@ let musicTrackIdx = 0;
       } catch(e){}
     },
     megaFart(streak){
+      preloadMegas();
       try {
-        preloadMegas();
-        const long = MEGA_LONG_FILES[Math.floor(Math.random() * MEGA_LONG_FILES.length)];
-        const comedy = MEGA_COMEDY_FILES[Math.floor(Math.random() * MEGA_COMEDY_FILES.length)];
-        [long, comedy].forEach((src, i) => {
-          const a = new Audio(src);
-          a.preload = "auto"; a.load();
+        const longs = MEGA_POOL.filter(o => MEGA_LONG_FILES.includes(o.src));
+        const comedies = MEGA_POOL.filter(o => MEGA_COMEDY_FILES.includes(o.src));
+        const a1 = longs.length ? longs[Math.floor(Math.random() * longs.length)].a : null;
+        const a2 = comedies.length ? comedies[Math.floor(Math.random() * comedies.length)].a : null;
+        [a1, a2].forEach((a, i) => {
+          if (!a || !a.play) return;
+          try { a.currentTime = 0; } catch(e){}
           a.volume = 0.9;
-          a.playbackRate = 0.85 + Math.random() * 0.3;
+          try { a.playbackRate = 0.85 + Math.random() * 0.3; } catch(e){}
           const p = a.play(); if (p && p.catch) p.catch(() => {});
         });
-      } catch(e){}
+        if (!a1 && !a2) throw new Error("no mega pool entries");
+      } catch(e){
+        // pool missing/failed: synth fallback, never create new Audio()
+        try { this.synthFart(); this.synthFart(); } catch(e2){}
+      }
       try { shake("shake-hard"); } catch(e){}
       try {
         const pop = document.createElement("div");
@@ -4372,7 +4389,7 @@ const Spoons = (() => {
     pubsPromise = (async () => {
       try {
         if (typeof fetch !== "function") throw new Error("no fetch");
-        const r = await fetch("data/pubs.json");
+        const r = await fetchWithTimeout("data/pubs.json");
         if (!r.ok) throw new Error("status " + r.status);
         pubsCache = await r.json();
       } catch(e){ pubsCache = []; }
@@ -4385,7 +4402,7 @@ const Spoons = (() => {
     if (cached) return cached;
     try {
       if (typeof fetch !== "function") throw new Error("no fetch");
-      const r = await fetch("data/" + file);
+      const r = await fetchWithTimeout("data/" + file);
       if (!r.ok) throw new Error("status " + r.status);
       const data = await r.json();
       chunkMem[file] = data;
@@ -4524,7 +4541,7 @@ function isSignedUp(){ return !!me(); }
 async function boardRead(){
   try {
     if (typeof fetch !== "function") throw new Error("no fetch");
-    const r = await fetch(BOARD_API, { cache: "no-store" });
+    const r = await fetchWithTimeout(BOARD_API, { cache: "no-store" });
     if (!r.ok) throw new Error("status " + r.status);
     const txt = (await r.text()).trim();
     if (!txt) throw new Error("empty");
@@ -4550,7 +4567,7 @@ async function boardWrite(doc){
     // URL-safe guard: drop pubs (players are the leaderboard) rather than truncate corrupt
     const slim = encodeURIComponent(JSON.stringify({ players: doc.players, pubs: {} }));
     if (BOARD_WRITE.length + slim.length <= 7000) {
-      const r0 = await fetch(BOARD_WRITE + slim, { cache: "no-store" });
+      const r0 = await fetchWithTimeout(BOARD_WRITE + slim, { cache: "no-store" });
       if (!r0.ok) throw new Error("write " + r0.status);
       const j0 = await r0.json().catch(() => null);
       if (!j0 || j0.status !== 1) throw new Error("write rejected");
@@ -4560,13 +4577,13 @@ async function boardWrite(doc){
     const entries = Object.entries(doc.players).sort((a, b) => (b[1].elo || 0) - (a[1].elo || 0)).slice(0, 60);
     const tiny = encodeURIComponent(JSON.stringify({ players: Object.fromEntries(entries), pubs: {} }));
     if (BOARD_WRITE.length + tiny.length > 7000) throw new Error("doc too large");
-    const r1 = await fetch(BOARD_WRITE + tiny, { cache: "no-store" });
+    const r1 = await fetchWithTimeout(BOARD_WRITE + tiny, { cache: "no-store" });
     if (!r1.ok) throw new Error("write " + r1.status);
     const j1 = await r1.json().catch(() => null);
     if (!j1 || j1.status !== 1) throw new Error("write rejected");
     return true;
   }
-  const r = await fetch(BOARD_WRITE + payload, { cache: "no-store" });
+  const r = await fetchWithTimeout(BOARD_WRITE + payload, { cache: "no-store" });
   if (!r.ok) throw new Error("write " + r.status);
   const j = await r.json().catch(() => null);
   if (!j || j.status !== 1) throw new Error("write rejected");
@@ -6780,8 +6797,10 @@ function fiDie(reason){
     // speech synthesis
     try {
       if (window.speechSynthesis){
+        try { window.speechSynthesis.cancel(); } catch(e){}
         const u = new SpeechSynthesisUtterance("OH NO! THAT'S DISGUSTING!");
         u.lang = "en-GB"; u.rate = 0.85; u.pitch = 0.55; u.volume = 1;
+        u.onerror = () => {};
         window.speechSynthesis.speak(u);
       }
     } catch(e){}
@@ -7510,8 +7529,35 @@ function countActiveCards(){ return CARDS.length; }
 window.__game = game;
 window.__spoons = Spoons;
 window.__errs = [];
-window.addEventListener("error", e => window.__errs.push(String(e.message)));
-window.addEventListener("unhandledrejection", e => window.__errs.push("rejection: " + String(e.reason)));
+window.__crashLog = [];
+function pushCrash(info){
+  const MAX = 20;
+  const entry = Object.assign({ t: Date.now() }, info);
+  const buf = window.__crashLog;
+  if (buf.length >= MAX) buf.shift();
+  buf.push(entry);
+  try { localStorage.setItem("spoons.crashlog", JSON.stringify(buf)); } catch(e){}
+  try { console.warn("[spoons crash]", entry); } catch(e){}
+}
+function currentScreenId(){
+  try {
+    if (window.__spoonsNav) return window.__spoonsNav;
+    for (const s of ["title", "table", "over", "handoff"]){
+      const el = document.getElementById("screen-" + s);
+      if (el && !el.classList.contains("hidden")) return s;
+    }
+  } catch(e){}
+  return "unknown";
+}
+window.addEventListener("error", e => {
+  window.__errs.push(String(e.message));
+  pushCrash({ msg: String(e.message), src: e.filename, line: e.lineno, col: e.colno, screen: currentScreenId(), wave: window.__game ? window.__game.wave : null });
+});
+window.addEventListener("unhandledrejection", e => {
+  const reason = e && e.reason ? String(e.reason) : "rejection";
+  window.__errs.push("rejection: " + reason);
+  pushCrash({ msg: "rejection: " + reason, screen: currentScreenId(), wave: window.__game ? window.__game.wave : null });
+});
 window.__autoplay = function(mode){
   startGame(mode || "classic");
   let guard = 4000;
