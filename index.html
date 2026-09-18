@@ -2231,6 +2231,21 @@ header#hud .score > *{
   text-transform:uppercase;
 }
 
+#playFields, #loginFields, #saveAnywhereBox{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+#btnToggleSave{
+  font-size:10px;
+  letter-spacing:.06em;
+}
+
+#btnToggleSave.on{
+  color:var(--green);
+}
+
 .signup-panel #signupNameError,
 .signup-panel #signupClaimNote{
   margin:0;
@@ -3443,6 +3458,9 @@ header#hud .score > *:not(#scoreChip):not(.combo){
   #signupForm{
     padding-bottom:14vh;
   }
+  #btnToggleSave{
+    font-size:9px;
+  }
 }
 .linkbtn.logout{
   font-size:10px;
@@ -3743,21 +3761,37 @@ header#hud .score > *:not(#scoreChip):not(.combo){
     <p>Order at the bar or the Wetherspoon app, then scan the QR on your receipt to play.</p>
     <div class="order-bar">HONOUR SYSTEM · TAP BELOW</div>
     <div class="signup-panel" id="signupPanel" style="display:none;">
-      <div class="signup-head" id="signupHead">ACCOUNT</div>
-      <div class="auth-tabs">
-        <button class="auth-tab on" id="tabNew" data-tab="new">NEW PLAYER</button>
+      <div class="signup-head" id="signupHead">WHO'S PLAYING?</div>
+      <div class="auth-tabs" id="authTabs">
+        <button class="auth-tab on" id="tabPlay" data-tab="play">PLAY</button>
         <button class="auth-tab" id="tabLogin" data-tab="login">LOG IN</button>
       </div>
       <form id="signupForm" onsubmit="event.preventDefault(); doSignup();">
-        <label for="signupName">YOUR HANDLE (3-8)</label>
-        <input id="signupName" maxlength="8" placeholder="RUS" autocomplete="off" inputmode="text" autocapitalize="characters" autocorrect="off" spellcheck="false">
-        <label for="signupPub" id="signupPubLabel">NAME YOUR LOCAL (3-24)</label>
-        <input id="signupPub" maxlength="24" placeholder="MY LOCAL" autocomplete="off" inputmode="text" autocapitalize="words" autocorrect="off" spellcheck="false">
-        <label for="signupPin" id="signupPinLabel">PIN (4-8 DIGITS)</label>
-        <input id="signupPin" type="password" maxlength="8" placeholder="••••" autocomplete="one-time-code" inputmode="numeric" pattern="[0-9]*" autocorrect="off" spellcheck="false">
+        <!-- Simple play path -->
+        <div id="playFields">
+          <label for="signupName">YOUR NAME (3-8)</label>
+          <input id="signupName" type="text" maxlength="8" placeholder="RUS" autocomplete="off" inputmode="text" autocapitalize="characters" autocorrect="off" spellcheck="false">
+        </div>
+        <!-- Optional cross-device save -->
+        <div id="saveAnywhereBox" style="display:none;">
+          <label for="signupPin" id="signupPinLabel">PIN (4-8 DIGITS)</label>
+          <input id="signupPin" type="password" maxlength="8" placeholder="••••" autocomplete="one-time-code" inputmode="numeric" pattern="[0-9]*" autocorrect="off" spellcheck="false">
+          <label for="signupPin2" id="signupPin2Label">CONFIRM PIN</label>
+          <input id="signupPin2" type="password" maxlength="8" placeholder="••••" autocomplete="off" inputmode="numeric" pattern="[0-9]*" autocorrect="off" spellcheck="false">
+          <label for="signupPub" id="signupPubLabel">NAME YOUR LOCAL (3-24)</label>
+          <input id="signupPub" type="text" maxlength="24" placeholder="MY LOCAL" autocomplete="off" inputmode="text" autocapitalize="words" autocorrect="off" spellcheck="false">
+        </div>
+        <!-- Login path -->
+        <div id="loginFields" style="display:none;">
+          <label for="loginName">YOUR NAME (3-8)</label>
+          <input id="loginName" type="text" maxlength="8" placeholder="RUS" autocomplete="off" inputmode="text" autocapitalize="characters" autocorrect="off" spellcheck="false">
+          <label for="loginPin" id="loginPinLabel">PIN (4-8 DIGITS)</label>
+          <input id="loginPin" type="password" maxlength="8" placeholder="••••" autocomplete="off" inputmode="numeric" pattern="[0-9]*" autocorrect="off" spellcheck="false">
+        </div>
         <div id="signupNameError" style="display:none;color:var(--red);font-size:10px;font-weight:800;letter-spacing:.05em;"></div>
-        <div id="signupClaimNote" style="color:var(--muted);font-size:10px;letter-spacing:.03em;">This handle is yours on any device. Remember your PIN.</div>
-        <button class="btn btn-cream" id="btnSignupGo" type="submit">LET'S GO</button>
+        <div id="signupClaimNote" style="color:var(--muted);font-size:10px;letter-spacing:.03em;">This device remembers your name. Turn on Save For Any Device to play on another phone.</div>
+        <button class="btn btn-cream" id="btnSignupGo" type="submit">PLAY</button>
+        <button type="button" class="linkbtn" id="btnToggleSave" style="margin-top:4px;">🔒 SAVE FOR ANY DEVICE</button>
       </form>
     </div>
     <div id="signedInAs" style="display:none;font-size:11px;font-weight:800;color:var(--gold);margin:4px 0;letter-spacing:.5px;"></div>
@@ -4031,7 +4065,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "signup-mobile-44-r49";
+  const BUILD_STAMP = "signup-mobile-44-r49c";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -4385,12 +4419,36 @@ const MUSIC_TRACKS = [
 let musicTrackIdx = 0;
 
   let funkAudio = null;
+  let musicWatchdog = null;
+  function resumeMusicAfterUserGesture(){
+    const resume = () => {
+      try { document.removeEventListener('pointerdown', resume); } catch(e){}
+      try { document.removeEventListener('touchend', resume); } catch(e){}
+      try { document.removeEventListener('click', resume); } catch(e){}
+      if (musicOn && !muted) startMusic();
+    };
+    document.addEventListener('pointerdown', resume, { once: true });
+    document.addEventListener('touchend', resume, { once: true });
+    document.addEventListener('click', resume, { once: true });
+  }
+  function tryPlayFunk(){
+    if (!funkAudio) return false;
+    try {
+      const p = funkAudio.play();
+      if (p && p.catch){
+        p.catch(() => { resumeMusicAfterUserGesture(); });
+        return true;
+      }
+      return true;
+    } catch(e){ resumeMusicAfterUserGesture(); return false; }
+  }
   function startMusic(){
     stopMusic();
     if (!musicOn || muted) return;
     try {
       const track = MUSIC_TRACKS[musicTrackIdx % MUSIC_TRACKS.length];
       if (!funkAudio || funkAudio.dataset.src !== track.file){
+        if (funkAudio){ try { funkAudio.pause(); funkAudio.src = ""; } catch(e){} }
         funkAudio = new Audio(track.file); funkAudio.loop = false; funkAudio.volume = 0.85;
         funkAudio.dataset.src = track.file;
         try { funkAudio.style.display = "none"; document.body.appendChild(funkAudio); } catch(e){}
@@ -4399,17 +4457,27 @@ let musicTrackIdx = 0;
           musicTrackIdx = (musicTrackIdx + 1) % MUSIC_TRACKS.length;
           try { bonusToast("🎵 TRACK: " + MUSIC_TRACKS[musicTrackIdx].name); } catch(e){}
           const next = MUSIC_TRACKS[musicTrackIdx];
-          funkAudio.src = next.file;
-          funkAudio.dataset.src = next.file;
-          funkAudio.currentTime = 0;
-          const p = funkAudio.play();
-          if (p && p.catch) p.catch(() => {});
+          try {
+            funkAudio.src = next.file;
+            funkAudio.dataset.src = next.file;
+            funkAudio.currentTime = 0;
+          } catch(e){ return; }
+          tryPlayFunk();
+        });
+        funkAudio.addEventListener('error', () => {
+          // corrupt/missing track: advance to next
+          musicTrackIdx = (musicTrackIdx + 1) % MUSIC_TRACKS.length;
+          resumeMusicAfterUserGesture();
         });
       }
       funkAudio.currentTime = 0;
-      const p = funkAudio.play();
-      if (p && p.catch) p.catch(() => {});
+      tryPlayFunk();
       musicTimer = setInterval(() => { /* playlist advances via 'ended' event */ }, 1000);
+      if (musicWatchdog) clearInterval(musicWatchdog);
+      musicWatchdog = setInterval(() => {
+        if (!musicOn || muted || document.hidden || game.phase === "title") return;
+        if (funkAudio && funkAudio.paused) tryPlayFunk();
+      }, 30000);
     } catch(e){}
   }
   function stopMusic(){
@@ -4869,7 +4937,7 @@ function adjustOrderPanelForKeyboard(){
     orderInner.style.maxHeight = Math.max(160, visibleH - 12) + "px";
     // ensure the focused field is scrollable into view within the panel
     const ae = document.activeElement;
-    if (ae && (ae.id === "signupName" || ae.id === "signupPub" || ae.id === "signupPin")){
+    if (ae && (ae.id === "signupName" || ae.id === "signupPub" || ae.id === "loginPin" || ae.id === "signupPin")){
       setTimeout(() => { try { ae.scrollIntoView({ block:"center", behavior:"smooth" }); } catch(e){} }, 50);
     }
   } else {
@@ -4973,11 +5041,11 @@ function me(){
 function isSignedUp(){ return !!me(); }
 
 /* ---------- textdb helpers: every call must send our user-agent ---------- */
-function spoonsFetch(url, opts){
+function spoonsFetch(url, opts, ms){
   opts = Object.assign({}, opts || {});
   if (!opts.headers) opts.headers = {};
   opts.headers["User-Agent"] = "SpoonsTopTrumpsBot/1.0";
-  return fetchWithTimeout(url, opts);
+  return fetchWithTimeout(url, opts, ms);
 }
 
 function accountKey(handle){ return "spoons-acct-" + (handle || "").toLowerCase(); }
@@ -4996,25 +5064,52 @@ async function pinHash(handle, pin){
   return hex;
 }
 
-async function fetchAccountBlob(handle){
-  try {
-    const r = await spoonsFetch(accountReadUrl(handle));
-    if (!r.ok) return { ok: false, status: r.status };
-    const txt = (await r.text()).trim();
-    if (!txt) return { ok: false, status: "empty" };
-    const o = JSON.parse(txt);
-    if (!o || o.v !== 1 || !o.ph) return { ok: false, status: "bad" };
-    return { ok: true, blob: o };
-  } catch(e){ return { ok: false, status: "err" }; }
+const LS_ACCT_CACHE = "spoons.acctCache";
+
+async function fetchAccountBlob(handle, opts){
+  opts = opts || {};
+  const start = performance.now();
+  let lastReason = null;
+  const attempts = 2;
+  for (let i = 0; i < attempts; i++){
+    try {
+      if (i > 0) await new Promise(r => setTimeout(r, 800));
+      const r = await spoonsFetch(accountReadUrl(handle), null, 15000);
+      if (!r.ok){ lastReason = { status: r.status }; continue; }
+      const txt = (await r.text()).trim();
+      if (!txt){ lastReason = { status: "empty" }; continue; }
+      const o = JSON.parse(txt);
+      if (!o || o.v !== 1 || !o.ph){ lastReason = { status: "bad" }; continue; }
+      try { localStorage.setItem(LS_ACCT_CACHE, JSON.stringify({ h: handle, blob: o, t: Date.now() })); } catch(e){}
+      return { ok: true, blob: o };
+    } catch(e){
+      lastReason = { status: "err", msg: String(e.message || e) };
+    }
+  }
+  pushCrash({ type:"acct-fetch-fail", handle, reason: lastReason, ms: Math.round(performance.now() - start) });
+  return { ok: false, status: lastReason && lastReason.status, offline: true, reason: lastReason };
+}
+
+async function readAccountWithDelay(handle){
+  // textdb.online is eventually-consistent; allow a short propagation window
+  const res = await fetchAccountBlob(handle);
+  if (!res.ok){
+    if (res.status === "empty"){
+      await new Promise(r => setTimeout(r, 1000));
+      return await fetchAccountBlob(handle);
+    }
+  }
+  return res;
 }
 
 async function writeAccountBlob(handle, blob){
   const url = accountWriteUrl(handle, JSON.stringify(blob));
   if (url.length > 7000) throw new Error("blob too large");
-  const r = await spoonsFetch(url, { cache: "no-store" });
+  const r = await spoonsFetch(url, { cache: "no-store" }, 15000);
   if (!r.ok) throw new Error("status " + r.status);
   const j = await r.json().catch(() => null);
   if (!j || j.status !== 1) throw new Error("write rejected");
+  try { localStorage.setItem(LS_ACCT_CACHE, JSON.stringify({ h: handle, blob, t: Date.now() })); } catch(e){}
   return true;
 }
 
@@ -5211,29 +5306,59 @@ async function boardSubmit(result){
 }
 
 /* ---------- account UI ---------- */
-let authTab = "new";
+let authTab = "play";
+let saveAnywhere = false;
 function setAuthTab(tab){
   authTab = tab;
-  document.getElementById("tabNew").classList.toggle("on", tab === "new");
-  document.getElementById("tabLogin").classList.toggle("on", tab === "login");
-  const pubLabel = document.getElementById("signupPubLabel");
-  const pubInput = document.getElementById("signupPub");
+  const tabPlay = document.getElementById("tabPlay");
+  const tabLogin = document.getElementById("tabLogin");
+  if (tabPlay) tabPlay.classList.toggle("on", tab === "play");
+  if (tabLogin) tabLogin.classList.toggle("on", tab === "login");
+  clearOfflineButton();
+  const playFields = document.getElementById("playFields");
+  const loginFields = document.getElementById("loginFields");
+  const saveBox = document.getElementById("saveAnywhereBox");
+  const toggle = document.getElementById("btnToggleSave");
   const note = document.getElementById("signupClaimNote");
+  const loginNameEl = document.getElementById("loginName");
   if (tab === "login"){
-    if (pubLabel) pubLabel.style.display = "none";
-    if (pubInput) pubInput.style.display = "none";
-    if (note) note.textContent = "Log in to sync your progress from any device.";
+    if (playFields) playFields.style.display = "none";
+    if (saveBox) saveBox.style.display = "none";
+    if (toggle) toggle.style.display = "none";
+    if (loginFields) loginFields.style.display = "";
+    if (note) note.textContent = "Enter your handle and PIN to sync from the cloud.";
+    // copy visible name value to hidden loginName so one input drives both tabs
+    const nEl = document.getElementById("signupName");
+    const loginNameEl = document.getElementById("loginName");
+    if (loginNameEl && nEl) loginNameEl.value = nEl.value;
+    setTimeout(() => { try { loginNameEl.focus(); } catch(e){} }, 120);
   } else {
-    if (pubLabel) pubLabel.style.display = "";
-    if (pubInput) pubInput.style.display = "";
-    if (note) note.textContent = "This handle is yours on any device. Remember your PIN.";
+    if (playFields) playFields.style.display = "";
+    if (saveBox) saveBox.style.display = saveAnywhere ? "" : "none";
+    if (toggle) toggle.style.display = "";
+    if (loginFields) loginFields.style.display = "none";
+    if (note) note.textContent = saveAnywhere ? "This handle is yours on any device. Remember your PIN." : "This device remembers your name. Turn on Save For Any Device to play on another phone.";
   }
+}
+function setSaveAnywhere(on){
+  saveAnywhere = on;
+  const btn = document.getElementById("btnToggleSave");
+  const box = document.getElementById("saveAnywhereBox");
+  if (btn){ btn.classList.toggle("on", on); btn.textContent = on ? "🔓 SAVE FOR ANY DEVICE: ON" : "🔒 SAVE FOR ANY DEVICE"; }
+  if (box) box.style.display = on ? "" : "none";
+  setAuthTab(authTab);
+}
+function clearOfflineButton(){
+  const note = document.getElementById("signupClaimNote");
+  if (!note) return;
+  note.innerHTML = "";
+  note.textContent = authTab === "login" ? "Enter your handle and PIN to sync from the cloud." : (saveAnywhere ? "This handle is yours on any device. Remember your PIN." : "This device remembers your name. Turn on Save For Any Device to play on another phone.");
 }
 function showSignupError(msg){
   const errEl = document.getElementById("signupNameError");
   if (errEl){ errEl.textContent = "❌ " + msg; errEl.style.display = ""; }
   const ae = document.activeElement;
-  if (ae && (ae.id === "signupName" || ae.id === "signupPub" || ae.id === "signupPin")){
+  if (ae && (ae.id === "signupName" || ae.id === "loginName" || ae.id === "loginPin" || ae.id === "signupPub" || ae.id === "signupPin" || ae.id === "signupPin2")){
     try { ae.scrollIntoView({ block:"center", behavior:"smooth" }); } catch(e){}
   }
   signupShake();
@@ -5251,14 +5376,7 @@ function ensureSignup(focusName){
   if (who){ who.style.display = m2 ? "" : "none"; if (m2) who.innerHTML = 'PLAYING AS <b style="color:var(--gold);">' + escapeHtml(m2.name) + '</b> · ' + escapeHtml((m2.pub || "").toUpperCase()) + ' · <button class="linkbtn logout" id="btnLogout">LOG OUT</button>'; }
   if (!m2 && focusName){
     const nEl = document.getElementById("signupName");
-    const pEl = document.getElementById("signupPub");
     if (nEl){ try { setTimeout(() => nEl.focus(), 50); } catch(e){} }
-    if (pEl && !(pEl.value || "").trim()){
-      try {
-        const stored = localStorage.getItem(LS_BOARD_ME);
-        if (stored){ const rec = JSON.parse(stored); if (rec && rec.pub) pEl.value = rec.pub; }
-      } catch(e){}
-    }
   }
   clearSignupError();
 }
@@ -5295,41 +5413,158 @@ function doLogout(){
   try {
     localStorage.removeItem(LS_BOARD_ME);
     localStorage.removeItem(LS_SYNC);
+    localStorage.removeItem(LS_ACCT_CACHE);
   } catch(e){}
   ensureSignup();
   renderWelcomeBack();
   refreshBests();
   AudioFX.click();
 }
+function getLocalAccountCache(handle){
+  try {
+    const v = localStorage.getItem(LS_ACCT_CACHE);
+    if (!v) return null;
+    const o = JSON.parse(v);
+    if (!o || !o.blob) return null;
+    if ((handle || "").toLowerCase() !== (o.h || "").toLowerCase()) return null;
+    return o.blob;
+  } catch(e){ return null; }
+}
+function setLocalAccountCache(name, blob){
+  try {
+    localStorage.setItem(LS_ACCT_CACHE, JSON.stringify({ h:name, blob, t:Date.now() }));
+  } catch(e){}
+}
+function renderOfflineButton(label, onClick){
+  const note = document.getElementById("signupClaimNote");
+  if (!note) return;
+  note.innerHTML = '';
+  const btn = document.createElement("button");
+  btn.className = "btn btn-cream";
+  btn.type = "button";
+  btn.textContent = label;
+  btn.style.marginTop = "8px";
+  btn.addEventListener("click", () => { AudioFX.click(); onClick(); });
+  note.appendChild(btn);
+  note.style.display = "";
+}
+function finishLoginFromCache(name, ph, cached, pinEl){
+  if (cached.ph && cached.ph !== ph){ showSignupError("WRONG PIN"); pinEl.focus(); return; }
+  const m = { name, pub: cached.pub || "", ph: cached.ph || ph };
+  try {
+    localStorage.setItem(LS_BOARD_ME, JSON.stringify(m));
+    localStorage.setItem(LS_SYNC, JSON.stringify({ h:name, ph:m.ph }));
+    localStorage.setItem(LS_ACCT_CACHE, JSON.stringify({ h:name, blob:cached, t:Date.now() }));
+  } catch(e){}
+  mergeProg(cached.prog);
+  AudioFX.coin();
+  ensureSignup();
+  renderWelcomeBack();
+  refreshBests();
+  const mode = game.pendingMode || "arcade";
+  if (mode){
+    game.pendingMode = null;
+    game.demo = false;
+    setOrdered(true);
+    openOrderPanel(false);
+    AudioFX.unlock();
+    startGame(mode);
+  }
+}
+function finishGuestLogin(name, pinEl){
+  const m = { name, pub: "SPOONS", ph: "" };
+  try {
+    localStorage.setItem(LS_BOARD_ME, JSON.stringify(m));
+    localStorage.setItem(LS_SYNC, JSON.stringify({ h:name, ph:"" }));
+  } catch(e){}
+  AudioFX.coin();
+  ensureSignup();
+  renderWelcomeBack();
+  refreshBests();
+  const mode = game.pendingMode || "arcade";
+  if (mode){
+    game.pendingMode = null;
+    game.demo = false;
+    setOrdered(true);
+    openOrderPanel(false);
+    AudioFX.unlock();
+    startGame(mode);
+  }
+}
 async function doSignup(){
   const nEl = document.getElementById("signupName");
+  const loginNameEl = document.getElementById("loginName");
   const pEl = document.getElementById("signupPub");
   const pinEl = document.getElementById("signupPin");
+  const loginPinEl = document.getElementById("loginPin");
+  const pin2El = document.getElementById("signupPin2");
   const name = (nEl.value || "").trim().toUpperCase();
+  const loginName = (loginNameEl && loginNameEl.value || "").trim().toUpperCase();
+  const effectiveName = authTab === "login" ? loginName : name;
   const pub = (pEl.value || "").trim();
-  const pin = (pinEl.value || "").trim();
+  const pin = ((authTab === "login" && loginPinEl ? loginPinEl.value : pinEl.value) || "").trim();
+  const pin2 = pin2El ? (pin2El.value || "").trim() : pin;
   clearSignupError();
-  if (name.length < 3 || name.length > 8){ showSignupError("HANDLE NEEDS 3–8 LETTERS"); nEl.focus(); return; }
-  if (!/^[A-Z0-9]+$/.test(name)){ showSignupError("HANDLE LETTERS + NUMBERS ONLY"); nEl.focus(); return; }
-  if (pin.length < 4 || pin.length > 8 || !/^\d+$/.test(pin)){ showSignupError("PIN NEEDS 4–8 DIGITS"); pinEl.focus(); return; }
-  // defensive guard: if doSignup somehow fires before account code is ready, bail
+  if (effectiveName.length < 3 || effectiveName.length > 8){ showSignupError("NAME NEEDS 3–8 LETTERS"); nEl.focus(); return; }
+  if (!/^[A-Z0-9]+$/.test(effectiveName)){ showSignupError("LETTERS + NUMBERS ONLY"); nEl.focus(); return; }
+
+  // Device-only play path: just a name, no cloud, no pin
+  if (authTab !== "login" && !saveAnywhere){
+    const m = { name: effectiveName, pub: pub || "SPOONS", ph: "" };
+    try {
+      localStorage.setItem(LS_BOARD_ME, JSON.stringify(m));
+      localStorage.setItem(LS_SYNC, JSON.stringify({ h: effectiveName, ph: "" }));
+    } catch(e){}
+    AudioFX.coin();
+    ensureSignup();
+    renderWelcomeBack();
+    refreshBests();
+    const mode = game.pendingMode || "arcade";
+    if (mode){
+      game.pendingMode = null;
+      game.demo = false;
+      setOrdered(true);
+      openOrderPanel(false);
+      AudioFX.unlock();
+      startGame(mode);
+    }
+    return;
+  }
+
+  // Cross-device / login path needs a PIN
+  if (pin.length < 4 || pin.length > 8 || !/^\d+$/.test(pin)){ showSignupError("PIN NEEDS 4–8 DIGITS"); (authTab === "login" && loginPinEl ? loginPinEl : pinEl).focus(); return; }
+  if (authTab !== "login" && pin !== pin2){ showSignupError("PINS DON'T MATCH"); pin2El.focus(); return; }
+  if (authTab !== "login" && (pub.length < 3 || pub.length > 24)){ showSignupError("NAME YOUR LOCAL (3–24)"); pEl.focus(); return; }
+
   if (typeof pinHash !== "function"){ showSignupError("PLEASE WAIT — LOADING"); return; }
-  const ph = await pinHash(name, pin);
+  pinEl.dataset.lastPh = "";
+  const ph = await pinHash(effectiveName, pin);
+  pinEl.dataset.lastPh = ph;
+
   if (authTab === "login"){
-    const cloud = await fetchAccountBlob(name);
+    const cloud = await readAccountWithDelay(effectiveName);
     if (!cloud.ok){
-      if (cloud.status === 404 || cloud.status === "empty" || cloud.status === "bad"){
+      if (cloud.offline){
+        const cached = getLocalAccountCache(effectiveName);
+        if (cached){
+          showSignupError("CLOUD UNREACHABLE — PLAY OFFLINE");
+          renderOfflineButton("PLAY OFFLINE", () => finishLoginFromCache(effectiveName, ph, cached, pinEl));
+        } else {
+          showSignupError("CLOUD UNREACHABLE — BLOCKED OR OFFLINE");
+          renderOfflineButton("PLAY AS GUEST", () => finishGuestLogin(effectiveName, pinEl));
+        }
+      } else if (cloud.status === 404 || cloud.status === "empty" || cloud.status === "bad"){
         showSignupError("NO ACCOUNT — TRY NEW PLAYER");
       } else {
         showSignupError("CAN\'T REACH CLOUD — TRY AGAIN");
       }
       return;
     }
-    if (cloud.blob.ph !== ph){ showSignupError("WRONG PIN"); pinEl.focus(); return; }
-    const m = { name, pub: cloud.blob.pub || "", ph };
+    if (cloud.blob.ph !== ph){ showSignupError("WRONG PIN"); if (loginPinEl) loginPinEl.focus(); else pinEl.focus(); return; }
+    const m = { name: effectiveName, pub: cloud.blob.pub || "", ph };
     try {
       localStorage.setItem(LS_BOARD_ME, JSON.stringify(m));
-      localStorage.setItem(LS_SYNC, JSON.stringify({ h: name, ph }));
+      localStorage.setItem(LS_SYNC, JSON.stringify({ h: effectiveName, ph }));
     } catch(e){}
     mergeProg(cloud.blob.prog);
     AudioFX.coin();
@@ -5347,32 +5582,30 @@ async function doSignup(){
     }
     return;
   }
-  // new player
-  if (pub.length < 3 || pub.length > 24){ showSignupError("NAME YOUR LOCAL (3–24 LETTERS)"); pEl.focus(); return; }
-  const taken = await fetchAccountBlob(name);
+
+  // New player cross-device
+  const taken = await readAccountWithDelay(effectiveName);
   if (taken.ok){ showSignupError("NAME TAKEN — LOG IN INSTEAD"); nEl.focus(); return; }
   const prog = makeProg();
-  const blob = { v:1, h:name, ph, pub, t:Date.now(), prog };
+  const blob = { v:1, h:effectiveName, ph, pub, t:Date.now(), prog };
   let written = false;
   try {
-    await writeAccountBlob(name, blob);
+    await writeAccountBlob(effectiveName, blob);
     written = true;
   } catch(e){
-    // fail-soft: account is local-only, sync later
     try { bonusToast("OFFLINE — ACCOUNT LOCAL ONLY, SYNC LATER"); } catch(e2){}
   }
-  const m = { name, pub, ph };
+  const m = { name: effectiveName, pub, ph };
   try {
     localStorage.setItem(LS_BOARD_ME, JSON.stringify(m));
-    localStorage.setItem(LS_SYNC, JSON.stringify({ h:name, ph }));
+    localStorage.setItem(LS_SYNC, JSON.stringify({ h:effectiveName, ph }));
+    localStorage.setItem(LS_ACCT_CACHE, JSON.stringify({ h:effectiveName, blob, t:Date.now() }));
   } catch(e){}
 
   ensureSignup();
   renderWelcomeBack();
   refreshBests();
   AudioFX.coin();
-  // If the panel was opened from "I Have Ordered" but game.pendingMode is null,
-  // still start the requested mode (handles direct order-panel signups).
   const mode = game.pendingMode || "arcade";
   if (mode){
     game.pendingMode = null;
@@ -7966,9 +8199,13 @@ el("tabPubPlayer").addEventListener("click", () => { setBoardTab("pubplayer"); }
 el("btnSignupGo").addEventListener("click", e => { e.preventDefault(); doSignup(); });
 const signupFormEl = document.getElementById("signupForm");
 if (signupFormEl) signupFormEl.addEventListener("submit", e => { e.preventDefault(); doSignup(); });
-el("signupName").addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); if (authTab === "login") el("signupPin").focus(); else el("signupPub").focus(); } });
-el("signupPub").addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); el("signupPin").focus(); } });
-el("signupPin").addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); doSignup(); } });
+el("signupName").addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); if (authTab === "login"){ const lp = el("loginPin"); if (lp) lp.focus(); } else if (saveAnywhere) el("signupPin").focus(); else el("btnSignupGo").click(); } });
+const loginPinEl2 = document.getElementById("loginPin");
+if (loginPinEl2) loginPinEl2.addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); doSignup(); } });
+el("signupPin").addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); if (authTab === "login") doSignup(); else if (saveAnywhere){ const p2 = el("signupPin2"); if (p2) p2.focus(); } else el("btnSignupGo").click(); } });
+const pin2El = el("signupPin2");
+if (pin2El) pin2El.addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); el("signupPub").focus(); } });
+el("signupPub").addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); doSignup(); } });
 
 el("btnMute").addEventListener("click", () => {
   AudioFX.unlock();
@@ -8082,9 +8319,10 @@ function openHowTo(){ el("howtoPanel").classList.add("open"); updateBodyLock(); 
 el("btnHowtoClose").addEventListener("click", () => { AudioFX.click(); el("howtoPanel").classList.remove("open"); updateBodyLock(); });
 
 
-document.getElementById("tabNew").addEventListener("click", () => { AudioFX.click(); setAuthTab("new"); });
-document.getElementById("tabLogin").addEventListener("click", () => { AudioFX.click(); setAuthTab("login"); });
-setAuthTab("new");
+document.getElementById("tabPlay").addEventListener("click", () => { AudioFX.click(); clearSignupError(); setAuthTab("play"); });
+document.getElementById("tabLogin").addEventListener("click", () => { AudioFX.click(); clearSignupError(); setAuthTab("login"); });
+document.getElementById("btnToggleSave").addEventListener("click", () => { AudioFX.click(); setSaveAnywhere(!saveAnywhere); });
+setAuthTab("play");
 
 document.addEventListener("click", e => {
   const b = e.target.closest("#btnLogout, #btnLogoutTitle");
