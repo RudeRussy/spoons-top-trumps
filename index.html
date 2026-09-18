@@ -971,6 +971,8 @@ header#hud{
 #bonusPill.show{
   display:inline-flex;
   animation:pillPulse 1.2s infinite;
+  cursor:pointer;
+  pointer-events:auto;
 }
 
 .table .side{
@@ -4068,7 +4070,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "minimax-only-48-r53";
+  const BUILD_STAMP = "bonus-pill-tap-49-r54";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -6417,6 +6419,7 @@ function resolveRound(){
     else { try { maybeTriggerBogRoll(false); } catch(e){} }
     if (oldWave >= 3) try { unlockLockin(); } catch(e){}
     try { maybeTriggerFartInvaders(oldWave); } catch(e){}
+  if (game.__bonusPillArmed){ game.__bonusPillArmed = false; if (maybePendingBonus()) return; }
     renderNextButton();
     return;
   }
@@ -6449,6 +6452,7 @@ function resolveRound(){
     }
     return;
   }
+  if (game.__bonusPillArmed){ game.__bonusPillArmed = false; if (maybePendingBonus()) return; }
   renderNextButton();
 }
 
@@ -7957,6 +7961,26 @@ function updateBonusPill(){
   if (!p) return;
   p.classList.toggle("show", pendingBonus.queue.length > 0);
 }
+/* USER ORDER: tapping the BONUS READY pill starts the bonus game immediately */
+(function wireBonusPill(){
+  const p = document.getElementById("bonusPill");
+  if (!p) return;
+  p.style.cursor = "pointer";
+  p.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!pendingBonus.queue.length) return;
+    if (game.phase === "reveal"){
+      AudioFX.unlock();
+      maybePendingBonus();
+    } else if (game.phase === "pick" || game.phase === "play"){
+      game.__bonusPillArmed = true;
+      try { bonusToast(game.phase === "play" ? "BONUS FIRES THIS ROUND" : "BONUS FIRES AFTER THIS CARD"); } catch(e2){}
+    } else {
+      try { bonusToast("BONUS FIRES AT ROUND END — TAP NEXT"); } catch(e2){}
+    }
+  });
+})();
 
 /* ==================== ACHIEVEMENTS (random + hidden) ==================== */
 const ACH_LS = "spoons.achievements";
