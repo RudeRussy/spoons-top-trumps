@@ -4070,7 +4070,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "shuffle-songs-53-r58";
+  const BUILD_STAMP = "ten-pints-54-r59";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -4450,7 +4450,8 @@ const AudioFX = (() => {
 const MUSIC_TRACKS = [
   { file: "sfx/tom-and-fifi-ext.mp3", name: "TOM & FIFI (EXTENDED)", song: "fifi" },
   { file: "sfx/tom-and-fifi.mp3", name: "TOM & FIFI (SHORT)", song: "fifi" },
-  { file: "sfx/sausage-muffin.mp3", name: "SAUSAGE UP MY ARSE", song: "sausage" }
+  { file: "sfx/sausage-muffin.mp3", name: "SAUSAGE UP MY ARSE", song: "sausage" },
+  { file: "sfx/10-pints-mum-car-park.mp3", name: "10 PINTS THEN YOUR MUM", song: "10pints" }
 ];
 // Random start song per session (user order: shuffle start, never same song twice in a row)
 let musicTrackIdx = Math.floor(Math.random() * MUSIC_TRACKS.length);
