@@ -4065,7 +4065,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "signup-mobile-44-r49c";
+  const BUILD_STAMP = "autorefresh-45-r50";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -4076,6 +4076,40 @@ const REWARDS = {
     }
   } catch(e){}
   try { document.getElementById("buildChip").textContent = BUILD_STAMP; } catch(e){}
+
+  /* ---------- AUTO-REFRESH: fetch live index.html, reload if server stamp is newer ---------- */
+  var __buildCheckBusy = false;
+  function checkBuildFresh(){
+    if (__buildCheckBusy) return;
+    __buildCheckBusy = true;
+    fetch(location.pathname + "?v=" + Date.now(), { cache: "reload" })
+      .then(function(r){ return r.ok ? r.text() : ""; })
+      .then(function(txt){
+        __buildCheckBusy = false;
+        if (!txt) return;
+        var m = txt.match(/BUILD_STAMP\s*=\s*"([^"]+)"/);
+        var live = m && m[1];
+        if (live && live !== BUILD_STAMP && live !== "LOCAL"){
+          // new build on the server — reload once, remember so we don't loop
+          var flag = "spoons_reload_" + live;
+          var already = "spoons_saw_" + BUILD_STAMP;
+          try {
+            if (localStorage.getItem(flag) !== "1"){
+              localStorage.setItem(flag, "1");
+              try { localStorage.setItem("spoons_build", live); } catch(e){}
+              location.reload();
+            }
+          } catch(e){ location.reload(); }
+        }
+      })
+      .catch(function(){ __buildCheckBusy = false; });
+  }
+  // check when the tab becomes visible again (returning player) + every 4 minutes
+  document.addEventListener("visibilitychange", function(){
+    if (!document.hidden) setTimeout(checkBuildFresh, 800);
+  });
+  setInterval(checkBuildFresh, 4 * 60 * 1000);
+  setTimeout(checkBuildFresh, 3000);
 
 /* ==================== 1. DATA ==================== */
 // AUTO-GENERATED menu data — real prices/kcal from the 2026 Spoons menu
