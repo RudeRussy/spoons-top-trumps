@@ -1,18 +1,12 @@
-iPhoneSE1: after name Enter active=signupPub
-iPhoneSE1: after pub Enter active=signupPin
-iPhoneSE1: GO rect top=241 bottom=289 innerH=336 reachable=true
-iPhoneSE1: signedInAs=TEST7750
-iPhoneSE1: cloudWrite=true textOK
-iPhoneSE2: after name Enter active=signupPub
-iPhoneSE2: after pub Enter active=signupPin
-iPhoneSE2: GO rect top=352 bottom=399 innerH=435 reachable=true
-iPhoneSE2: signedInAs=TEST9067
-iPhoneSE2: cloudWrite=true textOK
-iPhone12: after name Enter active=signupPub
-iPhone12: after pub Enter active=signupPin
-iPhone12: GO rect top=482 bottom=529 innerH=612 reachable=true
-iPhone12: signedInAs=TEST6938
-iPhone12: cloudWrite=true textOK
-LOGIN LIV93/4321: signedInAs=LIV93 inGame=true mode=arcade
+iPhoneSE1: after name Enter active=
+iPhoneSE1: GO rect top=0 bottom=0 innerH=0 reachable=true
+iPhoneSE1: signedInAs=TEST2875
+iPhoneSE2: after name Enter active=
+iPhoneSE2: GO rect top=0 bottom=0 innerH=0 reachable=true
+iPhoneSE2: signedInAs=TEST5699
+iPhone12: after name Enter active=
+iPhone12: GO rect top=0 bottom=0 innerH=0 reachable=true
+iPhone12: signedInAs=TEST2170
+LOGIN LIV93/4321: signedInAs=null inGame=false mode=arcade
 PAGE ERRORS: []
-overall=OK
+overall=FAIL

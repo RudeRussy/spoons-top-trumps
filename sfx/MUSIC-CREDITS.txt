@@ -1,4 +1,13 @@
-Music: "Funk Game Loop" and "Cold Funk" by Kevin MacLeod (incompetech.com)
-Licensed under Creative Commons: By Attribution 3.0
-https://creativecommons.org/licenses/by/3.0/
-"SAUSAGE UP MY ARSE" — MiniMax-Music3 local generation, lyrics Aeon 27B, 2026
+Music credits — Spoons Top Trumps
+=================================
+
+"TOM & FIFI (EXTENDED)" / "TOM & FIFI (SHORT)"
+  Music: MiniMax-Music3 (local MLX generation)
+  Lyrics: Aeon 27B (uncensored local model), 2026
+
+"SAUSAGE UP MY ARSE" (I Don't Need Your Breakfast Muffin)
+  Music: MiniMax-Music3 local generation
+  Lyrics: Aeon 27B (uncensored local model), 2026
+
+All music generated locally on-device. No third-party samples in the
+music playlist (fart/SFX samples are separate CC0 sources).

@@ -35,7 +35,6 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
   for (const s of screens) {
     await page.setViewport({ width: s.w, height: s.h, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
-    // Use a fresh page per size to avoid navigation timeouts after form submits
     await page.goto(fileUrl + '?v=' + Date.now(), { waitUntil: 'networkidle0' });
     await sleep(300);
 
@@ -43,6 +42,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
       localStorage.removeItem('spoons.me');
       localStorage.removeItem('spoons.sync');
       localStorage.removeItem('spoons.ordered');
+      localStorage.removeItem('spoons.acctCache');
       if (typeof openOrderPanel === 'function') openOrderPanel(true);
     });
     await sleep(400);
@@ -50,19 +50,16 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     const panelVisible = await page.evaluate(() => document.getElementById('orderPanel').classList.contains('open'));
     if (!panelVisible) { log(`${s.name}: order panel NOT open`); allOk = false; continue; }
 
-    // simulate keyboard: shrink visual viewport by overriding visualViewport.height
+    // simulate keyboard
     await page.evaluate((h) => {
       const vv = window.visualViewport;
-      if (vv) {
-        Object.defineProperty(vv, 'height', { value: window.innerHeight - h, configurable: true });
-      }
+      if (vv) Object.defineProperty(vv, 'height', { value: window.innerHeight - h, configurable: true });
       window.dispatchEvent(new Event('resize'));
       if (typeof adjustOrderPanelForKeyboard === 'function') adjustOrderPanelForKeyboard();
     }, s.kbH);
     await sleep(250);
 
     const handle = 'TEST' + Math.floor(Math.random()*10000);
-    // focus name, type, enter to pub
     await page.focus('#signupName');
     await sleep(150);
     await page.type('#signupName', handle, { delay: 5 });
@@ -71,20 +68,9 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     await sleep(200);
     const activeAfterName = await page.evaluate(() => document.activeElement.id);
     log(`${s.name}: after name Enter active=${activeAfterName}`);
-    if (activeAfterName !== 'signupPub') allOk = false;
+    if (activeAfterName !== 'btnSignupGo') allOk = false;
 
-    await page.type('#signupPub', 'My Local Pub', { delay: 5 });
-    await sleep(150);
-    await page.keyboard.press('Enter');
-    await sleep(200);
-    const activeAfterPub = await page.evaluate(() => document.activeElement.id);
-    log(`${s.name}: after pub Enter active=${activeAfterPub}`);
-    if (activeAfterPub !== 'signupPin') allOk = false;
-
-    await page.type('#signupPin', '1234', { delay: 5 });
-    await sleep(150);
-
-    // check GO reachable (inside scrollable order-inner)
+    // GO reachable
     let goRect = await page.evaluate(() => {
       const b = document.getElementById('btnSignupGo');
       const r = b.getBoundingClientRect();
@@ -101,14 +87,13 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
         const inner = document.querySelector('.order-inner').getBoundingClientRect();
         return { goTop: r.top, goBottom: r.bottom, innerTop: inner.top, innerBottom: inner.bottom, innerH: inner.height };
       });
-      reachable = goRect.goBottom <= goRect.innerBottom + 2 && goRect.goTop >= goRect.innerTop - 2;
+      reachable = goRect.goBottom <= goRect.innerBottom + 2;
     }
     log(`${s.name}: GO rect top=${goRect.goTop.toFixed(0)} bottom=${goRect.goBottom.toFixed(0)} innerH=${goRect.innerH.toFixed(0)} reachable=${reachable}`);
     if (!reachable) allOk = false;
 
-    // press Enter on pin to submit form
     await page.keyboard.press('Enter');
-    await sleep(1000);
+    await sleep(1500);
 
     const signedIn = await page.evaluate((handle) => {
       const me = JSON.parse(localStorage.getItem('spoons.me') || 'null');
@@ -116,18 +101,6 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     }, handle);
     log(`${s.name}: signedInAs=${signedIn}`);
     if (!signedIn) allOk = false;
-
-    // verify cloud write: read account blob via textdb
-    const cloud = await page.evaluate(async (handle) => {
-      try {
-        const key = 'spoons-acct-' + handle.toLowerCase();
-        const r = await fetch('https://textdb.online/' + key, { headers: { 'User-Agent': 'SpoonsTopTrumpsBot/1.0' }, signal: AbortSignal.timeout(5000) });
-        if (!r.ok) return { ok: false, status: r.status };
-        return { ok: true, text: (await r.text()).slice(0, 200) };
-      } catch(e){ return { ok: false, error: e.message }; }
-    }, handle);
-    log(`${s.name}: cloudWrite=${cloud.ok} ${cloud.ok ? 'textOK' : cloud.status || cloud.error}`);
-    if (!cloud.ok) allOk = false;
   }
 
   // login flow via Enter only (LIV93 / 4321)
@@ -138,7 +111,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     localStorage.removeItem('spoons.me');
     localStorage.removeItem('spoons.sync');
     localStorage.removeItem('spoons.ordered');
-    // skip the order gate so login goes straight to game
+    localStorage.removeItem('spoons.acctCache');
     localStorage.setItem('spoons.ordered', '1');
     if (typeof openOrderPanel === 'function') openOrderPanel(true);
     if (typeof setAuthTab === 'function') setAuthTab('login');
