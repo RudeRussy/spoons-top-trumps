@@ -3706,6 +3706,7 @@ header#hud .score > *:not(#scoreChip):not(.combo){
     <div class="score-breakdown" id="scoreBreakdown" style="display:none;"></div>
     <p class="over-stats" id="overStats"></p>
     <div class="leader" id="leaderboard"></div>
+     <button class="btn btn-cream" id="btnOverBonus" style="display:none;background:linear-gradient(90deg,#7a1f3d,#b07b2a);border:2px solid #e3b23c;">🎁 BONUS READY — CLICK HERE</button>
     <div id="initialsForm">
       <label>NEW HIGH SCORE — YOUR INITIALS:</label>
       <input id="initialsInput" maxlength="3" value="RUS" inputmode="text" autocomplete="off">
@@ -4070,7 +4071,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "ten-pints-54-r59";
+  const BUILD_STAMP = "bonus-pill-anywhere-55-r60";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -5952,6 +5953,7 @@ function applyOver(o){
 function endRemoteGame(title){
   game.phase = "over";
   AudioFX.stopMusic();
+  try { updateBonusPill(); } catch(e){} // keep the BONUS READY pill visible/tappable on the over screen
   const t = title || (game.pvp.matchWinner === "p1" ? "PLAYER 1 WINS THE MATCH" : "PLAYER 2 WINS THE MATCH");
   const titleEl = document.getElementById("overTitle");
   titleEl.textContent = t;
@@ -6471,6 +6473,11 @@ function endGame(){
   try { achCheck("score", game.score); } catch(e){} // idempotent: timers + paths can race here
   game.phase = "over";
   AudioFX.stopMusic();
+  try { updateBonusPill(); } catch(e){} // keep the BONUS READY pill tappable on the over screen
+  { // mirror the pill into the over screen (the reward overlay sits above the HUD)
+    const ob = document.getElementById("btnOverBonus");
+    if (ob) ob.style.display = pendingBonus.queue.length ? "" : "none";
+  }
   if (game.pvp.remote && game.pvp.role === "host"){ endRemoteGame(); return; }
   closeRewardScreen();
   AudioFX.over();
@@ -7972,6 +7979,28 @@ function updateBonusPill(){
   p.classList.toggle("show", pendingBonus.queue.length > 0);
 }
 /* USER ORDER: tapping the BONUS READY pill starts the bonus game immediately */
+(function wireOverBonus(){
+  const p = document.getElementById("btnOverBonus");
+  if (!p) return;
+  p.style.cursor = "pointer";
+  p.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!pendingBonus.queue.length) return;
+    const queued = pendingBonus.queue.slice();
+    try {
+      setOrdered(true);
+      game.demo = false;
+      el("demoChip").style.display = "none";
+      AudioFX.unlock();
+      startGame("arcade");
+      queued.forEach(t => { if (!pendingBonus.queue.includes(t)) offerBonus(t); });
+      updateBonusPill();
+      game.__bonusPillArmed = true;
+      try { bonusToast("🎁 BONUS LOADED — IT FIRES THIS ROUND"); } catch(e2){}
+    } catch(e3){}
+  });
+})();
 (function wireBonusPill(){
   const p = document.getElementById("bonusPill");
   if (!p) return;
@@ -7987,7 +8016,21 @@ function updateBonusPill(){
       game.__bonusPillArmed = true;
       try { bonusToast(game.phase === "play" ? "BONUS FIRES THIS ROUND" : "BONUS FIRES AFTER THIS CARD"); } catch(e2){}
     } else {
-      try { bonusToast("BONUS FIRES AT ROUND END — CLICK HERE"); } catch(e2){}
+      // title / game-over: no round to return to — start a fresh run, bonus fires in it
+      const queued = pendingBonus.queue.slice(); // startGame wipes the queue
+      try {
+        setOrdered(true);
+        game.demo = false;
+        el("demoChip").style.display = "none";
+        AudioFX.unlock();
+        startGame("arcade");
+        queued.forEach(t => { if (!pendingBonus.queue.includes(t)) offerBonus(t); });
+        updateBonusPill();
+        game.__bonusPillArmed = true; // fires at first reveal automatically
+        try { bonusToast("🎁 BONUS LOADED — IT FIRES THIS ROUND"); } catch(e2){}
+      } catch(e3){
+        try { bonusToast("BONUS FIRES AT ROUND END — CLICK HERE"); } catch(e4){}
+      }
     }
   });
 })();
