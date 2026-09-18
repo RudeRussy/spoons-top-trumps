@@ -4070,7 +4070,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "fart-over-music-51-r56";
+  const BUILD_STAMP = "shuffle-songs-53-r58";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -4448,11 +4448,19 @@ const AudioFX = (() => {
   
 // JUKEBOX: add more tracks here — future jukebox feature cycles this list
 const MUSIC_TRACKS = [
-  { file: "sfx/tom-and-fifi-ext.mp3", name: "TOM & FIFI (EXTENDED)" },
-  { file: "sfx/tom-and-fifi.mp3", name: "TOM & FIFI (SHORT)" },
-  { file: "sfx/sausage-muffin.mp3", name: "SAUSAGE UP MY ARSE" }
+  { file: "sfx/tom-and-fifi-ext.mp3", name: "TOM & FIFI (EXTENDED)", song: "fifi" },
+  { file: "sfx/tom-and-fifi.mp3", name: "TOM & FIFI (SHORT)", song: "fifi" },
+  { file: "sfx/sausage-muffin.mp3", name: "SAUSAGE UP MY ARSE", song: "sausage" }
 ];
-let musicTrackIdx = 0;
+// Random start song per session (user order: shuffle start, never same song twice in a row)
+let musicTrackIdx = Math.floor(Math.random() * MUSIC_TRACKS.length);
+function nextTrackIdx(){ // random next, never the same SONG in a row (ext+short count as one song)
+  if (MUSIC_TRACKS.length <= 1) return musicTrackIdx;
+  const curSong = MUSIC_TRACKS[musicTrackIdx].song;
+  const options = MUSIC_TRACKS.map((t, i) => i).filter(i => MUSIC_TRACKS[i].song !== curSong);
+  if (!options.length) return (musicTrackIdx + 1) % MUSIC_TRACKS.length;
+  return options[Math.floor(Math.random() * options.length)];
+}
 
   let funkAudio = null;
   let musicWatchdog = null;
@@ -4492,8 +4500,8 @@ let musicTrackIdx = 0;
           if (!musicOn || muted) return;
           if (funkAudio.__advancing) return; // ticker + event double-fire guard
           funkAudio.__advancing = true;
-          setTimeout(() => { try { funkAudio.__advancing = false; } catch(e){} }, 1500);
-          musicTrackIdx = (musicTrackIdx + 1) % MUSIC_TRACKS.length;
+          setTimeout(() => { try { funkAudio.__advancing = false; } catch(e){} }, 250);
+          musicTrackIdx = nextTrackIdx();
           try { bonusToast("🎵 TRACK: " + MUSIC_TRACKS[musicTrackIdx].name); } catch(e){}
           const next = MUSIC_TRACKS[musicTrackIdx];
           try {
@@ -4508,7 +4516,7 @@ let musicTrackIdx = 0;
           if (funkAudio.__advancing) return;
           funkAudio.__advancing = true;
           setTimeout(() => { try { funkAudio.__advancing = false; } catch(e){} }, 1500);
-          musicTrackIdx = (musicTrackIdx + 1) % MUSIC_TRACKS.length;
+          musicTrackIdx = nextTrackIdx();
           resumeMusicAfterUserGesture();
         });
         funkAudio.addEventListener('stalled', () => {
