@@ -4068,7 +4068,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "music-resume-46-r51";
+  const BUILD_STAMP = "playlist-ticker-47-r52";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -4491,6 +4491,9 @@ let musicTrackIdx = 0;
         try { funkAudio.style.display = "none"; document.body.appendChild(funkAudio); } catch(e){}
         funkAudio.addEventListener('ended', () => {
           if (!musicOn || muted) return;
+          if (funkAudio.__advancing) return; // ticker + event double-fire guard
+          funkAudio.__advancing = true;
+          setTimeout(() => { try { funkAudio.__advancing = false; } catch(e){} }, 1500);
           musicTrackIdx = (musicTrackIdx + 1) % MUSIC_TRACKS.length;
           try { bonusToast("🎵 TRACK: " + MUSIC_TRACKS[musicTrackIdx].name); } catch(e){}
           const next = MUSIC_TRACKS[musicTrackIdx];
@@ -4503,6 +4506,9 @@ let musicTrackIdx = 0;
         });
         funkAudio.addEventListener('error', () => {
           // corrupt/missing track: advance to next
+          if (funkAudio.__advancing) return;
+          funkAudio.__advancing = true;
+          setTimeout(() => { try { funkAudio.__advancing = false; } catch(e){} }, 1500);
           musicTrackIdx = (musicTrackIdx + 1) % MUSIC_TRACKS.length;
           resumeMusicAfterUserGesture();
         });
