@@ -4070,7 +4070,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "bonus-pill-cta-50-r55";
+  const BUILD_STAMP = "fart-over-music-51-r56";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -4479,7 +4479,7 @@ let musicTrackIdx = 0;
     } catch(e){ resumeMusicAfterUserGesture(); return false; }
   }
   function startMusic(){
-    stopMusic();
+    stopMusic(); // pauses; keeps position — fart interruptions must not reset the song
     if (!musicOn || muted) return;
     try {
       const track = MUSIC_TRACKS[musicTrackIdx % MUSIC_TRACKS.length];
@@ -4517,7 +4517,8 @@ let musicTrackIdx = 0;
         });
         funkAudio.preload = "auto";
       }
-      funkAudio.currentTime = 0;
+      // resume at current position (song resets ONLY on real track change via 'ended')
+      try { if (funkAudio.paused && funkAudio.currentTime >= (funkAudio.duration || 1e9)) funkAudio.currentTime = 0; } catch(e){}
       tryPlayFunk();
       musicTimer = setInterval(() => { /* playlist advances via 'ended' event */ }, 1000);
       if (musicWatchdog) clearInterval(musicWatchdog);
@@ -4532,7 +4533,7 @@ let musicTrackIdx = 0;
     } catch(e){ return false; }
   }
   function stopMusic(){
-    try { if (funkAudio){ funkAudio.pause(); funkAudio.currentTime = 0; } } catch(e){}
+    try { if (funkAudio){ funkAudio.pause(); } } catch(e){}
     if (musicTimer){ clearInterval(musicTimer); musicTimer = null; }
   }
   function resumeMusic(){ if (musicOn && !muted && !musicTimer) startMusic(); }
