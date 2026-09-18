@@ -3550,7 +3550,7 @@ header#hud .score > *:not(#scoreChip):not(.combo){
   <div class="score">
     <span class="chip token" id="nearMissChip" style="display:none;" title="Free rematch token held">🎟️ REMATCH</span>
     <span id="scoreChip">0</span>
-    <span id="bonusPill" title="Bonus round armed — tap NEXT at the end of this round">🎁 BONUS READY — TAP NEXT</span>
+    <span id="bonusPill" title="Bonus round armed — CLICK HERE to start it now">🎁 BONUS READY — CLICK HERE</span>
     <span class="chip combo" id="comboChip">🥓 STREAK ×2</span>
     <span class="chip round" id="waveChip"><span id="waveChipLabel">WAVE</span> <b id="countWave">1</b></span>
     <span id="chipPlayer"><span id="chipPlayerLabel">YOU</span> <b id="countPlayer">—</b></span>
@@ -4070,7 +4070,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "bonus-pill-tap-49-r54";
+  const BUILD_STAMP = "bonus-pill-cta-50-r55";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -7977,7 +7977,7 @@ function updateBonusPill(){
       game.__bonusPillArmed = true;
       try { bonusToast(game.phase === "play" ? "BONUS FIRES THIS ROUND" : "BONUS FIRES AFTER THIS CARD"); } catch(e2){}
     } else {
-      try { bonusToast("BONUS FIRES AT ROUND END — TAP NEXT"); } catch(e2){}
+      try { bonusToast("BONUS FIRES AT ROUND END — CLICK HERE"); } catch(e2){}
     }
   });
 })();
