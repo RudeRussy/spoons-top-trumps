@@ -980,9 +980,9 @@ header#hud{
   flex-direction:column;
 }
 
-.table .card{
-  height:100%;
-}
+/* REMOVED: it outranked the base .card fixed height
+   (specificity 0-2-0 vs 0-1-0), stretching the card to the taller flex .side and
+   breaking uniform card sizing. USER ORDER: cards exactly the same size at all times. */
 
 .scoreFly{
   position:fixed;
@@ -1520,7 +1520,20 @@ header#hud{
   perspective:900px;
   position:relative;
   width:clamp(160px, 44vw, 330px);
-  min-height:clamp(250px, 48vh, 340px);
+  /* USER ORDER: every card exactly the same size, always */
+  height:clamp(250px, 48vh, 340px);
+  display:flex;
+  flex-direction:column;
+}
+
+/* Animations run on .card-anim so the outer .card box stays fixed and uniform */
+.card-anim{
+  width:100%;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  border-radius:var(--radius);
+  transform:none;
 }
 
 .card::after{
@@ -1534,7 +1547,7 @@ header#hud{
   mix-blend-mode:multiply;
 }
 
-.card.deal{
+.card-anim.deal{
   animation:dealIn .3s var(--ease-spring);
 }
 
@@ -1576,6 +1589,14 @@ header#hud{
 
 .card-body{
   padding:6px 12px 4px;
+  flex:1;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+}
+.card-body .stats{
+  flex:1;
+  min-height:0;
 }
 
 .card-topline{
@@ -1632,8 +1653,10 @@ button.cat-chip:focus-visible{
   font-size:15px;
   line-height:1.12;
   margin-bottom:4px;
-  min-height:calc(2 * 15px * 1.12);
-  display:flex;
+  height:calc(2 * 15px * 1.12);
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
   align-items:flex-start;
   overflow:hidden;
 }
@@ -1766,7 +1789,7 @@ button.stat .keyhint{
 }
 
 .card-back{
-  height:316px;
+  height:100%; /* fill the rigid .card — uniform sizing with the face */
   display:grid;
   place-items:center;
   background:
@@ -1812,23 +1835,23 @@ button.stat .keyhint{
   color:var(--red);
 }
 
-.card.reveal{
+.card.reveal .card-anim{
   animation:flipIn .45s var(--ease-spring);
 }
 
-.card.flame{
+.card.flame .card-anim{
   animation:flameGlow 1.2s infinite;
 }
 
-.card.defeat{
+.card.defeat .card-anim{
   animation:defeat .5s forwards;
 }
 
-.card.award{
+.card.award .card-anim{
   animation:bounce .5s var(--ease-spring);
 }
 
-.card.boss-shake{
+.card.boss-shake .card-anim{
   animation:bossShake .45s var(--ease-spring);
 }
 
@@ -2777,7 +2800,7 @@ from{ transform:scale(.92); opacity:0; } to{ transform:scale(1); opacity:1; }
 .modebtn:hover,.modebtn:active{
   transform:none;
 }
-.card.deal,.card.award,.card.defeat{
+.card-anim.deal,.card.award .card-anim,.card.defeat .card-anim{
   animation:none;
 }
 .stat.selected.slam{
@@ -2789,14 +2812,14 @@ from{ transform:scale(.92); opacity:0; } to{ transform:scale(1); opacity:1; }
 .card-back.boss.shake{
   animation:none;
 }
-.card.flame{
+.card.flame .card-anim{
   animation:none;
   box-shadow:0 18px 40px rgba(0,0,0,.5), 0 0 12px rgba(255,107,53,.25);
 }
-.card.reveal{
+.card.reveal .card-anim{
   animation:none;
 }
-.card.boss-shake{
+.card.boss-shake .card-anim{
   animation:none;
 }
 .verdict-line{
@@ -2834,7 +2857,7 @@ from{ transform:scale(.92); opacity:0; } to{ transform:scale(1); opacity:1; }
 }
 .card-name{
   font-size:13px;
-  min-height:calc(2 * 13px * 1.12);
+  height:calc(2 * 13px * 1.12);
 }
 #hud{
   padding:8px 10px;
@@ -2973,7 +2996,7 @@ header#hud .score{
 @media (max-height:760px){
 .card-name{
   font-size:13px;
-  min-height:calc(2 * 13px * 1.12);
+  height:calc(2 * 13px * 1.12);
 }
 .stat{
   padding:2px 4px;
@@ -2996,9 +3019,7 @@ header#hud .score{
   min-height:46px;
   margin-top:6px;
 }
-.card{
-  min-height:clamp(220px, 42vh, 300px);
-}
+/* min-height override removed — height is fixed in the base rule (uniform cards) */
 .table{
   gap:12px;
 }
@@ -4074,7 +4095,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "bonus-pill-anywhere-55-r61";
+  const BUILD_STAMP = "card-uniform-57-r63";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -6972,13 +6993,14 @@ function cardFaceHTML(card, opts){
   const gold = card.__gold ? " gold" : "";
   const badge = card.__gold ? '<div class="gold-stat-badge">+' + Math.round((card.__boostedValue / (st.get(card)||1) - 1) * 100) + '% ' + (statByKey(card.__boostedStat)?.label || card.__boostedStat).toUpperCase() + '</div>' : "";
   const deal = opts.deal ? " deal" : "";
-  return '<article class="card' + deal + gold + '">' + badge +
+  return '<article class="card' + gold + '">' + badge +
+    '<div class="card-anim' + deal + '">' +
     '<div class="card-art">' + card.art + "</div>" +
     '<div class="card-body">' +
       '<div class="card-topline"><button class="cat-chip" data-cat="' + card.cat + '">' + (CAT_LABEL[card.cat] || card.cat) + "</button>" + diet + "</div>" +
       '<h3 class="card-name">' + card.name + "</h3>" +
       '<div class="stats' + (opts.locked ? " stats-locked" : "") + '">' + rows + "</div>" +
-    "</div></article>";
+    "</div></div></article>";
 }
 function cardChipOpenBrowser(e){
   const chip = e.target.closest("button.cat-chip");
@@ -7007,7 +7029,7 @@ function renderAiBack(opts){
   const boss = opts.boss ? ' boss' : '';
   const label = opts.boss ? 'THE LANDLORD' : 'SPOONS<br><span class="red">TOP</span><br>TRUMPS';
   el("aiCard").innerHTML =
-    '<article class="card"><div class="card-back' + boss + '"><div class="diamond"><div class="diamond-text">' + label + '</div></div></div></article>';
+    '<article class="card"><div class="card-anim"><div class="card-back' + boss + '"><div class="diamond"><div class="diamond-text">' + label + '</div></div></div></div></article>';
 }
 function renderAiReveal(){
   el("aiCard").innerHTML = cardFaceHTML(game.aiCard, { locked: true, selectedKey: game.statKey });
