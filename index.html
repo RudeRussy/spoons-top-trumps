@@ -969,10 +969,51 @@ header#hud{
 }
 
 #bonusPill.show{
-  display:inline-flex;
+  display:inline-flex !important;
   animation:pillPulse 1.2s infinite;
   cursor:pointer;
   pointer-events:auto;
+  position:relative;
+  z-index:calc(var(--z-hud) + 5);
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+/* iOS Safari: the score strip is an overflow-x scroll container and can swallow taps.
+   Make sure the pill and the over-screen bonus button sit above everything and receive input. */
+header#hud .score #bonusPill.show,
+header#hud .score #bonusPill{
+  pointer-events:auto;
+}
+#btnOverBonus{
+  pointer-events:auto;
+  position:relative;
+  z-index:calc(var(--z-modal) + 1);
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+#bonusDebug{
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+  background:rgba(11,14,18,.95);
+  color:#f2e8d5;
+  border-top:1px solid var(--gold);
+  font-family:var(--font-arcade);
+  font-size:9px;
+  line-height:1.5;
+  padding:6px 10px;
+  z-index:calc(var(--z-modal) + 10);
+  pointer-events:none;
+  max-height:88px;
+  overflow:hidden;
+  white-space:pre-wrap;
 }
 
 .table .side{
@@ -4095,7 +4136,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "card-uniform-57-r63";
+  const BUILD_STAMP = "bonus-final-58-r64";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -8003,14 +8044,38 @@ function updateBonusPill(){
   if (!p) return;
   p.classList.toggle("show", pendingBonus.queue.length > 0);
 }
-/* USER ORDER: tapping the BONUS READY pill starts the bonus game immediately */
-/* iOS-proof tap binder: touchend with movement guard + click fallback, debounced.
-   The pill lives inside the horizontally-scrollable score strip — iOS taps inside
-   scroll regions get eaten by scroll-gesture recognition; touchend survives. */
+/* USER ORDER: tapping the BONUS READY pill starts the bonus game immediately, every time */
+function logBonusEvent(name, detail){
+  try {
+    const line = "[" + new Date().toLocaleTimeString() + "] " + name + (detail ? " — " + detail : "");
+    const box = document.getElementById("bonusDebug");
+    if (box){
+      box.textContent = (box.textContent ? box.textContent + "\n" : "") + line;
+      const lines = box.textContent.split("\n");
+      if (lines.length > 5) box.textContent = lines.slice(-5).join("\n");
+    }
+    if (typeof console !== "undefined") console.log("[BONUS]", name, detail || "");
+  } catch(e){}
+}
+/* Bulletproof tap binder. iOS Safari often fails to fire click on inline elements inside
+   overflow-x scroll containers; pointerdown fires earlier and is more reliable.
+   We bind touchstart/touchend, pointerdown and click, dedupe aggressively, and log every input. */
 function __bindTap(el, fn){
   if (!el || el.__tapBound) return;
   el.__tapBound = true;
-  let downAt = null, downX = 0, downY = 0, lastStamp = 0;
+  let downAt = null, downX = 0, downY = 0, lastStamp = 0, fired = false;
+  const dedupeMs = 600;
+  function canFire(){
+    if (Date.now() - lastStamp < dedupeMs) return false;
+    lastStamp = Date.now();
+    return true;
+  }
+  function handler(e, src){
+    logBonusEvent("input", src + " queue=" + pendingBonus.queue.length + " phase=" + (game && game.phase));
+    if (!canFire()){ logBonusEvent("dedupe", src); return; }
+    fired = true;
+    fn(e);
+  }
   el.addEventListener("touchstart", (e) => {
     const t = e.touches[0];
     downAt = Date.now(); downX = t.clientX; downY = t.clientY;
@@ -8021,17 +8086,51 @@ function __bindTap(el, fn){
     const moved = Math.hypot(t.clientX - downX, t.clientY - downY);
     const held = Date.now() - downAt;
     downAt = null;
-    if (moved > 12 || held > 800) return; // a scroll or long-press, not a tap
-    e.preventDefault();
-    if (Date.now() - lastStamp < 10) return;
-    lastStamp = Date.now();
-    fn(e);
+    if (moved > 14 || held > 900) return;
+    try { e.preventDefault(); } catch(e2){}
+    handler(e, "touchend");
+  }, {passive: false});
+  el.addEventListener("pointerdown", (e) => {
+    if (e.pointerType === "touch"){
+      downAt = Date.now(); downX = e.clientX; downY = e.clientY;
+    }
+    handler(e, "pointerdown");
   }, {passive: false});
   el.addEventListener("click", (e) => {
-    if (Date.now() - lastStamp < 400) return; // touchend already fired it
-    lastStamp = Date.now();
-    fn(e);
+    if (fired){ fired = false; return; }
+    handler(e, "click");
   });
+}
+/* Start the next queued bonus immediately, bypassing all phase logic. */
+function startBonusNow(){
+  const phase = game && game.phase;
+  logBonusEvent("startBonusNow", "queue=" + pendingBonus.queue.length + " phase=" + phase);
+  if (!pendingBonus.queue.length) return;
+  AudioFX.unlock();
+  // If we're on the title or over screen (or phase is not yet set), hide it and start a fresh arcade run so there is an active table.
+  if (!phase || phase === "title" || phase === "over"){
+    const queued = pendingBonus.queue.slice();
+    try {
+      setOrdered(true);
+      game.demo = false;
+      el("demoChip").style.display = "none";
+      startGame("arcade");
+      queued.forEach(t => { if (!pendingBonus.queue.includes(t)) offerBonus(t); });
+      game.__bonusPillArmed = true;
+      try { bonusToast("🎁 BONUS LOADED — IT FIRES THIS ROUND"); } catch(e2){}
+      // Open the bonus immediately so the user sees it, rather than waiting for the next reveal.
+      if (pendingBonus.queue.length) maybePendingBonus();
+      // Guard: if no bonus screen is visible after dispatch, force-open the next queued bonus directly.
+      const bonusVisible = function(id){ const el = document.getElementById(id); return el && !el.classList.contains("hidden"); };
+      if (pendingBonus.queue.length && !bonusVisible("screen-fartinvaders") && !bonusVisible("screen-bogroll") && !bonusVisible("screen-fartoff")){
+        maybePendingBonus();
+      }
+    } catch(e3){ logBonusEvent("startGame-error", String(e3).slice(0,80)); }
+    updateBonusPill();
+    return;
+  }
+  // Mid-game: dispatch the bonus immediately.
+  maybePendingBonus();
 }
 (function wireOverBonus(){
   const p = document.getElementById("btnOverBonus");
@@ -8040,19 +8139,8 @@ function __bindTap(el, fn){
   __bindTap(p, (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!pendingBonus.queue.length) return;
-    const queued = pendingBonus.queue.slice();
-    try {
-      setOrdered(true);
-      game.demo = false;
-      el("demoChip").style.display = "none";
-      AudioFX.unlock();
-      startGame("arcade");
-      queued.forEach(t => { if (!pendingBonus.queue.includes(t)) offerBonus(t); });
-      updateBonusPill();
-      game.__bonusPillArmed = true;
-      try { bonusToast("🎁 BONUS LOADED — IT FIRES THIS ROUND"); } catch(e2){}
-    } catch(e3){}
+    logBonusEvent("btnOverBonus tapped", "queue=" + pendingBonus.queue.length);
+    startBonusNow();
   });
 })();
 (function wireBonusPill(){
@@ -8062,32 +8150,15 @@ function __bindTap(el, fn){
   __bindTap(p, (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!pendingBonus.queue.length) return;
-    if (game.phase === "reveal"){
-      AudioFX.unlock();
-      maybePendingBonus();
-    } else if (game.phase === "pick" || game.phase === "play"){
-      game.__bonusPillArmed = true;
-      try { bonusToast(game.phase === "play" ? "BONUS FIRES THIS ROUND" : "BONUS FIRES AFTER THIS CARD"); } catch(e2){}
-    } else {
-      // title / game-over: no round to return to — start a fresh run, bonus fires in it
-      const queued = pendingBonus.queue.slice(); // startGame wipes the queue
-      try {
-        setOrdered(true);
-        game.demo = false;
-        el("demoChip").style.display = "none";
-        AudioFX.unlock();
-        startGame("arcade");
-        queued.forEach(t => { if (!pendingBonus.queue.includes(t)) offerBonus(t); });
-        updateBonusPill();
-        game.__bonusPillArmed = true; // fires at first reveal automatically
-        try { bonusToast("🎁 BONUS LOADED — IT FIRES THIS ROUND"); } catch(e2){}
-      } catch(e3){
-        try { bonusToast("BONUS FIRES AT ROUND END — CLICK HERE"); } catch(e4){}
-      }
-    }
+    logBonusEvent("bonusPill tapped", "queue=" + pendingBonus.queue.length);
+    startBonusNow();
   });
 })();
+/* Global safety net: if pointer events reach the document on the pill/over button and nothing else consumed them, log it. */
+window.addEventListener("pointerdown", (e) => {
+  const t = e.target.closest && e.target.closest("#bonusPill, #btnOverBonus");
+  if (t) logBonusEvent("pointerdown-hit", t.id + " queue=" + pendingBonus.queue.length);
+}, {capture:true});
 
 /* ==================== ACHIEVEMENTS (random + hidden) ==================== */
 const ACH_LS = "spoons.achievements";
@@ -8738,5 +8809,6 @@ initOrderPanelKeyboard();
 
 </script>
   
+<div id="bonusDebug"></div>
 </body>
-</html
+</html>
