@@ -2571,10 +2571,14 @@ header#hud .score > *{
   display:none;
   place-items:center;
   background:rgba(4,6,9,.92);
+  pointer-events:none; /* full-screen overlay must not block taps on the game-over buttons underneath */
 }
 
 #rewardScreen.open{
   display:grid;
+}
+#rewardScreen .reward-inner{
+  pointer-events:auto;
 }
 
 .handoff{
@@ -4278,7 +4282,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "noscroll-61-r67";
+  const BUILD_STAMP = "restart-fix-62-r68";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
