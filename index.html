@@ -3021,6 +3021,9 @@ header#hud .score{
 }
 }
 
+/* The HUD score strip hard-hid #bonusPill (explicitly + via the generic :not() rule)
+   on narrow layouts — the user could never see/tap BONUS READY mid-game on those
+   widths. Pill is exempted and kept visible at all widths. */
 @media (max-width:780px) and (min-width:561px){
 header#hud{
   justify-content:space-between;
@@ -3033,13 +3036,13 @@ header#hud .score{
   width:calc(100% - 220px);
   overflow:hidden;
 }
-header#hud .score > *:not(#scoreChip):not(.combo){
+header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
   display:none;
 }
 #hudButtons{
   flex:0 0 auto;
 }
-#aiChip, .chip.round:last-of-type, #bonusPill{
+#aiChip, .chip.round:last-of-type{
   display:none;
 }
 }
@@ -4071,7 +4074,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "bonus-pill-anywhere-55-r60";
+  const BUILD_STAMP = "bonus-pill-anywhere-55-r61";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -7979,11 +7982,40 @@ function updateBonusPill(){
   p.classList.toggle("show", pendingBonus.queue.length > 0);
 }
 /* USER ORDER: tapping the BONUS READY pill starts the bonus game immediately */
+/* iOS-proof tap binder: touchend with movement guard + click fallback, debounced.
+   The pill lives inside the horizontally-scrollable score strip — iOS taps inside
+   scroll regions get eaten by scroll-gesture recognition; touchend survives. */
+function __bindTap(el, fn){
+  if (!el || el.__tapBound) return;
+  el.__tapBound = true;
+  let downAt = null, downX = 0, downY = 0, lastStamp = 0;
+  el.addEventListener("touchstart", (e) => {
+    const t = e.touches[0];
+    downAt = Date.now(); downX = t.clientX; downY = t.clientY;
+  }, {passive: true});
+  el.addEventListener("touchend", (e) => {
+    if (downAt === null) return;
+    const t = e.changedTouches[0];
+    const moved = Math.hypot(t.clientX - downX, t.clientY - downY);
+    const held = Date.now() - downAt;
+    downAt = null;
+    if (moved > 12 || held > 800) return; // a scroll or long-press, not a tap
+    e.preventDefault();
+    if (Date.now() - lastStamp < 10) return;
+    lastStamp = Date.now();
+    fn(e);
+  }, {passive: false});
+  el.addEventListener("click", (e) => {
+    if (Date.now() - lastStamp < 400) return; // touchend already fired it
+    lastStamp = Date.now();
+    fn(e);
+  });
+}
 (function wireOverBonus(){
   const p = document.getElementById("btnOverBonus");
   if (!p) return;
   p.style.cursor = "pointer";
-  p.addEventListener("click", (e) => {
+  __bindTap(p, (e) => {
     e.preventDefault();
     e.stopPropagation();
     if (!pendingBonus.queue.length) return;
@@ -8005,7 +8037,7 @@ function updateBonusPill(){
   const p = document.getElementById("bonusPill");
   if (!p) return;
   p.style.cursor = "pointer";
-  p.addEventListener("click", (e) => {
+  __bindTap(p, (e) => {
     e.preventDefault();
     e.stopPropagation();
     if (!pendingBonus.queue.length) return;
