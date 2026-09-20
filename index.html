@@ -91,9 +91,11 @@ body{
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
   color:var(--ink);
   line-height:1.45;
-  min-height:100vh;
+  min-height:100dvh;
+  height:100dvh;
   display:flex;
   flex-direction:column;
+  overflow:hidden;
   -webkit-font-smoothing:antialiased;
 }
 
@@ -127,9 +129,9 @@ body::before{
 /* ---------- layout ---------- */
 
 #hud{
-  position:sticky;
-  top:0;
+  position:relative;
   z-index:var(--z-hud);
+  flex:0 0 auto;
   display:flex;
   justify-content:space-between;
   align-items:center;
@@ -154,7 +156,8 @@ body::before{
   margin:0 auto;
   padding:24px 18px 34px;
   position:relative;
-  min-height:100dvh;
+  min-height:0;
+  overflow:auto;
   padding-bottom:max(34px, calc(env(safe-area-inset-bottom) + 72px));
 }
 
@@ -191,6 +194,7 @@ body::before{
   gap:20px;
   justify-items:center;
   align-items:start;
+  min-height:0;
 }
 
 .side-label{
@@ -996,24 +1000,6 @@ header#hud .score #bonusPill{
   -webkit-touch-callout:none;
   touch-action:manipulation;
   -webkit-tap-highlight-color:transparent;
-}
-#bonusDebug{
-  position:fixed;
-  left:0;
-  right:0;
-  bottom:0;
-  background:rgba(11,14,18,.95);
-  color:#f2e8d5;
-  border-top:1px solid var(--gold);
-  font-family:var(--font-arcade);
-  font-size:9px;
-  line-height:1.5;
-  padding:6px 10px;
-  z-index:calc(var(--z-modal) + 10);
-  pointer-events:none;
-  max-height:88px;
-  overflow:hidden;
-  white-space:pre-wrap;
 }
 
 .table .side{
@@ -2264,6 +2250,10 @@ header#hud .score > *{
 
 #screen-table{
   position:relative;
+  display:flex;
+  flex-direction:column;
+  min-height:0;
+  flex:1 1 auto;
 }
 
 .signup-panel{
@@ -2997,8 +2987,18 @@ header#hud .score{
 .scratch .pips{
   letter-spacing:1px;
 }
-#aiChip, .chip.round:last-of-type{
+#aiChip, .chip.round, #chipPlayer, #potChip{
   display:none;
+}
+#bonusPill{
+  white-space:normal;
+  text-align:center;
+  line-height:1.2;
+  font-size:10px;
+  padding:5px 7px;
+}
+#scoreChip{
+  min-width:auto;
 }
 }
 
@@ -3025,13 +3025,15 @@ header#hud .score{
   min-height:0;
 }
 #stage{
-  min-height:100dvh;
+  min-height:0;
+  overflow:auto;
   padding-bottom:max(34px, calc(env(safe-area-inset-bottom) + 20px));
   display:flex;
   flex-direction:column;
 }
 #stage > main, #stage #screen-table{
   flex:1 1 auto;
+  min-height:0;
 }
 #screen-table .table{
   margin-top:auto;
@@ -4143,7 +4145,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "card-fill-compact-59-r65";
+  const BUILD_STAMP = "bonus-fix-60-r66";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -8053,16 +8055,8 @@ function updateBonusPill(){
 }
 /* USER ORDER: tapping the BONUS READY pill starts the bonus game immediately, every time */
 function logBonusEvent(name, detail){
-  try {
-    const line = "[" + new Date().toLocaleTimeString() + "] " + name + (detail ? " — " + detail : "");
-    const box = document.getElementById("bonusDebug");
-    if (box){
-      box.textContent = (box.textContent ? box.textContent + "\n" : "") + line;
-      const lines = box.textContent.split("\n");
-      if (lines.length > 5) box.textContent = lines.slice(-5).join("\n");
-    }
-    if (typeof console !== "undefined") console.log("[BONUS]", name, detail || "");
-  } catch(e){}
+  // r66: no on-screen debug. console only.
+  if (typeof console !== "undefined") console.log("[BONUS]", name, detail || "");
 }
 /* Bulletproof tap binder. iOS Safari often fails to fire click on inline elements inside
    overflow-x scroll containers; pointerdown fires earlier and is more reliable.
@@ -8078,8 +8072,7 @@ function __bindTap(el, fn){
     return true;
   }
   function handler(e, src){
-    logBonusEvent("input", src + " queue=" + pendingBonus.queue.length + " phase=" + (game && game.phase));
-    if (!canFire()){ logBonusEvent("dedupe", src); return; }
+    if (!canFire()){ console.log("[BONUS] dedupe", src); return; }
     fired = true;
     fn(e);
   }
@@ -8161,11 +8154,6 @@ function startBonusNow(){
     startBonusNow();
   });
 })();
-/* Global safety net: if pointer events reach the document on the pill/over button and nothing else consumed them, log it. */
-window.addEventListener("pointerdown", (e) => {
-  const t = e.target.closest && e.target.closest("#bonusPill, #btnOverBonus");
-  if (t) logBonusEvent("pointerdown-hit", t.id + " queue=" + pendingBonus.queue.length);
-}, {capture:true});
 
 /* ==================== ACHIEVEMENTS (random + hidden) ==================== */
 const ACH_LS = "spoons.achievements";
@@ -8816,6 +8804,5 @@ initOrderPanelKeyboard();
 
 </script>
   
-<div id="bonusDebug"></div>
 </body>
 </html>
