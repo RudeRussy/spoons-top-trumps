@@ -347,6 +347,132 @@ header#hud{
   display:none;
 }
 
+/* ---------- bonus-full-63-r69: full-screen bonus presentation ---------- */
+.bonus-fullscreen{
+  position:fixed !important;
+  inset:0 !important;
+  width:100vw !important;
+  height:100dvh !important;
+  max-width:none !important;
+  margin:0 !important;
+  padding:0 !important;
+  z-index:100;
+  display:flex;
+  flex-direction:column;
+  background:#0b0f13;
+  overflow:hidden;
+  -webkit-touch-callout:none;
+  -webkit-user-select:none;
+  user-select:none;
+}
+.bonus-fullscreen.hidden{
+  display:none !important;
+}
+.bonus-fullscreen .bonus-wrap{
+  flex:1 1 auto;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  padding:max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-left)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-right));
+  text-align:center;
+}
+.bonus-fullscreen .bonus-wrap.fi-wrap{
+  justify-content:flex-start;
+}
+.bonus-back{
+  position:fixed;
+  top:max(10px, env(safe-area-inset-top));
+  right:max(10px, env(safe-area-inset-right));
+  z-index:101;
+  font-size:10px;
+  letter-spacing:.08em;
+  padding:6px 10px;
+  border-radius:8px;
+  background:rgba(20,25,32,.8);
+  border:1px solid rgba(227,178,60,.35);
+  color:var(--cream);
+  cursor:pointer;
+}
+.bonus-back.mid-lock{
+  opacity:.35;
+  pointer-events:none;
+}
+.bonus-tag{
+  position:fixed;
+  top:max(10px, env(safe-area-inset-top));
+  left:50%;
+  transform:translateX(-50%);
+  font-size:9px;
+  letter-spacing:.16em;
+  color:var(--gold);
+  opacity:.85;
+  z-index:101;
+}
+.bonus-particle{
+  position:fixed;
+  pointer-events:none;
+  z-index:102;
+  border-radius:50%;
+  will-change:transform, opacity;
+}
+.bonus-shart-risk{
+  position:fixed;
+  left:50%;
+  transform:translateX(-50%);
+  bottom:max(120px, 18vh);
+  width:min(260px, 80vw);
+  z-index:101;
+  text-align:center;
+}
+.bonus-shart-risk .risk-bar{
+  height:8px;
+  border-radius:4px;
+  background:rgba(255,255,255,.12);
+  overflow:hidden;
+  margin:6px 0;
+}
+.bonus-shart-risk .risk-fill{
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg, #4caf50, #ff9800, #f44336, #5d4037);
+  transition:width .08s linear;
+}
+.bonus-shart-risk .risk-copy{
+  font-size:10px;
+  letter-spacing:.05em;
+  color:#b0bec5;
+}
+.bonus-shart-risk .risk-copy.danger{
+  color:#ff5252;
+  animation:pulseRed 1s infinite;
+}
+.bonus-brutality{
+  position:fixed;
+  top:max(90px, 22vh);
+  left:50%;
+  transform:translateX(-50%);
+  font-family:var(--font-arcade);
+  font-size:18px;
+  color:var(--gold);
+  text-shadow:0 0 12px rgba(227,178,60,.8);
+  z-index:102;
+  opacity:0;
+  pointer-events:none;
+}
+.bonus-brutality.show{
+  animation:verdictIn .5s var(--ease-spring) forwards;
+}
+@keyframes pulseRed{
+  0%,100%{opacity:1} 50%{opacity:.55}
+}
+/* hide back buttons during active bonus round */
+.bonus-fullscreen.mid .bonus-back:not(.always){
+  display:none;
+}
+
+
 #stage.shake-soft{
   animation:shakeS .25s;
 }
@@ -2841,6 +2967,130 @@ from{ transform:scale(.92); opacity:0; } to{ transform:scale(1); opacity:1; }
 0%{ transform:scale(1); box-shadow:0 5px 0 #b3a488, 0 0 12px rgba(255,201,77,.4);} 50%{ transform:scale(1.04); box-shadow:0 5px 0 #b3a488, 0 0 22px rgba(255,201,77,.75);} 100%{ transform:scale(1); box-shadow:0 5px 0 #b3a488, 0 0 12px rgba(255,201,77,.4);}
 }
 
+
+
+/* ---------- bonus game internals ---------- */
+.fo-taunt{
+  font-family:var(--font-arcade);
+  font-size:12px;
+  letter-spacing:.08em;
+  color:#cfd8dd;
+  min-height:18px;
+  margin:6px 0;
+  opacity:.7;
+}
+.fo-taunt.show{
+  animation:verdictIn .45s var(--ease-spring) forwards;
+  color:var(--gold);
+  opacity:1;
+}
+.fo-log{ font-size:12px; color:#a0aab2; margin-top:10px; min-height:18px; }
+.fo-brutality.show{ animation:verdictIn .55s var(--ease-spring) forwards; }
+.br-door-name{
+  display:block;
+  font-size:8px;
+  letter-spacing:.04em;
+  color:#cfd8dd;
+  margin-top:4px;
+  pointer-events:none;
+}
+.br-shitter-name{
+  font-family:var(--font-arcade);
+  font-size:14px;
+  color:var(--gold);
+  margin:8px 0 4px;
+  min-height:20px;
+}
+.br-float-tease{
+  font-family:var(--font-arcade);
+  font-size:11px;
+  color:#ff5252;
+  min-height:18px;
+  opacity:0;
+  transition:opacity .2s;
+}
+.br-float-tease.show{ opacity:1; }
+.shitter-tank{
+  position:relative;
+  width:min(200px, 60vw);
+  height:12px;
+  border-radius:6px;
+  background:rgba(255,255,255,.1);
+  margin:6px 0;
+  overflow:hidden;
+}
+.shitter-bowl{
+  position:absolute;
+  inset:2px;
+  border-radius:4px;
+  background:rgba(20,25,32,.8);
+  overflow:hidden;
+}
+.shitter-pile{
+  position:absolute;
+  left:0; right:0; bottom:0;
+  height:0%;
+  background:linear-gradient(180deg, #5d4037 0%, #3e2723 100%);
+  transition:height .4s ease-out;
+}
+.shitter-steam{
+  position:absolute;
+  left:0; right:0;
+  top:max(10px, 12vh);
+  height:120px;
+  pointer-events:none;
+}
+.fi-boss-banner{
+  font-family:var(--font-arcade);
+  font-size:11px;
+  color:var(--red);
+  min-height:18px;
+  margin:4px 0;
+  opacity:0;
+}
+.fi-boss-banner.show{ animation:verdictIn .6s var(--ease-spring) forwards; }
+.fi-arena{ position:relative; overflow:hidden; }
+.fi-combo{
+  position:absolute;
+  top:8px; left:50%;
+  transform:translateX(-50%);
+  font-family:var(--font-arcade);
+  font-size:14px;
+  color:var(--gold);
+  opacity:0;
+  pointer-events:none;
+  z-index:5;
+}
+.fi-combo.show{ animation:verdictIn .5s var(--ease-spring) forwards; }
+.fi-zones{
+  position:absolute;
+  inset:0;
+  display:flex;
+  pointer-events:none;
+}
+.fi-zone{
+  flex:1 1 50%;
+  pointer-events:auto;
+}
+.fi-bum{
+  position:absolute;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
+  pointer-events:none;
+}
+.fi-bum-dribbler{ filter:hue-rotate(120deg); }
+.fi-bum-bomber{ filter:drop-shadow(0 0 6px #ff5252); }
+.fi-drop{
+  position:absolute;
+  font-size:12px;
+  pointer-events:none;
+  transform:translate(-50%, -50%);
+}
+.fi-part{ position:absolute; border-radius:50%; pointer-events:none; }
+.fi-walk{ background:linear-gradient(180deg, #4a7c59, #33513c); color:#fff; }
+
 /* ---------- reduced motion ---------- */
 
 @media (prefers-reduced-motion:reduce){
@@ -4132,60 +4382,78 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
     </div>
   </section>
 
-  <section id="screen-fartoff" class="screen hidden">
+  <section id="screen-fartoff" class="screen hidden bonus-fullscreen">
     <div class="bonus-wrap">
       <div class="bonus-tag">BEER GARDEN SHOWDOWN</div>
+      <div class="bonus-back" id="foBack">BACK</div>
       <h2>💨 FART OFF 💨</h2>
-      <p class="bonus-sub" id="foSub">HOLD to build pressure. RELEASE to let rip. Brutality beats THE LANDLORD.</p>
-      <div class="fo-arena">
+      <div class="fo-taunt" id="foTaunt">THE LANDLORD IS WATCHING...</div>
+      <p class="bonus-sub" id="foSub">HOLD to build pressure. RELEASE to let rip. First to 3 DESTROYS the other.</p>
+      <div class="fo-arena" id="foArena">
         <div class="fo-fighter">
-          <div class="fo-face">🧑</div>
+          <div class="fo-face" id="foFaceYou">🧑</div>
           <div class="fo-name">YOU</div>
           <div class="fo-meter"><i id="foMeterYou"></i></div>
           <div class="fo-score" id="foScoreYou">—</div>
         </div>
         <div class="fo-vs" id="foVs">VS</div>
         <div class="fo-fighter">
-          <div class="fo-face">🎩</div>
+          <div class="fo-face" id="foFaceAi">🎩</div>
           <div class="fo-name">THE LANDLORD</div>
           <div class="fo-meter"><i id="foMeterAi"></i></div>
           <div class="fo-score" id="foScoreAi">—</div>
         </div>
       </div>
+      <div class="bonus-shart-risk" id="foRiskBox">
+        <div class="risk-copy" id="foRiskCopy">HOLD LONGER FOR MORE POWER. DON'T POO YOUR PANTS.</div>
+        <div class="risk-bar"><div class="risk-fill" id="foRiskFill"></div></div>
+      </div>
       <div class="fo-log" id="foLog">FIRST TO 3. HOLD AND LET RIP.</div>
-      <div class="fo-pressure" id="foPressure"></div>
-      <button class="btn btn-ghost" id="foBack">BACK</button>
+      <div class="fo-brutality bonus-brutality" id="foBrutality"></div>
     </div>
   </section>
 
-  <section id="screen-bogroll" class="screen hidden">
+  <section id="screen-bogroll" class="screen hidden bonus-fullscreen">
     <div class="bonus-wrap">
-      <div class="bonus-tag">THE CUBICLE ROULETTE</div>
+      <div class="bonus-tag">THE CUBICLE OF DOOM</div>
+      <div class="bonus-back" id="brBack">BACK</div>
       <h2>🧻 BOG ROLL ROULETTE 🧻</h2>
-      <p class="bonus-sub" id="brSub">Six cubicles. ONE has a fresh roll. Pick wrong and meet what the last man left.</p>
+      <p class="bonus-sub" id="brSub">Six named cubicles. ONE has a fresh roll. Pick wrong and meet what the last man left.</p>
+      <div class="br-shitter-name" id="brCubicleName">PICK A CUBICLE</div>
       <div class="br-doors" id="brDoors"></div>
+      <div class="br-float-tease" id="brFloatTease"></div>
+      <div class="shitter-tank" id="brTank">
+        <div class="shitter-bowl" id="brBowl"><div class="shitter-pile" id="brPile"></div></div>
+      </div>
+      <div class="shitter-steam" id="brSteam"></div>
       <div class="br-log" id="brLog">CHOOSE YOUR CUBICLE.</div>
-      <div class="br-score">CUBICLES CLEARED: <b id="brCleared">0</b> · BANKED: <b id="brBanked">0</b></div>
-      <button class="btn btn-ghost" id="brBack">BACK</button>
+      <div class="br-score">CUBICLES CLEARED: <b id="brCleared">0</b> · COMBO: <b id="brCombo">1×</b> · BANKED: <b id="brBanked">0</b> · SAFE: <b id="brSafe">0</b></div>
     </div>
   </section>
 
 
   <!-- FART INVADERS -->
-  <section id="screen-fartinvaders" class="screen hidden">
+  <section id="screen-fartinvaders" class="screen hidden bonus-fullscreen">
     <div class="bonus-wrap fi-wrap">
       <div class="bonus-tag">BUMS FROM THE SKIES</div>
+      <div class="bonus-back" id="fiBack">BACK / BANK</div>
       <h2>🚀 FART INVADERS 🚀</h2>
+      <div class="fi-boss-banner" id="fiBossBanner"></div>
       <p class="bonus-sub" id="fiSub">Move left/right. FIRE loo-roll bolts. Don't let the turds hit your bog.</p>
-      <div class="fi-topbar" id="fiTopbar">SCORE 0 · WAVE 1 · LIVES 1</div>
+      <div class="fi-topbar" id="fiTopbar">SCORE 0 · WAVE 1 · LIVES 1 · BANKED 0</div>
       <div class="fi-arena" id="fiArena">
+        <div class="fi-combo" id="fiCombo"></div>
         <div class="fi-player" id="fiPlayer">🚽</div>
+        <div class="fi-zones">
+          <div class="fi-zone fi-zone-left" id="fiZoneLeft"></div>
+          <div class="fi-zone fi-zone-right" id="fiZoneRight"></div>
+        </div>
       </div>
       <div class="fi-controls">
         <button class="fi-btn" id="fiLeft">◀</button>
         <button class="fi-btn fi-fire" id="fiFire">FIRE</button>
         <button class="fi-btn" id="fiRight">▶</button>
-        <button class="fi-btn fi-close" id="fiBack">✕</button>
+        <button class="fi-btn fi-walk" id="fiWalk">BANK &amp; WALK</button>
       </div>
     </div>
   </section>
@@ -4282,7 +4550,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "restart-fix-62-r68";
+  const BUILD_STAMP = "bonus-full-63-r69";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -5195,6 +5463,12 @@ function updateBodyLock(){
     visible("screen-fartinvaders");
   document.body.style.overflow = any ? "hidden" : "";
   document.body.style.touchAction = any ? "none" : "";
+  const bonusActive = visible("screen-bonus") || visible("screen-bogroll") || visible("screen-fartoff") || visible("screen-fartinvaders");
+  const hud = document.getElementById("hud");
+  if (hud) hud.style.visibility = bonusActive ? "hidden" : "";
+  document.body.classList.toggle("bonus-locked", bonusActive);
+  const stage = document.getElementById("stage");
+  if (stage) stage.classList.toggle("bonus-active", bonusActive);
 }
 
 function adjustOrderPanelForKeyboard(){
@@ -7457,89 +7731,190 @@ function closeBonus(){
 /* ==================== BEER GARDEN FART OFF ==================== */
 const FO_FILES = ["sfx/fart-off-commons02.mp3","sfx/fart-off-archive03.mp3","sfx/fart-off-archive05.mp3","sfx/fart-off-archive09.mp3","sfx/fart-off-commons16.mp3","sfx/fart-off-archive08.mp3","sfx/fart-off-commons01.mp3","sfx/fart-off-archive01.mp3","sfx/fart-off-commons08.mp3","sfx/fart-off-commons00.mp3","sfx/fart-off-archive00.mp3","sfx/fart-off-commons04.mp3","sfx/fart-off-commons06.mp3","sfx/fart-off-commons12.mp3","sfx/fart-off-archive06.mp3","sfx/fart-off-archive07.mp3"];
 const FO_POOL = [];
+const FO_TAUNTS = [
+  "IS THAT ALL YOU'VE GOT, PEA-SHOOTER?",
+  "MY NAN PUFFS HARDER THAN THAT!",
+  "I'VE HEARD SNEEZES WITH MORE FORCE!",
+  "YOU CALL THAT A GUFF? CUTE.",
+  "THE PUB DOG COULD TOP THAT!",
+  "RECKON YOU'RE HOLDING BACK, COWARD!",
+  "THIS ISN'T A TEA PARTY — LET IT RIP!",
+  "I'VE SMELLED BREAD THAT STANKS MORE!",
+  "YOUR BUM'S WRITING CHEQUES IT CAN'T CASH!"
+];
 function foPreload(){
   if (FO_POOL.length || !FO_FILES.length) return;
   FO_FILES.forEach(src => { try { const a = new Audio(src); a.preload = "auto"; a.load(); FO_POOL.push(a); } catch(e){} });
 }
-const fo = { on:false, holding:false, holdStart:0, meter:0, raf:0, you:0, ai:0, busy:false, mid:false, epoch:0 };
+const fo = { on:false, holding:false, holdStart:0, meter:0, raf:0, you:0, ai:0, busy:false, mid:false, epoch:0, tauntIdx:0 };
 function foShow(on_){
+  const s = el("screen-fartoff");
   if (!on_){ fo.epoch++; if (fo.raf){ cancelAnimationFrame(fo.raf); fo.raf = 0; } fo.on = false; fo.holding = false; if (game.phase === "play" && !game.paused) AudioFX.resumeMusic(); }
-  el("screen-fartoff").classList.toggle("hidden", !on_);
+  s.classList.toggle("hidden", !on_);
+  s.classList.toggle("mid", !!fo.mid);
   updateBodyLock();
-  if (on_){ foPreload(); foLog("FIRST TO 3. HOLD AND LET RIP."); try { updateHomeChip(); } catch(e){} }
+  if (on_){ foPreload(); foLog("FIRST TO 3. HOLD AND LET RIP."); fo.tauntIdx = 0; foTaunt("THE LANDLORD CRACKS HIS KNUCKLES..."); foRisk(0); try { updateHomeChip(); } catch(e){} }
 }
 function foLog(t){ el("foLog").textContent = t; }
-function foMeterPct(p, who){
-  const bar = document.getElementById(who === "you" ? "foMeterYou" : "foMeterAi");
-  if (bar) bar.style.width = Math.round(p * 100) + "%";
+function foMeterPct(p, who){ el("foMeter" + (who==="you"?"You":"Ai")).style.width = Math.max(0, Math.min(100, p*100)) + "%"; }
+function foTaunt(line){
+  const e = el("foTaunt");
+  if (!e) return;
+  e.textContent = line || "THE LANDLORD IS WATCHING...";
+  e.classList.remove("show");
+  void e.offsetWidth;
+  e.classList.add("show");
+}
+function foRisk(pct){
+  const fill = el("foRiskFill");
+  const copy = el("foRiskCopy");
+  if (!fill || !copy) return;
+  fill.style.width = Math.max(0, Math.min(100, pct*100)) + "%";
+  if (pct < .55){ copy.textContent = "HOLD LONGER FOR MORE POWER. DON'T POO YOUR PANTS."; copy.classList.remove("danger"); }
+  else if (pct < .78){ copy.textContent = "RUMBLING... KEEP IT TOGETHER."; copy.classList.remove("danger"); }
+  else if (pct < .90){ copy.textContent = "DANGER ZONE — ONE PUSH TOO FAR AND IT'S TROUSERS TROUBLE."; copy.classList.add("danger"); }
+  else { copy.textContent = "BACK OUT NOW OR YOU'RE WEARING IT!"; copy.classList.add("danger"); }
 }
 function foBrutality(holdMs){
-  // 0.4s..4s hold maps to 10..100 brutality with a curve that rewards nerve
-  const t = Math.min(1, Math.max(0.1, holdMs / 4000));
-  return Math.round(10 + 90 * Math.pow(t, 0.85));
+  const e = el("foBrutality");
+  if (!e) return;
+  let txt = "";
+  if (holdMs > 2200){ txt = "CATASTROPHIC"; }
+  else if (holdMs > 1600){ txt = "BRUTAL"; }
+  else if (holdMs > 1100){ txt = "NASTY"; }
+  else { txt = "PUNY"; }
+  e.textContent = txt + " GUFF";
+  e.classList.remove("show"); void e.offsetWidth; e.classList.add("show");
+}
+function foParticle(x, y, type="puff"){
+  const p = document.createElement("div");
+  p.className = "bonus-particle";
+  const size = type === "skid" ? 10 + Math.random()*18 : 16 + Math.random()*24;
+  p.style.width = size + "px"; p.style.height = size + "px";
+  p.style.left = x + "px"; p.style.top = y + "px";
+  p.style.background = type === "skid" ? "rgba(93,64,55,.9)" : "rgba(200,210,200,.55)";
+  p.style.boxShadow = type === "skid" ? "0 0 8px rgba(93,64,55,.6)" : "0 0 12px rgba(240,255,240,.4)";
+  const angle = Math.random()*Math.PI*2;
+  const dist = 40 + Math.random()*120;
+  p.style.setProperty("--tx", Math.cos(angle)*dist + "px");
+  p.style.setProperty("--ty", Math.sin(angle)*dist + "px");
+  p.style.animation = (type==="skid" ? "fiParticle .9s" : "fiParticle 1.1s") + " ease-out forwards";
+  document.body.appendChild(p);
+  setTimeout(() => p.remove(), 1200);
 }
 function foPlaySample(idx, rate){
   try {
-    const a = FO_POOL[idx % FO_POOL.length];
-    if (!a) return;
-    a.currentTime = 0;
-    a.playbackRate = rate;
-    const p = a.play();
-    if (p && p.catch) p.catch(() => {});
-  } catch(e){}
+    let a;
+    if (FO_POOL.length){ a = FO_POOL[idx % FO_POOL.length].cloneNode(); }
+    else { a = new Audio(FO_FILES[idx % FO_FILES.length]); }
+    a.preservesPitch = false; a.playbackRate = rate; a.volume = Math.min(1, AudioFX.master * AudioFX.sfx);
+    a.play().catch(()=>{});
+    return a;
+  } catch(e){ return null; }
 }
 function foTick(){
-  if (!fo.on || !fo.holding) return;
-  fo.meter = Math.min(1, (performance.now() - fo.holdStart) / 4000);
-  foMeterPct(fo.meter, "you");
-  el("foPressure").textContent = fo.meter > 0.92 ? "⚠️ DON'T SHART" : fo.meter > 0.66 ? "PRESSURE CRITICAL…" : fo.meter > 0.5 ? "BUILDING…" : "HOLD…";
+  if (!fo.on || !fo.holding || !fo.mid) return;
+  const now = performance.now();
+  const held = now - fo.holdStart;
+  const ms = Math.max(0, held);
+  const maxHold = 2600;
+  const p = Math.min(1, ms / maxHold);
+  foMeterPct(p, "you");
+  foRisk(p);
+  const faceYou = el("foFaceYou");
+  if (faceYou){ faceYou.textContent = p > .75 ? "😖" : (p > .4 ? "😤" : "🧑"); }
+  if (p >= 1){
+    // held too long — shart instant round loss
+    foRelease(true);
+    return;
+  }
   fo.raf = requestAnimationFrame(foTick);
 }
 function foHoldStart_(e){
+  if (e && e.button > 0) return;
   if (!fo.on || fo.busy) return;
-  fo.holding = true; fo.holdStart = performance.now();
+  AudioFX.click();
+  fo.holding = true; fo.holdStart = performance.now(); fo.busy = true;
+  foMeterPct(0, "you"); foRisk(0);
+  const faceYou = el("foFaceYou"); if (faceYou) faceYou.textContent = "😤";
   fo.raf = requestAnimationFrame(foTick);
 }
-function foRelease(){
-  if (!fo.on || !fo.holding) return;
-  fo.holding = false;
-  cancelAnimationFrame(fo.raf);
-  const holdMs = performance.now() - fo.holdStart;
-  const mine = foBrutality(holdMs);
-  fo.busy = true;
-  // your blast: sample index scales with brutality, pitch sags with pressure
-  const idx = Math.min(FO_FILES.length - 1, Math.floor(mine / 100 * FO_FILES.length + Math.random() * 2));
-  foPlaySample(idx, 1.15 - fo.meter * 0.3);
-  el("foScoreYou").textContent = mine + "%";
-  foMeterPct(mine / 100, "you");
-  foLog("YOU LET RIP: BRUTALITY " + mine + "…");
-  // landlord answers after a dramatic beat
-  setTimeout(() => {
-    // Landlord strategy: scales with round, sometimes chokes under pressure
-    const choke = Math.random() < 0.18;
-    const his = choke ? Math.round(15 + Math.random() * 30) : Math.round(35 + Math.random() * 40 + fo.you * 6 + fo.ai * 4);
-    const hisCapped = Math.min(99, his);
-    foPlaySample(Math.floor(Math.random() * FO_FILES.length), 0.85);
-    el("foScoreAi").textContent = hisCapped + "%";
-    foMeterPct(hisCapped / 100, "ai");
-    const arena = document.querySelector(".fo-arena");
-    if (arena){ arena.classList.remove("shake"); void arena.offsetWidth; arena.classList.add("shake"); }
+function foHoldEnd(e){
+  if (e && e.button > 0) return;
+  if (!fo.holding) return;
+  foRelease(false);
+}
+function foRelease(forcedShart){
+  if (!fo.on || !fo.busy){ fo.holding = false; return; }
+  fo.holding = false; if (fo.raf){ cancelAnimationFrame(fo.raf); fo.raf = 0; }
+  const held = Math.max(0, performance.now() - fo.holdStart);
+  const p = Math.min(1, held / 2600);
+  foRisk(p);
+  const faceYou = el("foFaceYou");
+  const rect = faceYou ? faceYou.getBoundingClientRect() : {left:0, top:0, width:0, height:0};
+  const cx = rect.left + rect.width/2, cy = rect.top + rect.height/2;
+  if (forcedShart || p >= .98){
+    if (faceYou) faceYou.textContent = "💩";
+    for (let i=0;i<12;i++) foParticle(cx + (Math.random()-.5)*40, cy + (Math.random()-.5)*40, "skid");
+    shake("shake-hard");
+    AudioFX.lose();
+    foLog("💩 SHART! YOU'VE DONE YOUR TROUSERS. LANDLORD WINS THE ROUND.");
+    foTaunt("HAHA — NASTY! WASH YOURSELF.");
+    fo.ai++; foMeterPct(1, "ai"); el("foScoreAi").textContent = fo.ai; el("foScoreYou").textContent = fo.you;
+    foRoundEnd(false);
+    return;
+  }
+  // power-to-points mapping (quadratic so long holds feel big)
+  const power = Math.pow(p, 1.55);
+  const roll = Math.random();
+  const aiPower = .35 + Math.random()*.45; // landlord simple
+  const youWin = power > aiPower;
+  // screenshake scale by power
+  if (power > .6) shake("shake-hard"); else if (power > .3) shake("shake-soft");
+  for (let i=0;i<Math.floor(power*8)+2;i++) foParticle(cx + (Math.random()-.5)*60, cy + (Math.random()-.5)*60, "puff");
+  foBrutality(held);
+  if (youWin){
+    fo.you++; foMeterPct(1, "you"); foMeterPct(aiPower, "ai");
+    el("foScoreYou").textContent = fo.you; el("foScoreAi").textContent = fo.ai;
+    AudioFX.win(1);
+    const taunts = ["THE LANDLORD RECOILS!", "DIRECT HIT!", "HE'S GAGGING!", "BEAUTIFUL FORM!", "CLEAN SHOT!"];
+    foTaunt(taunts[Math.floor(Math.random()*taunts.length)]);
+    if (Math.random() < .3 && fo.tauntIdx < FO_TAUNTS.length){ foLog(FO_TAUNTS[fo.tauntIdx++]); }
+  } else {
+    fo.ai++; foMeterPct(0, "you"); foMeterPct(aiPower, "ai");
+    el("foScoreYou").textContent = fo.you; el("foScoreAi").textContent = fo.ai;
+    AudioFX.lose();
+    foTaunt(fo.tauntIdx < FO_TAUNTS.length ? FO_TAUNTS[fo.tauntIdx++] : "PATHETIC!");
+  }
+  // near-miss deuce drama
+  if (fo.you === 2 && fo.ai === 2){
+    foLog("💀 DEUCE! NEXT GUFF WINS — NO PRESSURE.");
+    shake("shake-soft");
+  } else if (fo.you >= 2 || fo.ai >= 2){
+    foLog((youWin?"MATCH POINT":"ENEMY MATCH POINT") + ". HOLD NERVES.");
+  }
+  foRoundEnd(fo.you >= 3 || fo.ai >= 3);
+}
+function foRoundEnd(done){
+  el("foVs").textContent = fo.you + "–" + fo.ai;
+  if (done){
+    const won = fo.you >= 3;
+    setTimeout(() => foEnd(won), 900);
+  } else {
+    fo.busy = false;
     setTimeout(() => {
-      if (mine > hisCapped){ fo.you++; foLog("🚀 YOURS DESTROYED HIS (" + mine + " vs " + hisCapped + (choke ? " — HE CHOKED" : "") + ") — " + fo.you + "-" + fo.ai); AudioFX.fart(); }
-      else if (hisCapped > mine){ fo.ai++; foLog("💩 THE LANDLORD OUT-RIPPED YOU (" + hisCapped + " vs " + mine + (choke ? "" : "") + ") — " + fo.you + "-" + fo.ai); AudioFX.lose(); }
-      else { foLog("🤝 DEAD HEAT — THE CARPET WON"); }
-      el("foVs").textContent = fo.you + "–" + fo.ai;
-      if (fo.you >= 3) foEnd(true);
-      else if (fo.ai >= 3) foEnd(false);
-      else fo.busy = false;
-    }, 900);
-  }, 700 + Math.random() * 600);
+      if (!fo.on) return;
+      foMeterPct(0, "you"); foMeterPct(0, "ai"); foRisk(0);
+      const faceYou = el("foFaceYou"); if (faceYou) faceYou.textContent = "🧑";
+      const faceAi = el("foFaceAi"); if (faceAi) faceAi.textContent = "🎩";
+    }, 500);
+  }
 }
 function foEnd(won){
   if (fo.raf){ cancelAnimationFrame(fo.raf); fo.raf = 0; }
   fo.on = false; fo.busy = false; fo.holding = false;
   if (fo.mid){ foMidGameEnd(won); return; }
-  const paid = (fo.mid ? 0 : (won ? (shitterUnlocked() ? 500 : 2000) : 0));
+  const paid = won ? (shitterUnlocked() ? 500 : 2000) : 0;
   if (won){
     try { achCheck("fartOffWin"); } catch(e){}
     if (paid) addScore(paid, "FART OFF WIN", "the landlord buys the round");
@@ -7554,125 +7929,138 @@ function foEnd(won){
     el("foLog").textContent = "💨 BLOWN OUT " + fo.you + "-" + fo.ai + " — HE'S SEEN BETTER IN THE CARPET AISLE";
     AudioFX.lose();
   }
-  el("foPressure").textContent = won ? "TAP HOLD FOR A REMATCH" : "TAP HOLD FOR REVENGE";
+  el("foSub").textContent = won ? "TAP HOLD FOR A REMATCH" : "TAP HOLD FOR REVENGE";
   fo.you = 0; fo.ai = 0; fo.busy = false;
-  // re-arm only if the round screen is STILL open when the timer fires (epoch-guarded)
   const myEpoch = fo.epoch;
-  setTimeout(() => { if (fo.epoch === myEpoch && !fo.mid && fo.on === false && !el("screen-fartoff").classList.contains("hidden")){ fo.on = true; fo.busy = false; } }, 50);
+  setTimeout(() => {
+    if (!fo.on || fo.epoch !== myEpoch || fo.mid) return;
+    foShow(false);
+    if (won) showScreen("table");
+  }, won ? 2200 : 2600);
 }
 function openFartOff(){
-  const m = getFartMeter();
-  if (m.charges <= 0){ showNoCharges(); return; }
-  AudioFX.unlock();
-  foShow(true);
-  if (el("screen-fartoff").classList.contains("hidden")) return;
+  if (!el("screen-fartoff").classList.contains("hidden")) return;
+  AudioFX.click();
   if (consumeFartMeterCharge()) updateFartMeterChip();
   fo.on = true; fo.busy = false; fo.you = 0; fo.ai = 0;
   el("foVs").textContent = "VS";
   el("foScoreYou").textContent = "—"; el("foScoreAi").textContent = "—";
   foMeterPct(0, "you"); foMeterPct(0, "ai");
+  foShow(true);
 }
-
-
-/* ==================== BOG ROLL ROULETTE ==================== */
-const br = { on:false, cleared:0, banked:0, paperDoor:-1, doors:[], busy:false, mid:false, epoch:0 };
+const CUBICLE_NAMES = [
+  "THE SHITTER", "THE THRONE", "THE LAVATORY OF DOOM", "THE BROWN LIBRARY",
+  "THE LAST CHANCE LOO", "THE VIP BOG"
+];
+const br = { on:false, cleared:0, banked:0, safe:0, paperDoor:-1, doors:[], busy:false, mid:false, epoch:0, combo:1, tankPct:0, lastPicked:-1 };
 function brShow(on_){
+  const s = el("screen-bogroll");
   if (!on_){ br.epoch++; br.on = false; br.busy = false; if (game.phase === "play" && !game.paused) AudioFX.resumeMusic(); }
-  el("screen-bogroll").classList.toggle("hidden", !on_);
+  s.classList.toggle("hidden", !on_);
+  s.classList.toggle("mid", !!br.mid);
   updateBodyLock();
   if (on_){ try { updateHomeChip(); } catch(e){} }
 }
 function brLog(t){ el("brLog").textContent = t; }
-function brLadder(n){ return [100, 300, 700, 1500][Math.min(n - 1, 3)]; }
+function brLadder(){
+  const rewards = [0, 100, 250, 500, 1000, 2500, 5000];
+  return rewards[Math.min(br.cleared, 6)];
+}
 function brRender(){
   const box = el("brDoors");
   box.innerHTML = "";
   br.doors = [];
-  const paperAt = Math.floor(Math.random() * 6);
-  for (let d = 0; d < 6; d++){
-    const b = document.createElement("button");
-    b.className = "br-door";
-    b.innerHTML = '<span class="br-face">🚪</span><span class="br-num">CUBICLE ' + (d + 1) + '</span>';
-    b.addEventListener("click", () => brPick(d, b));
-    box.appendChild(b);
-    br.doors.push(b);
+  for (let i=0;i<6;i++){
+    const d = document.createElement("button");
+    d.className = "br-door";
+    d.textContent = (i+1);
+    d.setAttribute("data-idx", i);
+    const name = CUBICLE_NAMES[i] || ("CUBICLE " + (i+1));
+    const tip = document.createElement("span");
+    tip.className = "br-door-name";
+    tip.textContent = name;
+    d.appendChild(tip);
+    d.addEventListener("click", () => brPick(i));
+    br.doors.push(d);
+    box.appendChild(d);
   }
-  br.paperDoor = paperAt;
+  br.paperDoor = Math.floor(Math.random()*6);
+  br.tankPct = 0; br.combo = 1; br.lastPicked = -1;
+  el("brCleared").textContent = br.cleared;
+  el("brBanked").textContent = br.banked;
+  el("brSafe").textContent = br.safe;
+  el("brCombo").textContent = "1×";
+  el("brCubicleName").textContent = "PICK A CUBICLE";
+  el("brPile").style.height = "0%";
 }
-function brSteamAt(btn){
-  try {
-    const r = btn.getBoundingClientRect();
-    for (let k = 0; k < 3; k++){
-      const s = document.createElement("div");
-      s.className = "br-steam"; s.textContent = "💨";
-      s.style.left = (r.left + r.width * (0.3 + Math.random() * 0.4)) + "px";
-      s.style.top = (r.top + 10) + "px";
-      document.body.appendChild(s);
-      setTimeout(() => s.remove(), 1500);
-    }
-  } catch(e){}
+function brSteamAt(doorEl){
+  const steam = el("brSteam");
+  if (!steam || !doorEl) return;
+  const r = doorEl.getBoundingClientRect();
+  const b = document.createElement("b");
+  b.style.left = (r.left + r.width/2) + "px";
+  b.style.top = (r.bottom - 8) + "px";
+  b.style.animationDelay = (Math.random()*0.8) + "s";
+  steam.appendChild(b);
+  setTimeout(() => b.remove(), 3400);
 }
-function brPick(d, btn){
+function brPick(idx){
   if (!br.on || br.busy) return;
-  br.busy = true;
-  br.doors.forEach(b => b.classList.add("dead"));
-  if (d === br.paperDoor){
-    btn.classList.add("open-paper");
-    btn.querySelector(".br-face").textContent = "🧻";
+  if (idx === br.lastPicked) return;
+  br.busy = true; br.lastPicked = idx;
+  const door = br.doors[idx];
+  if (!door) { br.busy = false; return; }
+  AudioFX.click();
+  el("brCubicleName").textContent = CUBICLE_NAMES[idx];
+  const clean = idx === br.paperDoor;
+  if (clean){
     br.cleared++;
-    const bank = brLadder(br.cleared) + (br.mid ? 100 * br.cleared : 0);
-    br.banked = bank;
-    el("brCleared").textContent = String(br.cleared);
-    el("brBanked").textContent = String(bank);
-    if (br.cleared >= 4){
-      try { achCheck("bogFullClear"); } catch(e){}
-      // CLEARED THE WHOLE BOG
-      const first = (() => { try { return localStorage.getItem("spoons.bogroll.won") !== "1"; } catch(e){ return true; } })();
-      const paid = br.mid ? 1500 : (first ? 2000 : 500);
-      try { localStorage.setItem("spoons.bogroll.won", "1"); } catch(e){}
-      game.score += paid;
-      brLog("👑 EVERY CUBICLE, ONE ROLL — LEGEND. +" + paid + " POINTS" + (first ? " (FIRST CLEAR BONUS)" : " (repeat clear)"));
-      AudioFX.win(5);
-      br.on = false;
-      if (br.mid){ setTimeout(() => brMidGameEnd(1500), 2000); br.on = false; return; }
-      const ep1 = br.epoch;
-      setTimeout(() => { if (br.epoch === ep1 && !el("screen-bogroll").classList.contains("hidden")){ br.on = true; brRender(); brLog("GO AGAIN — THE ROLL RESPAWNS."); br.busy = false; } }, 2200);
-    } else {
-      br.banked = bank;
-      if (br.mid){ addScore(bank, "BOG ROLL CLEARED", "walked away with " + bank); setTimeout(() => brMidGameEnd(bank), 1400); br.on = false; return; }
-      brLog("🧻 FRESH ROLL! +" + bank + " BANKED — NEXT CUBICLE? (walk away or push on)");
-      AudioFX.win(1);
-      br.busy = false;
-      setTimeout(() => { if (br.on) brRender(); }, 1200);
-      // re-render keeps the bank; pushing your luck continues
+    br.combo = Math.min(5, br.combo + 1);
+    br.safe = brLadder();
+    el("brCleared").textContent = br.cleared;
+    el("brSafe").textContent = br.safe;
+    el("brCombo").textContent = br.combo + "×";
+    door.classList.add("open-paper");
+    AudioFX.reward(1);
+    brLog("CLEAN ROLL IN " + CUBICLE_NAMES[idx] + "! " + br.combo + "× COMBO!");
+    // near-miss: if another door almost had paper? show floater tease on next random door
+    if (Math.random() < .35){
+      const tease = el("brFloatTease");
+      tease.textContent = "OH NO… A FLOATER DRIFTED PAST DOOR " + (Math.floor(Math.random()*6)+1);
+      tease.classList.add("show");
+      setTimeout(() => tease.classList.remove("show"), 1400);
     }
+    // fill tank a bit
+    br.tankPct = Math.min(90, br.tankPct + 10);
+    el("brPile").style.height = br.tankPct + "%";
+    setTimeout(() => {
+      br.busy = false;
+      // move paper door to a new safe cubicle
+      const remaining = [0,1,2,3,4,5].filter(i => i !== idx);
+      br.paperDoor = remaining[Math.floor(Math.random()*remaining.length)];
+    }, 450);
   } else {
-    btn.classList.add("open-floater");
-    btn.querySelector(".br-face").textContent = "💩";
-    brSteamAt(btn);
-    AudioFX.fart();
-    if (br.mid){ setTimeout(() => brMidGameEnd(0), 1800); br.on = false; return; }
-    const lost = br.banked;
-    brLog("💩 THE UNFLUSHED FLOATER. CUBICLE " + (d + 1) + " IS A WAR CRIME. DISQUALIFIED" + (lost ? " — LOST " + lost + " BANKED" : " — NOT A PENNY BANKED"));
+    door.classList.add("open-fail");
+    // big splatter fail
+    br.tankPct = 100;
+    el("brPile").style.height = "100%";
+    brSteamAt(door);
+    const steam = el("brSteam");
+    for (let i=0;i<6;i++) brSteamAt(br.doors[i]);
     AudioFX.lose();
-    br.on = false;
-    const ep2 = br.epoch;
-    setTimeout(() => { if (br.epoch === ep2 && !el("screen-bogroll").classList.contains("hidden")){ br.cleared = 0; br.banked = 0; el("brCleared").textContent = "0"; el("brBanked").textContent = "0"; brRender(); brLog("NEW ROLL. CHOOSE WISELY."); br.on = true; br.busy = false; } }, 2600);
+    brLog("💩 THE FLOATER STRIKES IN " + CUBICLE_NAMES[idx] + "! NOTHING BANKED.");
+    el("brCubicleName").textContent = "CUBICLE OF DOOM";
+    setTimeout(() => { brMidGameEnd(0); }, 1200);
   }
 }
 function openBogRoll(){
-  const m = getFartMeter();
-  if (m.charges <= 0){ showNoCharges(); return; }
-  AudioFX.unlock();
-  brShow(true);
-  if (el("screen-bogroll").classList.contains("hidden")) return;
+  if (!el("screen-bogroll").classList.contains("hidden")) return;
+  AudioFX.click();
   if (consumeFartMeterCharge()) updateFartMeterChip();
-  br.on = true; br.busy = false; br.cleared = 0; br.banked = 0;
-  el("brCleared").textContent = "0"; el("brBanked").textContent = "0";
+  br.on = true; br.busy = false; br.cleared = 0; br.banked = 0; br.safe = 0;
+  el("brCleared").textContent = "0"; el("brBanked").textContent = "0"; el("brSafe").textContent = "0";
   brRender(); brLog("CHOOSE YOUR CUBICLE.");
 }
-
-/* ==================== BONUS TRIGGER SYSTEM ==================== */
 function bonusToast(msg){
   try {
     const slot = document.getElementById("bonusToastSlot");
@@ -7722,16 +8110,19 @@ function maybePendingBonus(){ // returns true if a bonus round took over
   if (t === "fartoff"){ foMidGameStart(); return true; }
   if (t === "bogroll"){ brMidGameStart(); return true; }
   if (t === "fartinvaders"){ fiMidGameStart(); return true; }
+  if (t === "kebab"){ kbMidGameStart(); return true; }
+  if (t === "quiz"){ qzMidGameStart(); return true; }
+  if (t === "carpet3"){ cmMidGameStart(); return true; }
+  if (t === "gents"){ gtMidGameStart(); return true; }
   return false;
 }
 
 function brMidGameStart(){
   AudioFX.stopMusic();
   brShow(true);
-  br.on = true; br.busy = false; br.cleared = 0; br.banked = 0;
-  el("brCleared").textContent = "0"; el("brBanked").textContent = "0";
+  br.on = true; br.busy = false; br.cleared = 0; br.banked = 0; br.safe = 0; br.mid = true; br.epoch++;
+  el("brCleared").textContent = "0"; el("brBanked").textContent = "0"; el("brSafe").textContent = "0";
   brRender(); brLog("A CLEAN CUBICLE APPEARS MID-SESSION. PUSH YOUR LUCK.");
-  br.mid = true;
 }
 function brMidGameEnd(escapedWith){
   br.mid = false;
@@ -7747,348 +8138,320 @@ function brMidGameEnd(escapedWith){
   renderNextButton();
   try { updateBonusPill(); } catch(e){}
 }
-
 function foMidGameStart(){
   AudioFX.stopMusic();
   foShow(true);
   fo.on = true; fo.busy = false; fo.you = 0; fo.ai = 0;
+  fo.mid = true; fo.epoch++;
   el("foVs").textContent = "VS";
   el("foScoreYou").textContent = "—"; el("foScoreAi").textContent = "—";
-  foMeterPct(0, "you"); foMeterPct(0, "ai");
+  foMeterPct(0, "you"); foMeterPct(0, "ai"); foRisk(0);
   foLog("THE LANDLORD STEPS OUT FROM BEHIND THE BAR. FIRST TO 3.");
-  fo.mid = true;
+  foTaunt(FO_TAUNTS[0]);
 }
 function foMidGameEnd(won){
   fo.mid = false;
   foShow(false);
   showScreen("table");
-  if (won){ addScore(500, "FART OFF WON", "the landlord buys a round"); setVerdict('<div class="verdict-line wave-clear">💨 FART OFF WON — THE LANDLORD BUYS A ROUND</div><div class="verdict-sub">+500 · TABLE RESUMES</div>'); }
-  else { setVerdict('<div class="verdict-line wave-clear">💨 FART OFF LOST — BACK TO THE TABLE</div><div class="verdict-sub">THE LANDLORD WALKS OFF GRINNING</div>'); }
+  if (won){ addScore(500, "FART OFF WON", "the landlord buys the round"); }
+  else { addScore(0, "FART OFF LOST", "the landlord laughs at your trousers"); }
+  setVerdict('<div class="verdict-line ' + (won ? "win" : "lose") + '">' + (won ? "💨 FART OFF WON — THE LANDLORD BUYS" : "💨 FART OFF LOST — THE LANDLORD BUYS NOTHING") + '</div><div class="verdict-sub">TABLE RESUMES</div>');
+  AudioFX.resumeMusic();
+  renderNextButton();
+  try { updateBonusPill(); } catch(e){}
+}
+const fi = { on:false, score:0, wave:1, lives:1, banked:0, width:0, height:0, playerX:0, bullets:[], bums:[], drops:[], particles:[], lastT:0, raf:0, mid:false, epoch:0, combo:0, comboTimer:0, mega:false };
+const FI_WIDTH = 12;
+const FI_COLS = 8;
+const FI_ROWS = 4;
+function fiLog(t){ el("fiLog") && (el("fiLog").textContent = t); }
+function fiTopbar(){
+  el("fiTopbar").textContent = "SCORE " + fi.score + " · WAVE " + fi.wave + " · LIVES " + fi.lives + " · BANKED " + fi.banked;
+}
+function fiShow(on_){
+  const s = el("screen-fartinvaders");
+  if (!on_){ fi.epoch++; if (fi.raf){ cancelAnimationFrame(fi.raf); fi.raf = 0; } fi.on = false; if (game.phase === "play" && !game.paused) AudioFX.resumeMusic(); }
+  s.classList.toggle("hidden", !on_);
+  s.classList.toggle("mid", !!fi.mid);
+  updateBodyLock();
+  if (on_){ try { updateHomeChip(); } catch(e){} }
+}
+function fiReset(){
+  const arena = el("fiArena");
+  fi.width = arena.clientWidth;
+  fi.height = arena.clientHeight;
+  fi.playerX = fi.width / 2;
+  fi.bullets = []; fi.bums = []; fi.drops = []; fi.particles = [];
+  fi.score = 0; fi.wave = 1; fi.lives = 1; fi.banked = 0; fi.combo = 0; fi.comboTimer = 0; fi.mega = false;
+  fiTopbar();
+  const p = el("fiPlayer");
+  p.style.left = "50%"; p.style.transform = "translateX(-50%)";
+  fiBuildWave();
+}
+function fiBuildWave(){
+  fi.bums = [];
+  const cols = Math.min(FI_COLS + Math.floor((fi.wave-1)/2), 10);
+  const rows = Math.min(FI_ROWS + Math.floor((fi.wave-1)/3), 6);
+  const w = fi.width / (cols + 2);
+  const h = fi.height / (rows + 4);
+  const types = ["normal"];
+  if (fi.wave >= 2) types.push("dribbler");
+  if (fi.wave >= 4) types.push("bomber");
+  if (fi.wave % 5 === 0){
+    fi.mega = true;
+    el("fiBossBanner").textContent = "⚠ MEGA WAVE — EVERY FIVE WAVES THE LANDLORD LOSES HIS MIND ⚠";
+    el("fiBossBanner").classList.add("show");
+    setTimeout(() => el("fiBossBanner").classList.remove("show"), 2500);
+    types.push("bomber");
+  } else {
+    fi.mega = false;
+    el("fiBossBanner").textContent = "";
+  }
+  for (let r=0; r<rows; r++){
+    for (let c=0; c<cols; c++){
+      const type = types[Math.floor(Math.random()*types.length)];
+      const b = {
+        x: (c+1.5)*w, y: (r+1)*h,
+        w: w*.65, h: h*.6,
+        dx: (fi.wave >= 3 ? 0.8 : 0.5) * (Math.random() > .5 ? 1 : -1),
+        dy: 0, type: type,
+        alive: true, bob: Math.random()*Math.PI*2
+      };
+      fi.bums.push(b);
+    }
+  }
+}
+function fiMovePlayer(dir){
+  if (!fi.on) return;
+  const speed = fi.width * 0.08;
+  fi.playerX += dir * speed;
+  const pad = fi.width * 0.06;
+  fi.playerX = Math.max(pad, Math.min(fi.width - pad, fi.playerX));
+  const p = el("fiPlayer");
+  p.style.left = fi.playerX + "px";
+  p.style.transform = "translateX(-50%)";
+}
+function fiFire(){
+  if (!fi.on) return;
+  AudioFX.fart(1);
+  fi.bullets.push({ x: fi.playerX, y: fi.height - 50, vy: -fi.height * 0.02, alive: true });
+}
+function fiSpawnTurd(x, y){
+  fi.bums.push({ x: x, y: y, w: 22, h: 22, dx: (Math.random()-.5)*2, dy: 0, type: "fall", alive: true, bob: 0 });
+}
+function fiKillBum(i){
+  const b = fi.bums[i];
+  if (!b) return;
+  // combo popup
+  fi.combo++; fi.comboTimer = 1200;
+  const mult = 1 + Math.min(5, Math.floor(fi.combo/3));
+  const pts = 10 * mult * (b.type === "bomber" ? 2 : 1) * (fi.mega ? 2 : 1);
+  fi.score += pts;
+  const comboEl = el("fiCombo");
+  if (comboEl){
+    comboEl.textContent = (fi.combo >= 2 ? fi.combo + "× COMBO! +" : "+") + pts;
+    comboEl.classList.remove("show"); void comboEl.offsetWidth; comboEl.classList.add("show");
+    setTimeout(() => comboEl.classList.remove("show"), 700);
+  }
+  // particles
+  for (let k=0;k<6;k++){
+    fi.particles.push({ x: b.x, y: b.y, vx:(Math.random()-.5)*5, vy:(Math.random()-.5)*5, life:1, size:3+Math.random()*5, color: b.type==="bomber"?"#8d6e63":"#a1887f" });
+  }
+  AudioFX.coin();
+  fi.bums.splice(i, 1);
+  fiTopbar();
+}
+function fiWaveCleared(){
+  if (fi.bums.length) return;
+  fi.score += 50 * fi.wave;
+  const banner = el("fiBossBanner");
+  banner.textContent = "WAVE " + fi.wave + " FLUSHED — +" + (50*fi.wave);
+  banner.classList.add("show");
+  setTimeout(() => banner.classList.remove("show"), 1500);
+  fi.wave++;
+  fiTopbar();
+  setTimeout(() => fiBuildWave(), 900);
+}
+function fiUpdate(now){
+  if (!fi.on) return;
+  const dt = Math.min(50, now - fi.lastT);
+  fi.lastT = now;
+  // combo decay
+  if (fi.comboTimer > 0){ fi.comboTimer -= dt; if (fi.comboTimer <= 0) fi.combo = 0; }
+  // move bums
+  const speed = 0.001 * fi.width * (1 + fi.wave * 0.06);
+  const wobble = 0.003 * fi.width;
+  fi.bums.forEach(b => {
+    b.bob += 0.08;
+    if (b.type === "dribbler"){
+      b.x += b.dx * speed * 1.4 + Math.sin(b.bob)*wobble;
+    } else if (b.type === "bomber"){
+      b.x += b.dx * speed * 0.9;
+      if (Math.random() < .005 + fi.wave*.001){
+        fi.drops.push({ x: b.x, y: b.y + b.h/2, vy: fi.height*0.006, alive: true });
+      }
+    } else if (b.type === "fall"){
+      b.y += fi.height * 0.012;
+      b.x += Math.sin(b.bob)*wobble*0.5;
+    } else {
+      b.x += b.dx * speed;
+    }
+    if (b.x < b.w/2 || b.x > fi.width - b.w/2) b.dx *= -1;
+    // descent
+    if (b.type !== "fall"){
+      const descendEvery = fi.mega ? 900 : Math.max(400, 1400 - fi.wave*80);
+      if (now % descendEvery < dt) b.y += b.h * 0.35;
+    }
+  });
+  // drops
+  fi.drops = fi.drops.filter(d => {
+    d.y += d.vy;
+    if (d.y > fi.height - 20){
+      // splat on floor
+      for (let k=0;k<3;k++) fi.particles.push({ x: d.x, y: fi.height-20, vx:(Math.random()-.5)*4, vy:-Math.random()*4, life:1, size:4+Math.random()*6, color:"#6d4c41" });
+      return false;
+    }
+    return true;
+  });
+  // bullets
+  fi.bullets = fi.bullets.filter(b => {
+    b.y += b.vy;
+    if (b.y < 0) return false;
+    let hit = false;
+    for (let i=0;i<fi.bums.length;i++){
+      const e = fi.bums[i];
+      if (!e.alive) continue;
+      if (Math.abs(b.x - e.x) < e.w/2 + 6 && Math.abs(b.y - e.y) < e.h/2 + 6){
+        fiKillBum(i); hit = true; break;
+      }
+    }
+    return !hit;
+  });
+  // particles
+  fi.particles = fi.particles.filter(p => {
+    p.x += p.vx; p.y += p.vy; p.vy += 0.2; p.life -= 0.03;
+    return p.life > 0;
+  });
+  // collision with player
+  const playerW = 40;
+  for (const b of fi.bums){
+    if (b.type === "fall") continue;
+    if (Math.abs(b.x - fi.playerX) < playerW/2 + b.w/2 && b.y > fi.height - 80){
+      fiDie(b); return;
+    }
+  }
+  for (const d of fi.drops){
+    if (Math.abs(d.x - fi.playerX) < playerW/2 + 8 && d.y > fi.height - 50){
+      fiDie({x:d.x, y:d.y, w:20, h:20, type:"drop"}); return;
+    }
+  }
+  if (fi.bums.some(b => b.type !== "fall" && b.y > fi.height - 50)){
+    fiDie(fi.bums.find(b => b.type !== "fall")); return;
+  }
+  fiRender();
+  fiWaveCleared();
+  fi.raf = requestAnimationFrame(fiUpdate);
+}
+function fiRender(){
+  const arena = el("fiArena");
+  // remove old bums/drops rendered by DOM
+  arena.querySelectorAll(".fi-bum, .fi-drop").forEach(e => e.remove());
+  fi.bums.forEach(b => {
+    const e = document.createElement("div");
+    e.className = "fi-bum fi-bum-" + b.type;
+    e.textContent = b.type === "bomber" ? "💣" : (b.type === "dribbler" ? "🌀" : "💩");
+    e.style.left = b.x + "px"; e.style.top = b.y + "px";
+    e.style.width = b.w + "px"; e.style.height = b.h + "px";
+    e.style.lineHeight = b.h + "px";
+    e.style.transform = "translate(-50%, -50%)";
+    arena.appendChild(e);
+  });
+  fi.drops.forEach(d => {
+    const e = document.createElement("div");
+    e.className = "fi-drop";
+    e.textContent = "🟤";
+    e.style.left = d.x + "px"; e.style.top = d.y + "px";
+    arena.appendChild(e);
+  });
+  // particles overlay on arena
+  arena.querySelectorAll(".fi-part").forEach(e => e.remove());
+  fi.particles.forEach(p => {
+    const e = document.createElement("div");
+    e.className = "fi-part";
+    e.style.left = p.x + "px"; e.style.top = p.y + "px";
+    e.style.width = p.size + "px"; e.style.height = p.size + "px";
+    e.style.background = p.color; e.style.opacity = p.life;
+    e.style.transform = "translate(-50%, -50%)";
+    arena.appendChild(e);
+  });
+}
+function fiDie(hitBy){
+  cancelAnimationFrame(fi.raf); fi.raf = 0; fi.on = false;
+  AudioFX.lose();
+  // full-screen death splatter
+  fiSplatterFull();
+  const banner = el("fiBossBanner");
+  banner.textContent = "THE TURDS HAVE TAKEN THE BOG!";
+  banner.classList.add("show");
+  setTimeout(() => {
+    banner.classList.remove("show");
+    if (fi.mid) fiMidGameEnd(false);
+    else fiEnd(false);
+  }, 1600);
+}
+function fiSplatterFull(){
+  const s = el("screen-fartinvaders");
+  for (let i=0;i<40;i++){
+    const p = document.createElement("div");
+    p.className = "bonus-particle";
+    const size = 12 + Math.random()*50;
+    p.style.width = size + "px"; p.style.height = size + "px";
+    p.style.left = (Math.random()*100) + "vw"; p.style.top = (Math.random()*100) + "vh";
+    p.style.background = "rgba(" + (80+Math.random()*60) + "," + (60+Math.random()*50) + "," + (40+Math.random()*40) + "," + (.5+Math.random()*.4) + ")";
+    p.style.borderRadius = "50%";
+    p.style.filter = "blur(" + (Math.random()*3) + "px)";
+    p.style.setProperty("--tx", (Math.random()-.5)*60 + "px");
+    p.style.setProperty("--ty", (Math.random()-.5)*60 + "px");
+    p.style.animation = "fiParticle 1.4s ease-out forwards";
+    s.appendChild(p);
+    setTimeout(() => p.remove(), 1500);
+  }
+  shake("shake-hard");
+}
+function fiSplatter(){ /* legacy stub */ }
+function fiEnd(won){
+  fiShow(false);
+  showScreen("table");
+  if (won) addScore(fi.banked, "FART INVADERS BANKED", "banked " + fi.banked + " from the skies");
+  setVerdict('<div class="verdict-line ' + (won ? "win" : "lose") + '">' + (won ? "🚀 FART INVADERS CLEARED — BANKED " + fi.banked : "🚀 FART INVADERS OVER — BANKED " + fi.banked) + '</div><div class="verdict-sub">TABLE RESUMES</div>');
   AudioFX.resumeMusic();
   renderNextButton();
 }
-
-
-/* ==================== FART INVADERS ==================== */
-var fi = { on:false, raf:0, epoch:0, mid:false, busy:false, ended:false,
-  score:0, wave:1, lives:1, dir:1, step:0.35, dropStep:0.7,
-  leftEdge:4, rightEdge:96, topEdge:10, bottomEdge:76,
-  widthPct:9.5, heightPct:6.5, gapPct:2,
-  cols:8, rows:5, bums:[], bolts:[], turds:[], splats:[],
-  playerX:50, playerEl:null, arena:null,
-  lastFire:0, fireInterval:1200,
-  speedMult:1, scoreWiped: false,
-  keys:{left:false,right:false} };
-
-function fiLog(t){ const el = document.getElementById("fiSub"); if (el) el.textContent = t; }
-function fiTopbar(){ const el = document.getElementById("fiTopbar"); if (el) el.textContent = "SCORE " + fi.score + " · WAVE " + fi.wave + " · LIVES " + fi.lives; }
-
-function fiShow(on_){
-  if (!on_){ fi.epoch++; if (fi.raf){ cancelAnimationFrame(fi.raf); fi.raf = 0; } fi.on = false; fi.busy = false; if (game.phase === "play" && !game.paused) AudioFX.resumeMusic(); }
-  document.getElementById("screen-fartinvaders").classList.toggle("hidden", !on_);
-  updateBodyLock();
-  if (on_) fiTopbar();
-}
-
-function fiReset(){
-  fi.on = false; fi.ended = false; fi.score = 0; fi.wave = 1; fi.lives = 1;
-  fi.dir = 1; fi.step = 0.35; fi.dropStep = 0.7; fi.speedMult = 1;
-  fi.bums = []; fi.bolts = []; fi.turds = []; fi.lastFire = 0; fi.fireInterval = 1200;
-  fi.scoreWiped = false;
-  const arena = document.getElementById("fiArena");
-  if (arena){ arena.innerHTML = '<div class="fi-player" id="fiPlayer">🚽</div>'; }
-  fi.playerEl = document.getElementById("fiPlayer");
-  fi.playerX = 50;
-  fiBuildWave();
-  fiTopbar();
-}
-
-function fiBuildWave(){
-  const arena = document.getElementById("fiArena");
-  if (!arena) return;
-  // clear old bums, keep player
-  arena.querySelectorAll(".fi-bum").forEach(b => b.remove());
-  fi.bums = [];
-  const span = fi.cols * fi.widthPct + (fi.cols - 1) * fi.gapPct;
-  const usable = fi.rightEdge - fi.leftEdge - fi.widthPct;
-  const startX = fi.leftEdge + fi.widthPct/2 + (usable - span)/2;
-  for (let r = 0; r < fi.rows; r++){
-    for (let c = 0; c < fi.cols; c++){
-      const b = document.createElement("div");
-      b.className = "fi-bum";
-      b.textContent = "👙";
-      const x = startX + c * (fi.widthPct + fi.gapPct);
-      const y = fi.topEdge + r * (fi.heightPct + fi.gapPct);
-      b.style.left = x + "%";
-      b.style.top = y + "%";
-      b.dataset.r = String(r);
-      b.dataset.c = String(c);
-      arena.appendChild(b);
-      fi.bums.push({ r, c, x, y, el:b, dead:false });
-    }
-  }
-}
-
-function fiMovePlayer(dir){
-  fi.playerX = Math.max(fi.leftEdge + fi.widthPct/2, Math.min(100 - fi.leftEdge - fi.widthPct/2, fi.playerX + dir * 3.2));
-  if (fi.playerEl) fi.playerEl.style.left = fi.playerX + "%";
-}
-function fiFire(){
-  if (!fi.on || fi.ended) return;
-  const arena = document.getElementById("fiArena");
-  if (!arena) return;
-  const b = document.createElement("div");
-  b.className = "fi-bolt";
-  b.textContent = "🧻";
-  b.style.left = fi.playerX + "%";
-  const rect = arena.getBoundingClientRect();
-  const yPct = 100 - (44 / rect.height * 100);
-  b.style.top = yPct + "%";
-  arena.appendChild(b);
-  fi.bolts.push({ el:b, x:fi.playerX, y:yPct });
-}
-
-function fiSpawnTurd(){
-  if (!fi.on || fi.ended || !fi.bums.length) return;
-  const alive = fi.bums.filter(b => !b.dead);
-  if (!alive.length) return;
-  // choose random column, then lowest living bum in that column
-  const colsAlive = [...new Set(alive.map(b => b.c))];
-  const c = colsAlive[Math.floor(Math.random() * colsAlive.length)];
-  const colBums = alive.filter(b => b.c === c).sort((a, b) => b.r - a.r);
-  const shooter = colBums[0];
-  const arena = document.getElementById("fiArena");
-  if (!arena) return;
-  const t = document.createElement("div");
-  t.className = "fi-turd";
-  t.textContent = "💩";
-  t.style.left = shooter.x + "%";
-  t.style.top = (shooter.y + fi.heightPct) + "%";
-  arena.appendChild(t);
-  fi.turds.push({ el:t, x:shooter.x, y:shooter.y + fi.heightPct, vy:3.2 + Math.random() * 1.8 });
-}
-
-function fiKillBum(bum, rowBonus){
-  if (bum.dead) return;
-  bum.dead = true;
-  bum.el.classList.add("dead");
-  setTimeout(() => bum.el.remove(), 160);
-  const base = rowBonus || 10;
-  fi.score += base;
-  fiTopbar();
-  // column wipe check
-  const colAlive = fi.bums.filter(b => b.c === bum.c && !b.dead);
-  if (!colAlive.length){
-    fi.score += 25;
-    fiTopbar();
-    fiLog("COLUMN WIPED — +25");
-  }
-  // speed up as ranks thin
-  const aliveCount = fi.bums.filter(b => !b.dead).length;
-  fi.speedMult = 1 + (40 - aliveCount) * 0.03;
-}
-
-function fiWaveCleared(){
-  fi.score += 100 * fi.wave;
-  fiLog("WAVE " + fi.wave + " CLEARED — +" + (100 * fi.wave));
-  fi.wave++;
-  fi.step *= 1.15;
-  fi.fireInterval = Math.max(400, fi.fireInterval / 1.1);
-  fi.speedMult = 1;
-  setTimeout(() => { fiBuildWave(); fiTopbar(); }, 400);
-}
-
-function fiUpdate(){
-  if (!fi.on || fi.ended) return;
-  const arena = document.getElementById("fiArena");
-  if (!arena) return;
-  const rect = arena.getBoundingClientRect();
-  const now = performance.now();
-
-  // continuous keyboard movement
-  if (fi.keys.left) fiMovePlayer(-1);
-  if (fi.keys.right) fiMovePlayer(1);
-
-  // move bums
-  let hitEdge = false, hitBottom = false;
-  const move = fi.step * fi.speedMult * fi.dir;
-  for (const b of fi.bums){
-    if (b.dead) continue;
-    b.x += move;
-    if (b.x <= fi.leftEdge + fi.widthPct/2 || b.x >= fi.rightEdge - fi.widthPct/2) hitEdge = true;
-    if (b.y >= fi.bottomEdge) hitBottom = true;
-    b.el.style.left = b.x + "%";
-  }
-  if (hitEdge){
-    fi.dir *= -1;
-    for (const b of fi.bums){ if (!b.dead){ b.y += fi.dropStep; b.el.style.top = b.y + "%"; } }
-  }
-  if (hitBottom){ fiDie("THE BUMS LANDED ON YOUR BOG"); return; }
-
-  // enemy fire
-  if (now - fi.lastFire > fi.fireInterval / (0.8 + Math.random() * 0.4)){
-    fiSpawnTurd();
-    fi.lastFire = now;
-  }
-
-  // move bolts
-  for (let i = fi.bolts.length - 1; i >= 0; i--){
-    const bolt = fi.bolts[i];
-    bolt.y -= (6 / rect.height * 100); // ~6px/frame in pct
-    bolt.el.style.top = bolt.y + "%";
-    if (bolt.y < 0){ bolt.el.remove(); fi.bolts.splice(i, 1); continue; }
-    // collision with bums
-    let hit = null;
-    for (const b of fi.bums){
-      if (b.dead) continue;
-      if (bolt.x > b.x - fi.widthPct && bolt.x < b.x + fi.widthPct &&
-          bolt.y > b.y - fi.heightPct && bolt.y < b.y + fi.heightPct){
-        hit = b; break;
-      }
-    }
-    if (hit){
-      const rowBonus = hit.r === 0 ? 30 : hit.r === 1 ? 20 : 10;
-      fiKillBum(hit, rowBonus);
-      bolt.el.remove(); fi.bolts.splice(i, 1);
-    }
-  }
-
-  // move turds
-  for (let i = fi.turds.length - 1; i >= 0; i--){
-    const t = fi.turds[i];
-    t.y += (t.vy / rect.height * 100);
-    t.el.style.top = t.y + "%";
-    if (t.y > 95){ t.el.remove(); fi.turds.splice(i, 1); continue; }
-    // collision with player (player at bottom ~4px height)
-    const playerBottom = 100 - (44 / rect.height * 100);
-    if (t.y > playerBottom && t.x > fi.playerX - fi.widthPct/2 && t.x < fi.playerX + fi.widthPct/2){
-      fiDie("DIRECT HIT FROM A TURD");
-      return;
-    }
-  }
-
-  // wave clear
-  if (fi.bums.length && fi.bums.every(b => b.dead)){
-    fiWaveCleared();
-  }
-
-  fi.raf = requestAnimationFrame(fiUpdate);
-}
-
-function fiDie(reason){
-  if (fi.ended) return;
-  fi.ended = true;
-  if (fi.raf){ cancelAnimationFrame(fi.raf); fi.raf = 0; }
-  // freeze 300ms then splatter
-  fi.busy = true;
-  setTimeout(() => {
-    fiSplatter();
-    try { shake("shake-hard"); } catch(e){}
-    // speech synthesis
-    try {
-      if (window.speechSynthesis){
-        try { window.speechSynthesis.cancel(); } catch(e){}
-        const u = new SpeechSynthesisUtterance("OH NO! THAT'S DISGUSTING!");
-        u.lang = "en-GB"; u.rate = 0.85; u.pitch = 0.55; u.volume = 1;
-        u.onerror = () => {};
-        window.speechSynthesis.speak(u);
-      }
-    } catch(e){}
-    // descending brass fail sting
-    try {
-      AudioFX.tone(196, 0.12, "sawtooth", 0.12);
-      AudioFX.tone(146, 0.16, "sawtooth", 0.12, 0.12);
-      AudioFX.tone(98,  0.24, "sawtooth", 0.12, 0.28);
-    } catch(e){ try { AudioFX.lose(); } catch(e2){} }
-    setTimeout(() => { fiEnd(0, reason || "SPLATTERED"); }, 2200);
-  }, 300);
-}
-
-function fiSplatter(){
-  const layer = document.createElement("div");
-  layer.className = "fi-splat-layer fi-splatting";
-  document.body.appendChild(layer);
-  const arena = document.getElementById("fiArena");
-  const origin = arena ? arena.getBoundingClientRect() : { left:window.innerWidth/2, top:window.innerHeight*0.85, width:0, height:0 };
-  const ox = origin.left + origin.width/2, oy = origin.top + origin.height*0.8;
-  const count = 10 + Math.floor(Math.random() * 7);
-  for (let i = 0; i < count; i++){
-    const s = document.createElement("div");
-    const kind = Math.random();
-    if (kind < 0.45){ s.className = "fi-splat emoji"; s.textContent = "💩"; }
-    else if (kind < 0.85){ s.className = "fi-splat blob"; }
-    else { s.className = "fi-splat drip"; }
-    const tx = Math.random() * window.innerWidth;
-    const ty = Math.random() * window.innerHeight;
-    const rot = (Math.random() - 0.5) * 120;
-    const dx = tx - ox, dy = ty - oy;
-    s.style.left = tx + "px";
-    s.style.top = ty + "px";
-    s.style.setProperty("--rot", rot + "deg");
-    // launch from centre via initial transform (CSS animation slides down)
-    s.style.transform = "translate(-50%,-50%)";
-    s.style.transition = "transform .45s ease-out, opacity .45s ease-out";
-    layer.appendChild(s);
-    requestAnimationFrame(() => {
-      const dist = Math.sqrt(dx*dx + dy*dy);
-      const scale = 0.7 + Math.random() * 0.8;
-      s.style.transform = "translate(-50%,-50%) translate(" + dx*0.25 + "px, " + dy*0.25 + "px) rotate(" + rot + "deg) scale(" + scale + ")";
-    });
-  }
-  setTimeout(() => { layer.style.transition = "opacity .5s"; layer.style.opacity = "0"; }, 1600);
-  setTimeout(() => layer.remove(), 2100);
-}
-
-function fiEnd(banked, reason){
-  fi.on = false; fi.busy = false; fi.ended = true;
-  fiShow(false);
-  if (fi.mid){
-    if (banked > 0){
-      addScore(banked, "FART INVADERS BANKED", "walked away with " + banked);
-      setVerdict('<div class="verdict-line wave-clear">🚀 FART INVADERS BANKED — +' + banked + ' </div><div class="verdict-sub">' + (reason || "YOU MADE IT OUT") + ' · TABLE RESUMES</div>');
-    } else {
-      setVerdict('<div class="verdict-line wave-clear">💩 FART INVADERS: YOU GOT SPLATTERED — NOTHING BANKED</div> <div class="verdict-sub">' + (reason ? reason + " — NOTHING BANKED" : "OH NO! THAT'S DISGUSTING! — NOTHING BANKED") + ' · TABLE RESUMES</div>');
-    }
-    AudioFX.resumeMusic();
-    renderNextButton();
-    try { updateBonusPill(); } catch(e){}
-    showScreen("table");
-  } else {
-    // title/debug path: just show a toast summary
-    if (banked > 0){
-      addScore(banked, "FART INVADERS BANKED", "bonus room bank");
-      bonusToast("🚀 FART INVADERS BANKED " + banked + " — " + reason);
-    } else {
-      bonusToast("💩 FART INVADERS: YOU GOT SPLATTERED — " + (reason || "NOTHING BANKED"));
-    }
-    showScreen("title");
-  }
-}
-
 function fiMidGameStart(){
   AudioFX.stopMusic();
   fiShow(true);
-  fi.mid = true;
+  fi.on = true; fi.mid = true; fi.epoch++;
   fiReset();
-  fi.on = true;
-  fiTopbar();
-  fiLog("THE BUMS ARE ATTACKING. FIRE!");
+  fi.lastT = performance.now();
   fi.raf = requestAnimationFrame(fiUpdate);
 }
-
-function fiMidGameEnd(banked, reason){
+function fiMidGameEnd(won){
   fi.mid = false;
-  fiEnd(banked, reason);
+  fiShow(false);
+  showScreen("table");
+  if (won) addScore(fi.banked, "FART INVADERS BANKED", "banked " + fi.banked + " from the bums");
+  setVerdict('<div class="verdict-line ' + (won ? "win" : "lose") + '">' + (won ? "🚀 FART INVADERS BANKED — " + fi.banked : "🚀 FART INVADERS OVER — BANKED " + fi.banked) + '</div><div class="verdict-sub">TABLE RESUMES</div>');
+  AudioFX.resumeMusic();
+  renderNextButton();
+  try { updateBonusPill(); } catch(e){}
 }
-
 function fiWalkAway(){
-  if (!fi.on || fi.ended || fi.busy) return;
-  const banked = Math.floor(fi.score * 0.5);
-  if (fi.raf){ cancelAnimationFrame(fi.raf); fi.raf = 0; }
-  fi.on = false; fi.busy = false; fi.ended = true;
-  fiEnd(banked, "WALKED AWAY");
+  if (!fi.on) return;
+  fi.banked = fi.score + fi.wave * 25;
+  cancelAnimationFrame(fi.raf); fi.raf = 0; fi.on = false;
+  if (fi.mid) fiMidGameEnd(true);
+  else fiEnd(true);
 }
-
 function maybeTriggerFartInvaders(oldWave){
   if (game.fiOffered) return;
   let offer = false;
@@ -8259,7 +8622,7 @@ function startBonusNow(){
       if (pendingBonus.queue.length) maybePendingBonus();
       // Guard: if no bonus screen is visible after dispatch, force-open the next queued bonus directly.
       const bonusVisible = function(id){ const el = document.getElementById(id); return el && !el.classList.contains("hidden"); };
-      if (pendingBonus.queue.length && !bonusVisible("screen-fartinvaders") && !bonusVisible("screen-bogroll") && !bonusVisible("screen-fartoff")){
+      if (pendingBonus.queue.length && !bonusVisible("screen-fartinvaders") && !bonusVisible("screen-bogroll") && !bonusVisible("screen-fartoff") && !bonusVisible("screen-kebab") && !bonusVisible("screen-quiz") && !bonusVisible("screen-carpet3") && !bonusVisible("screen-gents")){
         maybePendingBonus();
       }
     } catch(e3){ logBonusEvent("startGame-error", String(e3).slice(0,80)); }
@@ -8416,10 +8779,24 @@ const fiLeft = document.getElementById("fiLeft");
 const fiRight = document.getElementById("fiRight");
 const fiFireBtn = document.getElementById("fiFire");
 const fiBack = document.getElementById("fiBack");
-if (fiLeft){ fiLeft.addEventListener("pointerdown", () => fi.keys.left = true); fiLeft.addEventListener("pointerup", () => fi.keys.left = false); fiLeft.addEventListener("pointerleave", () => fi.keys.left = false); }
-if (fiRight){ fiRight.addEventListener("pointerdown", () => fi.keys.right = true); fiRight.addEventListener("pointerup", () => fi.keys.right = false); fiRight.addEventListener("pointerleave", () => fi.keys.right = false); }
+const fiWalk = document.getElementById("fiWalk");
+const fiZoneLeft = document.getElementById("fiZoneLeft");
+const fiZoneRight = document.getElementById("fiZoneRight");
+if (fiLeft){ fiLeft.addEventListener("pointerdown", () => { if (fi.on) fiMovePlayer(-1); }); fiLeft.addEventListener("pointerup", () => {}); }
+if (fiRight){ fiRight.addEventListener("pointerdown", () => { if (fi.on) fiMovePlayer(1); }); fiRight.addEventListener("pointerup", () => {}); }
 if (fiFireBtn) fiFireBtn.addEventListener("click", fiFire);
-if (fiBack) fiBack.addEventListener("click", () => { AudioFX.click(); fiWalkAway(); });
+if (fiBack) fiBack.addEventListener("click", () => { AudioFX.click(); if (fi.on && fi.mid) return; fiWalkAway(); });
+if (fiWalk) fiWalk.addEventListener("click", () => { AudioFX.click(); fiWalkAway(); });
+(function fiZones(){
+  function bindZone(zone, dir){
+    if (!zone) return;
+    zone.addEventListener("touchstart", e => { e.preventDefault(); if (fi.on) fiMovePlayer(dir); }, {passive:false});
+    zone.addEventListener("touchend", e => { e.preventDefault(); if (fi.on) fiFire(); }, {passive:false});
+    zone.addEventListener("pointerdown", e => { if (e.pointerType !== "touch" && fi.on) fiMovePlayer(dir); });
+  }
+  bindZone(fiZoneLeft, -1);
+  bindZone(fiZoneRight, 1);
+})();
 (function fiSwipe(){
   const arena = document.getElementById("fiArena");
   if (!arena) return;
@@ -8479,9 +8856,17 @@ if (captainShareBtn) captainShareBtn.addEventListener("click", () => {
 });
 const btnNoChargesBack = el("btnNoChargesBack"); if (btnNoChargesBack) btnNoChargesBack.addEventListener("click", () => { AudioFX.click(); hideNoCharges(); });
 const btnFartOff = el("btnFartOff"); if (btnFartOff) btnFartOff.addEventListener("click", () => { AudioFX.click(); openFartOff(); });
-el("foBack").addEventListener("click", () => { AudioFX.click(); foShow(false); showScreen("title"); });
+el("foBack").addEventListener("click", () => {
+  AudioFX.click();
+  if (fo.mid) { /* mid-game: no premature exit */ return; }
+  foShow(false); showScreen("title");
+});
 const btnBogRoll = el("btnBogRoll"); if (btnBogRoll) btnBogRoll.addEventListener("click", () => { AudioFX.click(); openBogRoll(); });
-el("brBack").addEventListener("click", () => { AudioFX.click(); brShow(false); showScreen("title"); });
+el("brBack").addEventListener("click", () => {
+  AudioFX.click();
+  if (br.mid) { /* mid-game: no premature exit */ return; }
+  brShow(false); showScreen("title");
+});
 (function foBind(){
   const s = el("screen-fartoff");
   s.style.touchAction = "none";
