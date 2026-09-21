@@ -4130,10 +4130,7 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
   margin-left:6px;
 }
 #btnMenu{
-  position:absolute;
-  top:10px;
-  right:10px;
-  z-index:var(--z-homechip);
+  /* lives inside #hudButtons so it stays inside the HUD container */
 }
 #menuPanel{
   position:fixed;
@@ -4322,7 +4319,6 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
   #screen-title .modebtn{ padding:12px 16px 8px; min-height:40px; }
   #screen-title .title-sub{ font-size:12px; margin:0 auto 12px; max-width:92%; }
   #screen-title .playing-at, #screen-title .order-hint{ margin-top:5px; }
-  #screen-title .btnMenu{ padding:8px 14px 5px; min-height:34px; }
 }
 @media (max-height: 700px){
   #screen-title .order-hint{ display:none; }
@@ -4333,7 +4329,6 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
   #screen-title .duck-banner, #screen-title .title-tag, #screen-title .title-strip, #screen-title .order-hint, #screen-title .title-sub{ display:none; }
   #screen-title h1{ font-size:max(14px, min(5.8vw, 34px)); margin-bottom:3px; }
   #screen-title .modebtn{ padding:7px 12px 3px; min-height:33px; }
-  #screen-title .btnMenu{ display:none; }
 }
 @media (max-height: 460px){
   #screen-title .order-hint, #screen-title .playing-at{ display:none; }
@@ -4393,6 +4388,7 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
     <button class="hudbtn" id="btnMusic" title="Music (N)" aria-label="Toggle music">🎵<span class="hudbtn-label">MUSIC</span></button>
     <button class="hudbtn" id="btnMute" title="Mute (M)" aria-label="Toggle sound effects">🔊<span class="hudbtn-label">SOUND</span></button>
     <button class="hudbtn" id="btnPause" title="Pause (P)" aria-label="Pause menu">⏸<span class="hudbtn-label">PAUSE</span></button>
+    <button class="hudbtn" id="btnMenu" title="Menu" aria-label="Menu">☰<span class="hudbtn-label">MENU</span></button>
   </div>
 </header>
 
@@ -4400,7 +4396,6 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
 
   <!-- TITLE -->
   <section id="screen-title" class="screen">
-  <button class="hudbtn" id="btnMenu" aria-label="Menu">☰<span class="hudbtn-label">MENU</span></button>
   <div class="duck-banner" id="duckBanner" aria-hidden="true">
     <div class="duck-track">
       <span class="duck-unit">🦆 <span class="duck-sign">SPOONS TOP TRUMPS</span></span>
@@ -4980,7 +4975,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "turd-invaders-arcade-72-r77";
+  const BUILD_STAMP = "hud-overlap-73-r78";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -9640,6 +9635,9 @@ function updateHomeChip(){
   if (!c) return;
   const title = !el("screen-title").classList.contains("hidden");
   c.classList.toggle("show", !title);
+  // menu button only belongs to the title HUD; keep it hidden on game screens
+  const m = document.getElementById("btnMenu");
+  if (m){ m.style.display = title ? "" : "none"; }
 }
 (function moveHomeChip(){
   // phones: HOME lives in the HUD button row (evenly spaced under the title)
