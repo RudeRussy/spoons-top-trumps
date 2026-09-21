@@ -4742,7 +4742,7 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
       <div class="bonus-back" id="foBack">BACK</div>
       <h2>💨 FART OFF 💨</h2>
       <div class="fo-taunt" id="foTaunt">THE LANDLORD IS WATCHING...</div>
-      <p class="bonus-sub" id="foSub">HOLD to load the barrels. RELEASE to weaponise your wind. First to 3 wins — hold too long and you follow through.</p>
+      <p class="bonus-sub" id="foSub">HOLD the big red button to charge your arse-cannon. RELEASE to blast the landlord. First to 3 guffs wins — clench too long and you'll follow through.</p>
       <div class="fo-arena" id="foArena">
         <div class="fo-fighter">
           <div class="fo-face" id="foFaceYou">🧑</div>
@@ -4772,7 +4772,7 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
       <div class="bonus-tag">THE CUBICLE OF DOOM</div>
       <div class="bonus-back" id="brBack">BACK</div>
       <h2>🧻 BOG ROLL ROULETTE 🧻</h2>
-      <p class="bonus-sub" id="brSub">Six bogs. ONE clean roll. Pick a floater and you’re ankle-deep in someone else’s regret.</p>
+      <p class="bonus-sub" id="brSub">Six bogs. ONE clean roll. Tap a door. Pick a floater and you're ankle-deep in someone else's regret.</p>
       <div class="br-shitter-name" id="brCubicleName">PICK A CUBICLE</div>
       <div class="br-doors" id="brDoors"></div>
       <div class="br-float-tease" id="brFloatTease"></div>
@@ -4814,7 +4814,7 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
       <div class="bonus-tag">SPOONS KEBAB (NEXT DOOR)</div>
       <div class="bonus-back" id="kbBack">WALK AWAY</div>
       <h2>🥙 KEBAB BUILDER 🥙</h2>
-      <p class="bonus-sub">TAP LEFT / RIGHT to lob meat on the skewer. Stack 8+ before the doner does a somersault.</p>
+      <p class="bonus-sub">TAP LEFT / RIGHT to lob meat. Stack 8+ before the doner does a somersault and the lads laugh you out of the shop.</p>
       <div class="ng-hud"><span>STACK: <b id="kbCount">0</b></span><span>TIME: <b id="kbTime">25</b>s</span></div>
       <div class="ng-board" style="padding:14px;display:flex;flex-direction:column;gap:12px;align-items:center">
         <div id="kbStack"></div>
@@ -4829,7 +4829,7 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
       <div class="bonus-tag">TUESDAY PUB QUIZ</div>
       <div class="bonus-back" id="qzBack">WALK AWAY</div>
       <h2>🍺 PUB QUIZ PANIC 🍺</h2>
-      <p class="bonus-sub">Tap the MOST WRONG answer. Pick the sensible one and the whole pub hears you being a melt.</p>
+      <p class="bonus-sub">Tap the MOST WRONG answer. Pick the sensible one and the whole pub hears you being a melt. Five questions, no pride.</p>
       <div class="ng-hud"><span>Q: <b id="qzNum">1</b>/5</span><span>BANKED: <b id="qzBank">0</b></span></div>
       <div id="qzQ" class="ng-verdict" style="font-size:18px"></div>
       <div id="qzAnswers"></div>
@@ -4840,7 +4840,7 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
       <div class="bonus-tag">THE CURSED CARPET</div>
       <div class="bonus-back" id="c3Back">WALK AWAY</div>
       <h2>🧶 CARPET MATCH 3 🧶</h2>
-      <p class="bonus-sub">Swap two stains. Match 3 to break the spell. 800 pts in 30s or you become part of the upholstery.</p>
+      <p class="bonus-sub">Tap two stains to swap. Match 3+ to break the spell. 800 pts in 30s or you become part of the upholstery forever.</p>
       <div class="ng-hud"><span>SCORE: <b id="c3Score">0</b></span><span>TIME: <b id="c3Time">30</b>s</span></div>
       <div id="c3Board" class="ng-board"></div>
       <div class="ng-verdict" id="c3Verdict"></div>
@@ -4851,7 +4851,7 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
       <div class="bonus-tag">GENTS — ONE WORKING URINAL</div>
       <div class="bonus-back" id="gtBack">WALK AWAY</div>
       <h2>🚻 GENTS QUEUE DASH 🚻</h2>
-      <p class="bonus-sub">Tap the FREE stall before the queue floods. Three wrong doors and you’re mopping up.</p>
+      <p class="bonus-sub">Tap the FREE stall before the queue floods. Three wrong doors and you're mopping up with your own socks.</p>
       <div class="ng-hud"><span>SERVED: <b id="gtServed">0</b>/8</span><span>MISTAKES: <b id="gtMiss">0</b>/3</span><span>TIME: <b id="gtTime">25</b>s</span></div>
       <div id="gtDoors"></div>
       <div class="ng-verdict" id="gtVerdict"></div>
@@ -4951,7 +4951,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = 'turd-invaders-2020-r80';
+  const BUILD_STAMP = 'comedy-v1-r81';
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -8194,15 +8194,17 @@ function closeBonus(){
 const FO_FILES = ["sfx/fart-off-commons02.mp3","sfx/fart-off-archive03.mp3","sfx/fart-off-archive05.mp3","sfx/fart-off-archive09.mp3","sfx/fart-off-commons16.mp3","sfx/fart-off-archive08.mp3","sfx/fart-off-commons01.mp3","sfx/fart-off-archive01.mp3","sfx/fart-off-commons08.mp3","sfx/fart-off-commons00.mp3","sfx/fart-off-archive00.mp3","sfx/fart-off-commons04.mp3","sfx/fart-off-commons06.mp3","sfx/fart-off-commons12.mp3","sfx/fart-off-archive06.mp3","sfx/fart-off-archive07.mp3"];
 const FO_POOL = [];
 const FO_TAUNTS = [
-  "IS THAT ALL YOU'VE GOT, PEA-SHOOTER?",
-  "MY NAN PUFFS HARDER THAN THAT!",
-  "I'VE HEARD SNEEZES WITH MORE FORCE!",
-  "YOU CALL THAT A GUFF? CUTE.",
-  "THE PUB DOG COULD TOP THAT!",
-  "RECKON YOU'RE HOLDING BACK, COWARD!",
-  "THIS ISN'T A TEA PARTY — LET IT RIP!",
-  "I'VE SMELLED BREAD THAT STANKS MORE!",
-  "YOUR BUM'S WRITING CHEQUES IT CAN'T CASH!"
+  "IS THAT ALL YOU'VE GOT, YOU SHIRTY LITTLE FART-PIPE?",
+  "ME NAN COULD SHIT A BETTER RIFF THAN THAT!",
+  "I'VE HEARD SILENT ONES WITH MORE FORCE, MATE!",
+  "YOU CALL THAT A GUFF? CUTE AS A KITTEN'S ARSEHOLE.",
+  "THE PUB DOG'S AFTERBURNER COULD TOP THAT!",
+  "STOP CLENCHING LIKE YOU'RE AT THE DENTIST'S, COWARD!",
+  "THIS AIN'T A TEA PARTY — CRACK THE SEAL AND SING!",
+  "I'VE SMELLED BREAD THAT'D MAKE ME GAG HARDER!",
+  "YOUR BUM'S WRITING CHEQUES IT CAN'T CASH, SON!",
+  "LET IT OUT OR I'LL EVICT YOU MYSELF!",
+  "THAT'S NOT A TRUMP, THAT'S A WHISPER FROM A SPARROW'S BUM!"
 ];
 function foPreload(){
   if (FO_POOL.length || !FO_FILES.length) return;
@@ -8390,7 +8392,7 @@ function foEnd(won){
     } catch(e){ el("foLog").textContent = "🏆 BEER GARDEN CHAMPION — THE LANDLORD BUYS THE NEXT ROUND"; }
     AudioFX.win(5);
   } else {
-    el("foLog").textContent = "💨 BLOWN OUT " + fo.you + "-" + fo.ai + " — HE'S SEEN BETTER IN THE CARPET AISLE";
+    el("foLog").textContent = "💨 BLOWN OUT " + fo.you + "-" + fo.ai + " — THE LANDLORD SAYS HE'S SEEN BETTER GUFFS IN THE CARPET AISLE";
     AudioFX.lose();
   }
   el("foSub").textContent = won ? "TAP HOLD FOR A REMATCH" : "TAP HOLD FOR REVENGE";
@@ -8514,7 +8516,8 @@ function brPick(idx){
     el("brCombo").textContent = br.combo + "×";
     door.classList.add("open-paper");
     AudioFX.reward(1);
-    brLog("CLEAN ROLL IN " + CUBICLE_NAMES[idx] + "! " + br.combo + "× COMBO!");
+    shake("shake-soft");
+    brLog("CLEAN ROLL IN " + CUBICLE_NAMES[idx] + "! " + br.combo + "× COMBO! YOU STINKY FUCKING HERO.");
     // near-miss: if another door almost had paper? show floater tease on next random door
     if (Math.random() < .35){
       const tease = el("brFloatTease");
@@ -8553,7 +8556,7 @@ function openBogRoll(){
   if (consumeFartMeterCharge()) updateFartMeterChip();
   br.on = true; br.busy = false; br.cleared = 0; br.banked = 0; br.safe = 0;
   el("brCleared").textContent = "0"; el("brBanked").textContent = "0"; el("brSafe").textContent = "0";
-  brRender(); brLog("CHOOSE YOUR CUBICLE.");
+  brRender(); brLog("PICK A BOG. PRAY HARD. HOSE YOUR SHOES LATER.");
 }
 let _toastTimer = null;
 let _stripTimer = null;
@@ -8672,7 +8675,7 @@ function kbWin(mega){
 function kbFail(){
   kb.done = true; clearInterval(kb.timer);
   var st = el("kbStack"); st.textContent = "🥙💥🧅🍅🌶️";
-  el("kbVerdict").textContent = "IT ALL WENT HORIZONTAL. EAT IT OFF THE FLOOR.";
+  el("kbVerdict").textContent = "IT ALL WENT HORIZONTAL. THE LADS ARE POINTING. EAT IT OFF THE FLOOR.";
   bonusParticles(0, -window.innerHeight*0.12, {color:"#8a5a2b", count:22, type:"skid", fixed:true});
   try { AudioFX.shout(); } catch(e){}
   AudioFX.fart(); shake("shake-hard");
@@ -8693,7 +8696,7 @@ function kbEnd(banked, mega){
   kb.on=false; clearInterval(kb.timer); kbShow(false); showScreen("table");
   if (banked>0){
     addScore(banked, mega?"MEGA KEBAB":"KEBAB BANKED", mega?"you've built something God never intended":"a monster doner — the bin men will hate you");
-    setVerdict('<div class="verdict-line wave-clear">🥙 '+(mega?"MEGA KEBAB":"KEBAB")+' BANKED — +'+banked+'</div><div class="verdict-sub">TABLE RESUMES. MINT SAUCE ON THE SIDE.</div>');
+    setVerdict('<div class="verdict-line wave-clear">🥙 '+(mega?"MEGA KEBAB":"KEBAB")+' BANKED — +'+banked+'</div><div class="verdict-sub">TABLE RESUMES. MINT SAUCE EVERYWHERE.</div>');
   } else {
     setVerdict('<div class="verdict-line wave-clear">🥙 THE DONER COLLAPSED — NOTHING BANKED</div><div class="verdict-sub">TABLE RESUMES. FIVE SECOND RULE.</div>');
   }
@@ -8733,10 +8736,12 @@ function qzRender(){
       if (o.w){ // picked the "correct" daft answer → the pub hears it
         qz.done = true; AudioFX.fart(); try { AudioFX.shout(); } catch(e){} shake("shake-hard");
         bonusParticles(0, -window.innerHeight*0.1, {color:"#ff5252", count:16, type:"sparkle", fixed:true});
-        el("qzQ").textContent = "YOU ACTUALLY ANSWERED SERIOUSLY. THE WHOLE PUB HEARD IT.";
+        el("qzQ").textContent = "YOU ANSWERED SERIOUSLY. THE WHOLE PUB HEARD IT. YOUR PINT'S BEEN SPAT IN.";
         setTimeout(function(){ qzEnd(0); }, 1200);
       } else {
         qz.bank += 200; el("qzBank").textContent = qz.bank; AudioFX.win(2);
+        shake("shake-soft");
+        bonusParticles(0, -window.innerHeight*0.08, {color:"#4caf50", count:10, type:"sparkle", fixed:true});
         qz.qi++; if (qz.qi >= qz.qs.length) { qzEnd(qz.bank + 1000 - qz.bank > 0 ? qz.bank + 200 : qz.bank); } else qzRender();
       }
     });
@@ -8747,9 +8752,9 @@ function qzEnd(banked){
   qz.on=false; qzShow(false); showScreen("table");
   if (banked>0){
     addScore(banked, "QUIZ SURVIVED", "too clever for the quiz — the landlord suspects cheating");
-    setVerdict('<div class="verdict-line wave-clear">🍺 QUIZ SURVIVED — +'+banked+'</div><div class="verdict-sub">TABLE RESUMES. NOBODY SAW A THING.</div>');
+    setVerdict('<div class="verdict-line wave-clear">🍺 QUIZ SURVIVED — +'+banked+'</div><div class="verdict-sub">TABLE RESUMES. NOBODY SAW YOU NICK THE ANSWER SHEET.</div>');
   } else {
-    setVerdict('<div class="verdict-line wave-clear">🍺 THE QUIZ GOT YOU — NOTHING BANKED</div><div class="verdict-sub">TABLE RESUMES. HAND IN YOUR PEN.</div>');
+    setVerdict('<div class="verdict-line wave-clear">🍺 THE QUIZ GOT YOU — NOTHING BANKED</div><div class="verdict-sub">TABLE RESUMES. HAND IN YOUR PEN AND YOUR DIGNITY.</div>');
   }
   AudioFX.resumeMusic(); renderNextButton(); try{ updateBonusPill(); }catch(e){}
 }
@@ -8796,7 +8801,7 @@ function c3End(banked){
   c3.on=false; clearInterval(c3.timer); c3Show(false); showScreen("table");
   if (banked>0){
     addScore(banked, "CARPET MATCHED", banked>=700?"the carpet has chosen you — honoured":"survived the pattern (barely)");
-    setVerdict('<div class="verdict-line wave-clear">🧶 CARPET BANKED — +'+banked+'</div><div class="verdict-sub">TABLE RESUMES. THE PATTERN WATCHES.</div>');
+    setVerdict('<div class="verdict-line wave-clear">🧶 CARPET BANKED — +'+banked+'</div><div class="verdict-sub">TABLE RESUMES. THE PATTERN NOW KNOWS YOUR NAME.</div>');
   } else {
     setVerdict('<div class="verdict-line wave-clear">🧶 LOST IN THE PATTERN — NOTHING BANKED</div><div class="verdict-sub">NO ONE HAS SEEN YOU SINCE. TABLE RESUMES.</div>');
   }
@@ -8838,7 +8843,7 @@ function gtTap(i){
   } else {
     gt.miss++; el("gtMiss").textContent = gt.miss; AudioFX.fart(); shake("shake");
     bonusParticles(0, -window.innerHeight*0.12, {color:"#5d4037", count:14, type:"skid", fixed:true});
-    el("gtVerdict").textContent = "OCCUPIED. HE DIDN'T LOCK IT. SORRY.";
+    el("gtVerdict").textContent = "OCCUPIED. HE DIDN'T LOCK IT. EYE CONTACT MADE. SORRY.";
     if (gt.miss >= 3){ gt.done=true; gtEnd(0); }
   }
 }
@@ -8846,7 +8851,7 @@ function gtEnd(banked){
   gt.on=false; clearInterval(gt.timer); gtShow(false); showScreen("table");
   if (banked>0){
     addScore(banked, "QUEUE HERO", banked>=800?"the queue moved — you're a toilet hero":"dignity mostly intact");
-    setVerdict('<div class="verdict-line wave-clear">🚻 GENTS BANKED — +'+banked+'</div><div class="verdict-sub">TABLE RESUMES. WASH YOUR HANDS.</div>');
+    setVerdict('<div class="verdict-line wave-clear">🚻 GENTS BANKED — +'+banked+'</div><div class="verdict-sub">TABLE RESUMES. WASH YOUR HANDS. AND YOUR SOUL.</div>');
   } else {
     setVerdict('<div class="verdict-line wave-clear">🚻 THE GREAT FLOOD — NOTHING BANKED</div><div class="verdict-sub">THE FLOOR IS A RIVER. TABLE RESUMES.</div>');
   }
@@ -8880,7 +8885,7 @@ function brMidGameStart(){
   brShow(true);
   br.on = true; br.busy = false; br.cleared = 0; br.banked = 0; br.safe = 0; br.mid = true; br.epoch++;
   el("brCleared").textContent = "0"; el("brBanked").textContent = "0"; el("brSafe").textContent = "0";
-  brRender(); brLog("A CLEAN CUBICLE APPEARS MID-SESSION. PUSH YOUR LUCK.");
+  brRender(); brLog("FRESH BOG JUST OPENED. FORTUNE FAVOURS THE BRAVE — OR THE DESPERATE.");
 }
 function brMidGameEnd(escapedWith){
   br.mid = false;
@@ -8888,9 +8893,9 @@ function brMidGameEnd(escapedWith){
   showScreen("table");
   if (escapedWith > 0){
     addScore(escapedWith, "BOG ROLL BANKED", "walked away clean with " + escapedWith);
-    setVerdict('<div class="verdict-line wave-clear">🧻 WALKED AWAY CLEAN — +' + escapedWith + ' BANKED</div><div class="verdict-sub">TABLE RESUMES</div>');
+    setVerdict('<div class="verdict-line wave-clear">🧻 WALKED AWAY CLEAN — +' + escapedWith + ' BANKED</div><div class="verdict-sub">TABLE RESUMES. YOUR BUM THANKS YOU.</div>');
   } else {
-    setVerdict('<div class="verdict-line wave-clear">💩 THE FLOATER GOT YOU — NOTHING BANKED</div><div class="verdict-sub">TABLE RESUMES. WASH YOUR HANDS.</div>');
+    setVerdict('<div class="verdict-line wave-clear">💩 THE FLOATER GOT YOU — NOTHING BANKED</div><div class="verdict-sub">TABLE RESUMES. WASH YOUR HANDS. AND YOUR EYES.</div>');
   }
   AudioFX.resumeMusic();
   renderNextButton();
