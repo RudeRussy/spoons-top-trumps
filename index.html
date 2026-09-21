@@ -246,6 +246,8 @@ header#hud{
   font-size:16px;
   letter-spacing:.04em;
   white-space:nowrap;
+  flex-shrink:0;
+  min-width:max-content;
 }
 
 .brand em{
@@ -2328,9 +2330,6 @@ footer{
 
 header#hud .brand{
   flex:0 0 auto;
-  max-width:42vw;
-  overflow:hidden;
-  text-overflow:ellipsis;
   line-height:1.15;
 }
 
@@ -3223,10 +3222,8 @@ header#hud{
   min-height:50px;
 }
 header#hud .brand{
-  font-size:13px;
+  font-size:min(3.6vw,13px);
   flex:0 0 auto;
-  min-width:0;
-  max-width:36vw;
 }
 header#hud .brand small{
   font-size:9px;
@@ -3517,7 +3514,6 @@ header#hud{
   justify-content:space-between;
 }
 header#hud .brand{
-  max-width:38vw;
 }
 header#hud .score{
   flex:0 0 auto;
@@ -4056,6 +4052,30 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
 @media (max-height: 460px){
   #screen-title .order-hint, #screen-title .playing-at{ display:none; }
   #screen-title .modebtn{ padding:5px 10px 2px; min-height:30px; }
+}
+
+/* ===== hud-brand-70-r76: brand never clipped in the menu bar ===== */
+@media (max-width: 430px){
+  .brand{ font-size:min(3.6vw,13px); letter-spacing:.02em; }
+  .brand small{ font-size:6px; }
+  #hud .score{ flex-shrink:1; min-width:0; }
+}
+@media (max-width: 350px){
+  .brand{ font-size:min(3.6vw,12px); }
+}
+
+@media (max-width: 430px){
+  #hud{
+    flex-direction:column;
+    align-items:stretch;
+    gap:6px;
+    padding:8px 12px;
+  }
+  #hud .score{
+    justify-content:center;
+    row-gap:5px;
+  }
+  #bonusPill{ font-size:10px; padding:6px 8px; }
 }
 </style>
 </head>
@@ -4658,7 +4678,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "title-fit-ios-69-r75";
+  const BUILD_STAMP = "hud-brand-70-r76";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
