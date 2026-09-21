@@ -2174,7 +2174,7 @@ button.stat .keyhint{
   animation:comboPop .6s var(--ease-spring), pigWobble .5s .3s ease-in-out 2;
 }
 
-/* ui-labels-71-r76: centred modal toast over dimmed table cards */
+/* toast-fade-74-r79: modal overlay only for critical events; strip for everything else */
 #toastOverlay{
   position:absolute;
   inset:0;
@@ -2188,6 +2188,31 @@ button.stat .keyhint{
 }
 #toastOverlay.show{
   display:grid;
+}
+#toastStrip{
+  position:fixed;
+  left:50%;
+  bottom:max(12px, env(safe-area-inset-bottom));
+  transform:translateX(-50%);
+  z-index:var(--z-toast);
+  background:rgba(20,25,32,.92);
+  border:1px solid rgba(227,178,60,.7);
+  border-radius:10px;
+  padding:8px 14px;
+  font-family:var(--font-arcade);
+  font-size:clamp(11px,3.2vw,14px);
+  color:var(--cream);
+  text-align:center;
+  max-width:92vw;
+  box-shadow:0 4px 18px rgba(0,0,0,.45);
+  pointer-events:none;
+  opacity:0;
+  transition:opacity .35s ease, transform .35s ease;
+  will-change:opacity, transform;
+}
+#toastStrip.show{
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
 }
 .toast-box{
   background:#141920;
@@ -3167,50 +3192,6 @@ from{ transform:scale(.92); opacity:0; } to{ transform:scale(1); opacity:1; }
   opacity:0;
 }
 .fi-boss-banner.show{ animation:verdictIn .6s var(--ease-spring) forwards; }
-.fi-arena{ position:relative; overflow:hidden; }
-/* pixel-art FI entities are rendered as layered divs; emoji backup kept hidden in DOM */
-.fi-sprite{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); pointer-events:none; }
-.fi-sprite i{ position:absolute; display:block; }
-.fi-combo{
-  position:absolute;
-  top:8px; left:50%;
-  transform:translateX(-50%);
-  font-family:var(--font-arcade);
-  font-size:14px;
-  color:var(--gold);
-  opacity:0;
-  pointer-events:none;
-  z-index:5;
-}
-.fi-combo.show{ animation:verdictIn .5s var(--ease-spring) forwards; }
-.fi-zones{
-  position:absolute;
-  inset:0;
-  display:flex;
-  pointer-events:none;
-}
-.fi-zone{
-  flex:1 1 50%;
-  pointer-events:auto;
-}
-.fi-bum{
-  position:absolute;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:18px;
-  pointer-events:none;
-}
-.fi-bum-dribbler{ filter:hue-rotate(120deg); }
-.fi-bum-bomber{ filter:drop-shadow(0 0 6px #ff5252); }
-.fi-drop{
-  position:absolute;
-  font-size:12px;
-  pointer-events:none;
-  transform:translate(-50%, -50%);
-}
-.fi-part{ position:absolute; border-radius:50%; pointer-events:none; }
-.fi-walk{ background:linear-gradient(180deg, #4a7c59, #33513c); color:#fff; }
 
 /* ---------- reduced motion ---------- */
 
@@ -3737,7 +3718,7 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
   filter:grayscale(.6);
 }
 
-/* ---------- FART INVADERS ---------- */
+/* ---------- TURD INVADERS (faithful 1978 Space Invaders rebuild) ---------- */
 .fi-wrap{
   display:flex;
   flex-direction:column;
@@ -3758,7 +3739,7 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
   margin:10px 0 8px;
   white-space:nowrap;
 }
-.fi-arena{
+.fi-canvas-wrap{
   position:relative;
   width:min(100%, 560px);
   flex:1;
@@ -3770,9 +3751,15 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
   overflow:hidden;
   touch-action:none;
   user-select:none;
-  /* subtle CRT: scanlines + vignette + phosphor glow */
 }
-.fi-arena::before{
+.fi-canvas{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  display:block;
+}
+.fi-canvas-wrap::before{
   content:"";
   position:absolute;
   inset:0;
@@ -3783,7 +3770,7 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
     repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0px, rgba(0,0,0,.18) 1px, transparent 1px, transparent 3px);
   mix-blend-mode:multiply;
 }
-.fi-arena::after{
+.fi-canvas-wrap::after{
   content:"";
   position:absolute;
   inset:0;
@@ -3792,8 +3779,8 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
   box-shadow:inset 0 0 36px rgba(0,0,0,.6), inset 0 0 8px rgba(227,178,60,.15);
   border-radius:12px;
 }
-.fi-arena.shake-soft{ animation:fiShake .22s ease-out; }
-.fi-arena.shake-hard{ animation:fiShake .36s ease-out; }
+.fi-canvas-wrap.shake-soft{ animation:fiShake .22s ease-out; }
+.fi-canvas-wrap.shake-hard{ animation:fiShake .36s ease-out; }
 @keyframes fiShake{
   0%,100%{ transform:translate(0,0); }
   20%{ transform:translate(-3px,2px); }
@@ -3802,184 +3789,38 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
   80%{ transform:translate(2px,3px); }
 }
 @media (prefers-reduced-motion:reduce){
-  .fi-arena.shake-soft,.fi-arena.shake-hard{ animation:none; }
+  .fi-canvas-wrap.shake-soft,.fi-canvas-wrap.shake-hard{ animation:none; }
 }
-/* ---- turd invaders pixel-art sprites ---- */
-.fi-bum{
+.fi-combo{
   position:absolute;
-  width:28px; height:22px;
-  transform:translate(-50%,-50%);
-  transition:opacity .15s;
-  pointer-events:none;
-}
-.fi-bum.dead{ opacity:0; transform:translate(-50%,-50%) scale(0.3); }
-/* normal turd: lumpy brown pixel blob */
-.fi-bum-normal .fi-sprite i{ background:#6d4c41; }
-.fi-bum-normal .fi-sprite .p1{ width:8px; height:8px; left:10px; top:0; }
-.fi-bum-normal .fi-sprite .p2{ width:12px; height:10px; left:8px; top:6px; }
-.fi-bum-normal .fi-sprite .p3{ width:6px; height:6px; left:4px; top:10px; }
-.fi-bum-normal .fi-sprite .p4{ width:6px; height:6px; left:18px; top:10px; }
-.fi-bum-normal .fi-sprite .p5{ width:10px; height:8px; left:9px; top:14px; }
-.fi-bum-normal .fi-sprite .eye{ width:2px; height:2px; background:#111; left:12px; top:8px; }
-.fi-bum-normal .fi-sprite .eye.r{ left:18px; }
-/* dribbler: greener + extra top wobble */
-.fi-bum-dribbler .fi-sprite i{ background:#5d8c5a; }
-.fi-bum-dribbler .fi-sprite .p1{ width:8px; height:8px; left:10px; top:0; }
-.fi-bum-dribbler .fi-sprite .p2{ width:12px; height:10px; left:8px; top:6px; }
-.fi-bum-dribbler .fi-sprite .p3{ width:6px; height:6px; left:4px; top:10px; }
-.fi-bum-dribbler .fi-sprite .p4{ width:6px; height:6px; left:18px; top:10px; }
-.fi-bum-dribbler .fi-sprite .p5{ width:10px; height:8px; left:9px; top:14px; }
-.fi-bum-dribbler .fi-sprite .eye{ width:2px; height:2px; background:#111; left:12px; top:8px; }
-.fi-bum-dribbler .fi-sprite .eye.r{ left:18px; }
-.fi-bum-dribbler .fi-sprite .drib{ width:4px; height:4px; background:#8bc34a; left:4px; top:16px; animation:fiDrib .35s ease-in-out infinite alternate; }
-@keyframes fiDrib{ from{ transform:translateY(0); } to{ transform:translateY(6px); } }
-/* bomber: darker + fuse */
-.fi-bum-bomber .fi-sprite i{ background:#4e342e; }
-.fi-bum-bomber .fi-sprite .p1{ width:8px; height:8px; left:10px; top:0; }
-.fi-bum-bomber .fi-sprite .p2{ width:12px; height:10px; left:8px; top:6px; }
-.fi-bum-bomber .fi-sprite .p3{ width:6px; height:6px; left:4px; top:10px; }
-.fi-bum-bomber .fi-sprite .p4{ width:6px; height:6px; left:18px; top:10px; }
-.fi-bum-bomber .fi-sprite .p5{ width:10px; height:8px; left:9px; top:14px; }
-.fi-bum-bomber .fi-sprite .eye{ width:2px; height:2px; background:#fff; left:12px; top:8px; }
-.fi-bum-bomber .fi-sprite .eye.r{ left:18px; }
-.fi-bum-bomber .fi-sprite .fuse{ width:2px; height:6px; background:#ff5252; left:14px; top:-5px; animation:fiFuse .2s steps(2) infinite; }
-@keyframes fiFuse{ 0%{ opacity:1; } 50%{ opacity:.4; } }
-.fi-bum-bomber::after{
-  content:""; position:absolute; left:50%; top:50%; width:46px; height:46px; transform:translate(-50%,-50%);
-  border-radius:50%; background:radial-gradient(circle, rgba(255,82,82,.25) 0%, transparent 70%);
-  animation:fiBomberPulse 1s ease-in-out infinite;
-  pointer-events:none;
-}
-@keyframes fiBomberPulse{ 0%,100%{ transform:translate(-50%,-50%) scale(.9); opacity:.7; } 50%{ transform:translate(-50%,-50%) scale(1.15); opacity:1; } }
-/* marching wobble tied to bob */
-.fi-bum{ animation:fiMarch .8s steps(2) infinite; }
-.fi-bum:nth-child(odd){ animation-delay:-.4s; }
-@keyframes fiMarch{ 0%{ transform:translate(-50%,-50%) translateY(0); } 100%{ transform:translate(-50%,-50%) translateY(-3px); } }
-.fi-player{
-  position:absolute;
-  bottom:4px;
   left:50%;
+  top:18%;
   transform:translateX(-50%);
-  width:44px; height:44px;
-  pointer-events:none;
-  transition:transform .06s ease-out;
-}
-.fi-player.recoil{ transform:translateX(-50%) translateY(4px) scale(0.96); }
-/* pixel-art cannon-toilet body */
-.fi-player .fi-cannon{
-  position:absolute;
-  left:50%; bottom:34px;
-  width:8px; height:18px;
-  background:linear-gradient(180deg,#cfd8dc,#90a4ae);
-  border:1px solid #546e7a;
-  border-radius:2px;
-  transform:translateX(-50%);
-}
-.fi-player .fi-bowl{
-  position:absolute;
-  left:50%; bottom:0;
-  width:34px; height:34px;
-  background:#e3f2fd;
-  border:2px solid #90a4ae;
-  border-radius:50% 50% 45% 45%;
-  transform:translateX(-50%);
-  box-shadow:inset -4px -4px 0 rgba(0,0,0,.1);
-}
-.fi-player .fi-bowl::after{
-  content:""; position:absolute; left:8px; top:8px; width:14px; height:14px;
-  border-radius:50%; background:#4fc3f7; opacity:.7;
-}
-/* muzzle flash */
-.fi-flash{
-  position:absolute;
-  left:50%; bottom:52px;
-  width:10px; height:10px;
-  transform:translateX(-50%);
-  background:#ffeb3b;
-  border-radius:50%;
-  box-shadow:0 0 10px #ffeb3b, 0 0 18px #ff9800;
+  font-family:var(--font-arcade);
+  font-size:18px;
+  color:var(--gold);
+  text-shadow:0 0 12px rgba(227,178,60,.8);
+  z-index:15;
   opacity:0;
   pointer-events:none;
-  z-index:10;
-  transition:none;
 }
-.fi-player.flash .fi-flash{ animation:fiFlash .12s ease-out; }
-@keyframes fiFlash{ 0%{ opacity:1; transform:translateX(-50%) scale(1); } 100%{ opacity:0; transform:translateX(-50%) scale(2.2); } }
-/* loo-roll bolt */
-.fi-bolt{
+.fi-combo.show{ animation:verdictIn .5s var(--ease-spring) forwards; }
+.fi-boss-banner{
   position:absolute;
-  width:8px; height:14px;
-  background:#fff;
-  border:1px solid #cfd8dc;
-  border-radius:2px;
-  transform:translate(-50%,-50%);
-  pointer-events:none;
-  box-shadow:0 1px 2px rgba(0,0,0,.3);
-}
-/* turd drop */
-.fi-drop{
-  position:absolute;
-  width:8px; height:8px;
-  background:#6d4c41;
-  border-radius:50%;
-  transform:translate(-50%,-50%);
-  pointer-events:none;
-}
-/* explosion burst */
-.fi-boom{
-  position:absolute;
-  left:50%; top:50%;
-  width:6px; height:6px;
-  transform:translate(-50%,-50%);
-  pointer-events:none;
-  z-index:12;
-}
-.fi-boom .ring{
-  position:absolute; left:50%; top:50%;
-  width:8px; height:8px; margin-left:-4px; margin-top:-4px;
-  border:2px solid #ff9800; border-radius:50%;
+  left:50%;
+  top:8%;
+  transform:translateX(-50%);
+  font-family:var(--font-arcade);
+  font-size:11px;
+  color:var(--red);
+  text-align:center;
+  white-space:nowrap;
+  z-index:15;
   opacity:0;
-}
-.fi-boom .core{
-  position:absolute; left:50%; top:50%;
-  width:6px; height:6px; margin-left:-3px; margin-top:-3px;
-  background:#fff; border-radius:50%;
-  opacity:0;
-}
-.fi-boom.burst .ring{ animation:fiRing .28s ease-out forwards; }
-.fi-boom.burst .core{ animation:fiCore .18s ease-out forwards; }
-.fi-boom .bit{
-  position:absolute; left:50%; top:50%;
-  width:3px; height:3px; margin-left:-1.5px; margin-top:-1.5px;
-  background:#8d6e63; border-radius:1px;
-  opacity:0;
-}
-.fi-boom.burst .bit{ animation:fiBit .35s ease-out forwards; }
-@keyframes fiRing{ 0%{ transform:scale(.5); opacity:1; } 100%{ transform:scale(5); opacity:0; } }
-@keyframes fiCore{ 0%{ transform:scale(1); opacity:1; } 100%{ transform:scale(2.5); opacity:0; } }
-@keyframes fiBit{ 0%{ transform:translate(0,0) scale(1); opacity:1; } 100%{ transform:translate(var(--tx), var(--ty)) scale(0); opacity:0; } }
-/* golden NUGGET UFO */
-.fi-ufo{
-  position:absolute;
-  transform:translate(-50%,-50%);
+  transition:opacity .2s;
   pointer-events:none;
-  z-index:11;
-  animation:fiUfoBob 1.2s ease-in-out infinite alternate;
 }
-.fi-ufo::before{
-  content:""; position:absolute; left:0; top:6px; width:100%; height:10px;
-  background:radial-gradient(ellipse at center, #ffd700 0%, #ffb300 60%, transparent 70%);
-  border-radius:50%;
-  box-shadow:0 0 14px #ffd700, 0 0 28px rgba(255,215,0,.6);
-}
-.fi-ufo::after{
-  content:""; position:absolute; left:30%; top:0; width:40%; height:8px;
-  background:linear-gradient(180deg,#fff9c4,#fbc02d);
-  border-radius:50% 50% 40% 40%;
-}
-@keyframes fiUfoBob{ from{ transform:translate(-50%,-50%) translateY(0); } to{ transform:translate(-50%,-50%) translateY(-4px); } }
-.fi-part{ position:absolute; border-radius:50%; pointer-events:none; }
-.fi-walk{ background:linear-gradient(180deg, #4a7c59, #33513c); color:#fff; }
+.fi-boss-banner.show{ opacity:1; }
 .fi-controls{
   display:flex;
   gap:10px;
@@ -4037,44 +3878,6 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
   font-size:18px;
   flex:0 0 56px;
 }
-.fi-splat-layer{
-  position:fixed;
-  inset:0;
-  z-index:var(--z-modal);
-  pointer-events:none;
-}
-.fi-splat{
-  position:absolute;
-  transform:translate(-50%,-50%);
-  pointer-events:none;
-}
-.fi-splat.emoji{
-  font-size:clamp(28px,7vw,52px);
-  opacity:.92;
-}
-.fi-splat.blob{
-  width:clamp(36px,9vw,72px);
-  height:clamp(36px,9vw,72px);
-  border-radius:50%;
-  background:radial-gradient(circle at 35% 35%, #8b5a2b 0%, #5d3a1a 55%, #3d2410 100%);
-  box-shadow:inset -4px -4px 10px rgba(0,0,0,.35);
-}
-.fi-splat.drip{
-  width:clamp(8px,2.5vw,16px);
-  height:clamp(18px,6vw,44px);
-  border-radius:40%;
-  background:linear-gradient(180deg,#6b4222,#4a2a12);
-  opacity:.85;
-}
-@keyframes fiSplatSlide{
-  0%{ transform:translate(-50%,-50%) translateY(0) rotate(var(--rot)); opacity:1; }
-  100%{ transform:translate(-50%,-50%) translateY(120px) rotate(var(--rot)); opacity:0; }
-}
-.fi-splatting .fi-splat{
-  animation:fiSplatSlide 2.2s ease-in forwards;
-}
-
-
 /* ---------- login-42-r47: title decongest + auth ---------- */
 .duck-banner{
   margin-bottom:8px;
@@ -4130,10 +3933,7 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
   margin-left:6px;
 }
 #btnMenu{
-  position:absolute;
-  top:10px;
-  right:10px;
-  z-index:var(--z-homechip);
+  /* lives inside #hudButtons so it stays inside the HUD container */
 }
 #menuPanel{
   position:fixed;
@@ -4322,7 +4122,6 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
   #screen-title .modebtn{ padding:12px 16px 8px; min-height:40px; }
   #screen-title .title-sub{ font-size:12px; margin:0 auto 12px; max-width:92%; }
   #screen-title .playing-at, #screen-title .order-hint{ margin-top:5px; }
-  #screen-title .btnMenu{ padding:8px 14px 5px; min-height:34px; }
 }
 @media (max-height: 700px){
   #screen-title .order-hint{ display:none; }
@@ -4333,7 +4132,6 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
   #screen-title .duck-banner, #screen-title .title-tag, #screen-title .title-strip, #screen-title .order-hint, #screen-title .title-sub{ display:none; }
   #screen-title h1{ font-size:max(14px, min(5.8vw, 34px)); margin-bottom:3px; }
   #screen-title .modebtn{ padding:7px 12px 3px; min-height:33px; }
-  #screen-title .btnMenu{ display:none; }
 }
 @media (max-height: 460px){
   #screen-title .order-hint, #screen-title .playing-at{ display:none; }
@@ -4563,6 +4361,7 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
     <button class="hudbtn" id="btnMusic" title="Music (N)" aria-label="Toggle music">🎵<span class="hudbtn-label">MUSIC</span></button>
     <button class="hudbtn" id="btnMute" title="Mute (M)" aria-label="Toggle sound effects">🔊<span class="hudbtn-label">SOUND</span></button>
     <button class="hudbtn" id="btnPause" title="Pause (P)" aria-label="Pause menu">⏸<span class="hudbtn-label">PAUSE</span></button>
+    <button class="hudbtn" id="btnMenu" title="Menu" aria-label="Menu">☰<span class="hudbtn-label">MENU</span></button>
   </div>
 </header>
 
@@ -4570,7 +4369,6 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
 
   <!-- TITLE -->
   <section id="screen-title" class="screen">
-  <button class="hudbtn" id="btnMenu" aria-label="Menu">☰<span class="hudbtn-label">MENU</span></button>
   <div class="duck-banner" id="duckBanner" aria-hidden="true">
     <div class="duck-track">
       <span class="duck-unit">🦆 <span class="duck-sign">SPOONS TOP TRUMPS</span></span>
@@ -4723,7 +4521,7 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
     </div>
   </section>
 
-  <!-- ui-labels-71-r76: centred modal toast over the active screen -->
+  <!-- toast-fade-74-r79: strip toast for non-blocking round-flow messages -->
   <div id="toastOverlay" role="status" aria-live="polite" aria-atomic="true">
     <div class="toast-box">
       <div class="toast-title" id="toastTitle">HEADS UP</div>
@@ -4731,6 +4529,7 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
       <div class="toast-hint">TAP TO DISMISS · AUTO-CLOSES IN 3s</div>
     </div>
   </div>
+  <div id="toastStrip" role="status" aria-live="polite" aria-atomic="true"></div>
 
 
   <div id="streakFloater"></div>
@@ -4939,11 +4738,11 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
 
   <section id="screen-fartoff" class="screen hidden bonus-fullscreen">
     <div class="bonus-wrap">
-      <div class="bonus-tag">BEER GARDEN SHOWDOWN</div>
+      <div class="bonus-tag">BEER GARDEN GUFF WARS</div>
       <div class="bonus-back" id="foBack">BACK</div>
       <h2>💨 FART OFF 💨</h2>
       <div class="fo-taunt" id="foTaunt">THE LANDLORD IS WATCHING...</div>
-      <p class="bonus-sub" id="foSub">HOLD to build pressure. RELEASE to let rip. First to 3 DESTROYS the other.</p>
+      <p class="bonus-sub" id="foSub">HOLD to load the barrels. RELEASE to weaponise your wind. First to 3 wins — hold too long and you follow through.</p>
       <div class="fo-arena" id="foArena">
         <div class="fo-fighter">
           <div class="fo-face" id="foFaceYou">🧑</div>
@@ -4973,7 +4772,7 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
       <div class="bonus-tag">THE CUBICLE OF DOOM</div>
       <div class="bonus-back" id="brBack">BACK</div>
       <h2>🧻 BOG ROLL ROULETTE 🧻</h2>
-      <p class="bonus-sub" id="brSub">Six named cubicles. ONE has a fresh roll. Pick wrong and meet what the last man left.</p>
+      <p class="bonus-sub" id="brSub">Six bogs. ONE clean roll. Pick a floater and you’re ankle-deep in someone else’s regret.</p>
       <div class="br-shitter-name" id="brCubicleName">PICK A CUBICLE</div>
       <div class="br-doors" id="brDoors"></div>
       <div class="br-float-tease" id="brFloatTease"></div>
@@ -4987,27 +4786,23 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
   </section>
 
 
-  <!-- FART INVADERS -->
+  <!-- TURD INVADERS -->
   <section id="screen-fartinvaders" class="screen hidden bonus-fullscreen">
     <div class="bonus-wrap fi-wrap">
-      <div class="bonus-tag">BUMS FROM THE SKIES</div>
+      <div class="bonus-tag">TURD INVADERS</div>
       <div class="bonus-back" id="fiBack">BACK / BANK</div>
-      <h2>🚀 FART INVADERS 🚀</h2>
+      <h2>🍆 TURD INVADERS 🍆</h2>
       <div class="fi-boss-banner" id="fiBossBanner"></div>
-      <p class="bonus-sub" id="fiSub">Move left/right. FIRE loo-roll bolts. Don't let the turds hit your bog.</p>
-      <div class="fi-topbar" id="fiTopbar">SCORE 0 · WAVE 1 · LIVES 1 · BANKED 0</div>
-      <div class="fi-arena" id="fiArena">
+      <p class="bonus-sub" id="fiSub">Slide to steer your cock cannon. Blast the turd army before they land. One life. No second chances.</p>
+      <div class="fi-topbar" id="fiTopbar">SCORE 0 · WAVE 1 · BANKED 0</div>
+      <div class="fi-canvas-wrap" id="fiCanvasWrap">
+        <canvas class="fi-canvas" id="fiCanvas"></canvas>
         <div class="fi-combo" id="fiCombo"></div>
-        <div class="fi-player" id="fiPlayer"><div class="fi-cannon"></div><div class="fi-bowl"></div><div class="fi-flash"></div></div>
-        <div class="fi-zones">
-          <div class="fi-zone fi-zone-left" id="fiZoneLeft"></div>
-          <div class="fi-zone fi-zone-right" id="fiZoneRight"></div>
-        </div>
       </div>
-      <p class="fi-hint" id="fiHint">TAP LEFT / RIGHT SIDE OF THE BOG TO MOVE · HIT FIRE TO BLAST</p>
+      <p class="fi-hint" id="fiHint">TAP LEFT / RIGHT SIDE OF THE BOG TO MOVE · TAP ANYWHERE TO FIRE · BANK &amp; WALK CASHES OUT</p>
       <div class="fi-controls">
-        <button class="fi-btn" id="fiLeft" aria-label="Move left">◀<span class="fi-btn-label">LEFT</span></button>
-        <button class="fi-btn fi-fire" id="fiFire" aria-label="Fire">🔥<span class="fi-btn-label">FIRE</span></button>
+        <button class="fi-btn" id="fiLeft" aria-label="Move left"><span class="fi-btn-label">LEFT</span>◀</button>
+        <button class="fi-btn fi-fire" id="fiFire" aria-label="Fire"><span class="fi-btn-label">FIRE JIZZ</span>🔥</button>
         <button class="fi-btn" id="fiRight" aria-label="Move right">▶<span class="fi-btn-label">RIGHT</span></button>
         <button class="fi-btn fi-walk" id="fiWalk" aria-label="Bank and walk">🚶<span class="fi-btn-label">BANK &amp; WALK</span></button>
       </div>
@@ -5016,10 +4811,10 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
 
   <section id="screen-kebab" class="screen hidden bonus-fullscreen">
     <div class="bonus-wrap">
-      <div class="bonus-tag">SPOONS KEBAB &amp; PIZZA (NEXT DOOR)</div>
+      <div class="bonus-tag">SPOONS KEBAB (NEXT DOOR)</div>
       <div class="bonus-back" id="kbBack">WALK AWAY</div>
       <h2>🥙 KEBAB BUILDER 🥙</h2>
-      <p class="bonus-sub">TAP LEFT / RIGHT to stack the doner. 8+ = WIN. It sways. It always sways.</p>
+      <p class="bonus-sub">TAP LEFT / RIGHT to lob meat on the skewer. Stack 8+ before the doner does a somersault.</p>
       <div class="ng-hud"><span>STACK: <b id="kbCount">0</b></span><span>TIME: <b id="kbTime">25</b>s</span></div>
       <div class="ng-board" style="padding:14px;display:flex;flex-direction:column;gap:12px;align-items:center">
         <div id="kbStack"></div>
@@ -5034,7 +4829,7 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
       <div class="bonus-tag">TUESDAY PUB QUIZ</div>
       <div class="bonus-back" id="qzBack">WALK AWAY</div>
       <h2>🍺 PUB QUIZ PANIC 🍺</h2>
-      <p class="bonus-sub">Pick the MOST WRONG answer. Pick the "right" one and the whole pub hears it.</p>
+      <p class="bonus-sub">Tap the MOST WRONG answer. Pick the sensible one and the whole pub hears you being a melt.</p>
       <div class="ng-hud"><span>Q: <b id="qzNum">1</b>/5</span><span>BANKED: <b id="qzBank">0</b></span></div>
       <div id="qzQ" class="ng-verdict" style="font-size:18px"></div>
       <div id="qzAnswers"></div>
@@ -5042,10 +4837,10 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
   </section>
   <section id="screen-carpet3" class="screen hidden bonus-fullscreen">
     <div class="bonus-wrap">
-      <div class="bonus-tag">THE CURSED PATTERN</div>
+      <div class="bonus-tag">THE CURSED CARPET</div>
       <div class="bonus-back" id="c3Back">WALK AWAY</div>
       <h2>🧶 CARPET MATCH 3 🧶</h2>
-      <p class="bonus-sub">Swap two stains. Match 3. 800 pts in 30s or the pattern keeps you.</p>
+      <p class="bonus-sub">Swap two stains. Match 3 to break the spell. 800 pts in 30s or you become part of the upholstery.</p>
       <div class="ng-hud"><span>SCORE: <b id="c3Score">0</b></span><span>TIME: <b id="c3Time">30</b>s</span></div>
       <div id="c3Board" class="ng-board"></div>
       <div class="ng-verdict" id="c3Verdict"></div>
@@ -5056,7 +4851,7 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
       <div class="bonus-tag">GENTS — ONE WORKING URINAL</div>
       <div class="bonus-back" id="gtBack">WALK AWAY</div>
       <h2>🚻 GENTS QUEUE DASH 🚻</h2>
-      <p class="bonus-sub">Tap the FREE stall for each desperate bloke. Doors reshuffle. 🔧 = BROKEN.</p>
+      <p class="bonus-sub">Tap the FREE stall before the queue floods. Three wrong doors and you’re mopping up.</p>
       <div class="ng-hud"><span>SERVED: <b id="gtServed">0</b>/8</span><span>MISTAKES: <b id="gtMiss">0</b>/3</span><span>TIME: <b id="gtTime">25</b>s</span></div>
       <div id="gtDoors"></div>
       <div class="ng-verdict" id="gtVerdict"></div>
@@ -5156,7 +4951,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "addictive-v1-1-kurwa-out";
+  const BUILD_STAMP = 'turd-invaders-2020-r80';
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -7521,7 +7316,7 @@ function resolveRound(){
       const granted = grantNearMissToken();
       if (granted){
         game.turnOwner = "player";
-        bonusToast("NEAR MISS! Free rematch token — use it on the next round");
+        bonusToast("NEAR MISS! Free rematch token — use it on the next round", {modal:true});
       }
     }
   } else {
@@ -7952,15 +7747,17 @@ function doMysteryDrop(){
   const bi = game.bag.indexOf(card);
   if (bi >= 0) game.bag.splice(bi, 1);
   const isGold = Math.random() < 0.05;
+  const firstMystery = !game.__firstMysterySeen;
+  if (firstMystery) game.__firstMysterySeen = true;
   if (isGold){
     const keys = ["kcal","grease","hang","carpet","dodge","mess","speed"].filter(k => typeof card[k] === "number");
     const key = keys.length ? keys[Math.floor(Math.random() * keys.length)] : "kcal";
     card.__gold = true;
     card.__boostedStat = key;
     card.__boostedValue = Math.max(1, Math.round(card[key] * 1.5));
-    bonusToast("📦 MYSTERY MENU DROP! GOLD +50% " + key.toUpperCase());
+    bonusToast("📦 MYSTERY MENU DROP! GOLD +50% " + key.toUpperCase(), firstMystery ? {modal:true} : undefined);
   } else {
-    bonusToast("📦 MYSTERY MENU DROP!");
+    bonusToast("📦 MYSTERY MENU DROP!", firstMystery ? {modal:true} : undefined);
   }
   game.playerDeck.push(card);
   sparkleDrop();
@@ -8201,8 +7998,8 @@ function clearActions(){ el("roundActions").innerHTML = ""; }
 function renderNextButton(onClick){
   el("roundActions").innerHTML = '<button id="btnNext" class="btn btn-cream">NEXT CARD</button>';
   const btn = el("btnNext");
-  if (typeof onClick === "function") btn.addEventListener("click", onClick);
-  else btn.addEventListener("click", () => { if (game.phase === "reveal" && maybePendingBonus()) return; if (game.phase === "reveal") beginRound(); });
+  const clickFn = typeof onClick === "function" ? onClick : () => { if (game.phase === "reveal" && maybePendingBonus()) return; if (game.phase === "reveal") beginRound(); };
+  btn.addEventListener("click", () => { dismissAllToasts(); clickFn(); });
 }
 
 /* ---------- attract mode removed ---------- */
@@ -8538,6 +8335,7 @@ function foRelease(forcedShart){
   // screenshake scale by power
   if (power > .6) shake("shake-hard"); else if (power > .3) shake("shake-soft");
   for (let i=0;i<Math.floor(power*8)+2;i++) foParticle(cx + (Math.random()-.5)*60, cy + (Math.random()-.5)*60, "puff");
+  if (youWin) bonusParticles(cx - window.innerWidth/2, cy - window.innerHeight/2, {color:"#7fb069", count:10, fixed:true});
   foBrutality(held);
   if (youWin){
     fo.you++; foMeterPct(1, "you"); foMeterPct(aiPower, "ai");
@@ -8670,6 +8468,34 @@ function brSteamAt(doorEl){
   steam.appendChild(b);
   setTimeout(() => b.remove(), 3400);
 }
+
+function bonusParticles(x, y, opts){
+  opts = opts || {};
+  const count = opts.count || 12;
+  const color = opts.color || "#6d4c41";
+  const type = opts.type || "puff";
+  const host = opts.fixed ? document.body : document.getElementById("stage") || document.body;
+  for (let i = 0; i < count; i++){
+    const p = document.createElement("div");
+    p.className = "bonus-particle";
+    const size = type === "skid" ? 8 + Math.random()*16 : 10 + Math.random()*22;
+    p.style.width = size + "px"; p.style.height = size + "px";
+    p.style.left = (opts.fixed ? x : x + window.innerWidth/2) + "px";
+    p.style.top = (opts.fixed ? y : y + window.innerHeight/2) + "px";
+    p.style.background = type === "skid" ? "rgba(" + (70+Math.random()*40) + "," + (50+Math.random()*30) + "," + (35+Math.random()*25) + "," + (.7+Math.random()*.3) + ")" : color;
+    if (type === "sparkle"){
+      p.style.background = "radial-gradient(circle, #fff 0%, " + color + " 60%, transparent 70%)";
+      p.style.boxShadow = "0 0 10px " + color;
+    }
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 30 + Math.random() * 90;
+    p.style.setProperty("--tx", Math.cos(angle) * dist + "px");
+    p.style.setProperty("--ty", Math.sin(angle) * dist + "px");
+    p.style.animation = "fiParticle 1.0s ease-out forwards";
+    host.appendChild(p);
+    setTimeout(() => p.remove(), 1100);
+  }
+}
 function brPick(idx){
   if (!br.on || br.busy) return;
   if (idx === br.lastPicked) return;
@@ -8716,6 +8542,7 @@ function brPick(idx){
     AudioFX.lose();
     try { AudioFX.shout(); } catch(e){}
     brLog("💩 THE FLOATER STRIKES IN " + CUBICLE_NAMES[idx] + "! NOTHING BANKED.");
+    bonusParticles(0, 0, {color:"#6d4c41", count:30, type:"skid", fixed:true});
     el("brCubicleName").textContent = "CUBICLE OF DOOM";
     setTimeout(() => { brMidGameEnd(0); }, 1200);
   }
@@ -8729,19 +8556,42 @@ function openBogRoll(){
   brRender(); brLog("CHOOSE YOUR CUBICLE.");
 }
 let _toastTimer = null;
+let _stripTimer = null;
+let _stripFadeTimer = null;
+function dismissAllToasts(){
+  const overlay = document.getElementById("toastOverlay");
+  const strip = document.getElementById("toastStrip");
+  if (overlay) overlay.classList.remove("show");
+  if (strip){ strip.classList.remove("show"); strip.style.opacity = "0"; }
+  if (_toastTimer){ clearTimeout(_toastTimer); _toastTimer = null; }
+  if (_stripTimer){ clearTimeout(_stripTimer); _stripTimer = null; }
+  if (_stripFadeTimer){ clearTimeout(_stripFadeTimer); _stripFadeTimer = null; }
+}
 function bonusToast(msg, opts){
   try { if (Math.random() < 0.15) AudioFX.shout(); } catch(e){}
   try {
+    const useModal = opts && opts.modal;
     const overlay = document.getElementById("toastOverlay");
     const message = document.getElementById("toastMessage");
-    if (overlay && message && !(opts && opts.pass)){
+    const strip = document.getElementById("toastStrip");
+    if (useModal && overlay && message){
       message.textContent = msg;
       overlay.classList.add("show");
       if (_toastTimer) clearTimeout(_toastTimer);
       _toastTimer = setTimeout(() => { overlay.classList.remove("show"); _toastTimer = null; }, 2800);
       return;
     }
-    // fallback for screens without the overlay
+    // non-blocking strip path (default)
+    if (strip){
+      if (_stripTimer) clearTimeout(_stripTimer);
+      if (_stripFadeTimer) clearTimeout(_stripFadeTimer);
+      strip.textContent = msg;
+      strip.classList.add("show");
+      _stripFadeTimer = setTimeout(() => { strip.classList.remove("show"); }, 1200);
+      _stripTimer = setTimeout(() => { strip.textContent = ""; _stripTimer = null; _stripFadeTimer = null; }, 1550);
+      return;
+    }
+    // fallback for screens without either element
     const t = document.createElement("div");
     t.style.cssText = "position:fixed;left:50%;bottom:84px;transform:translateX(-50%);background:rgba(20,25,32,.95);color:#f2e8d5;border:1px solid rgba(227,178,60,.6);border-radius:12px;padding:10px 16px;font-weight:800;font-size:13px;z-index:var(--z-modal);box-shadow:0 6px 24px rgba(0,0,0,.5);max-width:86vw;text-align:center";
     t.textContent = msg;
@@ -8810,7 +8660,7 @@ function kbAddItem(side){
   el("kbCount").textContent = kb.items;
   var st = el("kbStack"); var s = document.createElement("span"); s.textContent = KB_ITEMS[Math.floor(Math.random()*KB_ITEMS.length)]; st.appendChild(s);
   AudioFX.click();
-  if (kb.items === 12){ el("kbVerdict").textContent = "🏆 MEGA KEBAB — DOUBLING THE BANK"; AudioFX.bacon(12); }
+  if (kb.items === 12){ el("kbVerdict").textContent = "🏆 MEGA KEBAB — DOUBLING THE BANK"; AudioFX.bacon(12); bonusParticles(0, -window.innerHeight*0.15, {color:"#ffd700", count:18, type:"sparkle", fixed:true}); shake("shake-soft"); }
   if (kb.items >= 16){ kbWin(true); }
   kbRenderRod();
 }
@@ -8823,6 +8673,7 @@ function kbFail(){
   kb.done = true; clearInterval(kb.timer);
   var st = el("kbStack"); st.textContent = "🥙💥🧅🍅🌶️";
   el("kbVerdict").textContent = "IT ALL WENT HORIZONTAL. EAT IT OFF THE FLOOR.";
+  bonusParticles(0, -window.innerHeight*0.12, {color:"#8a5a2b", count:22, type:"skid", fixed:true});
   try { AudioFX.shout(); } catch(e){}
   AudioFX.fart(); shake("shake-hard");
   setTimeout(function(){ kbEnd(0,false); }, 1100);
@@ -8881,6 +8732,7 @@ function qzRender(){
       if (qz.done) return;
       if (o.w){ // picked the "correct" daft answer → the pub hears it
         qz.done = true; AudioFX.fart(); try { AudioFX.shout(); } catch(e){} shake("shake-hard");
+        bonusParticles(0, -window.innerHeight*0.1, {color:"#ff5252", count:16, type:"sparkle", fixed:true});
         el("qzQ").textContent = "YOU ACTUALLY ANSWERED SERIOUSLY. THE WHOLE PUB HEARD IT.";
         setTimeout(function(){ qzEnd(0); }, 1200);
       } else {
@@ -8933,7 +8785,7 @@ function c3Tap(i){
   var before = c3.score;
   for (var r=0;r<c3.grid.length-2;r++){
     if (c3.grid[r]===c3.grid[r+1] && c3.grid[r+1]===c3.grid[r+2]){
-      c3.score += 120; c3.grid[r]=Math.floor(Math.random()*5); c3.grid[r+1]=Math.floor(Math.random()*5); c3.grid[r+2]=Math.floor(Math.random()*5); AudioFX.win(2);
+      c3.score += 120; c3.grid[r]=Math.floor(Math.random()*5); c3.grid[r+1]=Math.floor(Math.random()*5); c3.grid[r+2]=Math.floor(Math.random()*5); AudioFX.win(2); if (c3.score % 360 === 0){ bonusParticles(0, -window.innerHeight*0.12, {color:"#e3b23c", count:14, type:"sparkle", fixed:true}); shake("shake-soft"); }
     }
   }
   el("c3Score").textContent = c3.score;
@@ -8981,10 +8833,11 @@ function gtTap(i){
   if (!gt.on || gt.done) return;
   if (gt.doors[i].ok){
     gt.served++; el("gtServed").textContent = gt.served; AudioFX.win(3);
-    if (gt.served >= 8){ gt.done=true; gtEnd(800); return; }
+    if (gt.served >= 8){ gt.done=true; bonusParticles(0, -window.innerHeight*0.12, {color:"#4caf50", count:20, type:"sparkle", fixed:true}); shake("shake-soft"); gtEnd(800); return; }
     gtShuffle();
   } else {
     gt.miss++; el("gtMiss").textContent = gt.miss; AudioFX.fart(); shake("shake");
+    bonusParticles(0, -window.innerHeight*0.12, {color:"#5d4037", count:14, type:"skid", fixed:true});
     el("gtVerdict").textContent = "OCCUPIED. HE DIDN'T LOCK IT. SORRY.";
     if (gt.miss >= 3){ gt.done=true; gtEnd(0); }
   }
@@ -9065,338 +8918,240 @@ function foMidGameEnd(won){
   renderNextButton();
   try { updateBonusPill(); } catch(e){}
 }
-const fi = { on:false, score:0, wave:1, lives:1, banked:0, width:0, height:0, playerX:0, bullets:[], bums:[], drops:[], particles:[], lastT:0, raf:0, mid:false, epoch:0, combo:0, comboTimer:0, mega:false, ufo:null };
-const FI_WIDTH = 12;
-const FI_COLS = 8;
-const FI_ROWS = 4;
-function fiLog(t){ el("fiLog") && (el("fiLog").textContent = t); }
+const fi = { on:false, score:0, wave:1, banked:0, width:0, height:0, mid:false, epoch:0, raf:0, lastT:0 };
+
+// Canvas + context
+let fiCanvas = null, fiCtx = null;
+function fiInitCanvas(){
+  if (!fiCanvas){ fiCanvas = el("fiCanvas"); }
+  if (fiCanvas && !fiCtx){
+    try { fiCtx = fiCanvas.getContext("2d"); } catch(e){ fiCtx = null; }
+  }
+  if (!fiCanvas || !fiCtx){
+    requestAnimationFrame(fiInitCanvas);
+    return;
+  }
+  const wrap = el("fiCanvasWrap");
+  if (!wrap) return;
+  // Force a layout pass so wrap has computed size even if screen just unhidden
+  try { void wrap.offsetHeight; } catch(e){}
+  const rect = wrap.getBoundingClientRect ? wrap.getBoundingClientRect() : {width:0, height:0};
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const w = Math.max(320, Math.floor(rect.width || wrap.clientWidth || window.innerWidth || 320));
+  const h = Math.max(420, Math.floor(rect.height || wrap.clientHeight || (window.innerHeight * 0.55) || 420));
+  fi.width = w; fi.height = h;
+  fiCanvas.width = Math.floor(w * dpr);
+  fiCanvas.height = Math.floor(h * dpr);
+  fiCanvas.style.width = w + "px";
+  fiCanvas.style.height = h + "px";
+  try { fiCtx.setTransform(dpr, 0, 0, dpr, 0, 0); } catch(e){}
+}
+
+// Game state object used by engine
+let FI = {
+  playerX:0, playerW:48, playerH:38, playerJiggle:0, ballRecoil:0,
+  bullets:[], bombs:[], invaders:[], shields:[], particles:[], texts:[],
+  ufo:null, ufoTimer:0, direction:1, stepTimer:0, stepInterval:850,
+  marchOffset:0,
+  rowCounts:[5,5,5,5,5],
+  lives:1,
+  score:0,
+  wave:1,
+  over:false,
+  cleared:false,
+  lastShot:0,
+  shotCooldown:320,
+};
+
+const FI_COLS = 11;
+const FI_ROWS = 5;
+const FI_SHIELD_W = 56;
+const FI_SHIELD_H = 42;
+
+function fiLog(t){ const e = el("fiLog"); if (e) e.textContent = t; }
 function fiTopbar(){
-  el("fiTopbar").textContent = "SCORE " + fi.score + " · WAVE " + fi.wave + " · LIVES " + fi.lives + " · BANKED " + fi.banked;
+  const e = el("fiTopbar"); if (e) e.textContent = "SCORE " + FI.score + " · WAVE " + FI.wave + " · BANKED " + fi.banked;
 }
 function fiShow(on_){
   const s = el("screen-fartinvaders");
   if (!on_){ fi.epoch++; if (fi.raf){ cancelAnimationFrame(fi.raf); fi.raf = 0; } fi.on = false; if (game.phase === "play" && !game.paused) AudioFX.resumeMusic(); }
-  s.classList.toggle("hidden", !on_);
-  s.classList.toggle("mid", !!fi.mid);
+  if (s){
+    s.classList.toggle("hidden", !on_);
+    s.classList.toggle("mid", !!fi.mid);
+  }
   updateBodyLock();
-  if (on_){ try { updateHomeChip(); } catch(e){} }
+  if (on_){ try { updateHomeChip(); } catch(e){} fiInitCanvas(); }
 }
+
 function fiReset(){
-  const arena = el("fiArena");
-  fi.width = arena.clientWidth;
-  fi.height = arena.clientHeight;
-  fi.playerX = fi.width / 2;
-  fi.bullets = []; fi.bums = []; fi.drops = []; fi.particles = []; fi.ufo = null;
-  fi.score = 0; fi.wave = 1; fi.lives = 1; fi.banked = 0; fi.combo = 0; fi.comboTimer = 0; fi.mega = false;
-  fiTopbar();
-  const p = el("fiPlayer");
-  p.style.left = "50%"; p.style.transform = "translateX(-50%)";
+  fiInitCanvas();
+  if (!fiCtx) { requestAnimationFrame(fiReset); return; }
+  FI.playerX = fi.width / 2;
+  FI.playerW = Math.min(52, fi.width * 0.12);
+  FI.playerH = FI.playerW * 0.85;
+  FI.bullets = []; FI.bombs = []; FI.particles = []; FI.texts = []; FI.shields = [];
+  FI.ufo = null; FI.ufoTimer = 0;
+  FI.direction = 1; FI.stepTimer = 0; FI.stepInterval = 850; FI.marchOffset = 0;
+  FI.rowCounts = [FI_COLS, FI_COLS, FI_COLS, FI_COLS, FI_COLS];
+  FI.lives = 1; FI.score = 0; FI.wave = 1; FI.over = false; FI.cleared = false;
+  fi.score = 0; fi.wave = 1; fi.banked = 0;
   fiBuildWave();
+  fiBuildShields();
+  fiTopbar();
 }
+
 function fiBuildWave(){
-  fi.bums = [];
-  const cols = Math.min(FI_COLS + Math.floor((fi.wave-1)/2), 10);
-  const rows = Math.min(FI_ROWS + Math.floor((fi.wave-1)/3), 6);
-  const w = fi.width / (cols + 2);
-  const h = fi.height / (rows + 4);
-  const types = ["normal"];
-  if (fi.wave >= 2) types.push("dribbler");
-  if (fi.wave >= 4) types.push("bomber");
-  if (fi.wave % 5 === 0){
-    fi.mega = true;
-    el("fiBossBanner").textContent = "⚠ MEGA WAVE — EVERY FIVE WAVES THE LANDLORD LOSES HIS MIND ⚠";
-    el("fiBossBanner").classList.add("show");
-    setTimeout(() => el("fiBossBanner").classList.remove("show"), 2500);
-    types.push("bomber");
-  } else {
-    fi.mega = false;
-    el("fiBossBanner").textContent = "";
-  }
-  for (let r=0; r<rows; r++){
-    for (let c=0; c<cols; c++){
-      const type = types[Math.floor(Math.random()*types.length)];
-      const b = {
-        x: (c+1.5)*w, y: (r+1)*h,
-        w: w*.65, h: h*.6,
-        dx: (fi.wave >= 3 ? 0.8 : 0.5) * (Math.random() > .5 ? 1 : -1),
-        dy: 0, type: type,
-        alive: true, bob: Math.random()*Math.PI*2
-      };
-      fi.bums.push(b);
+  FI.invaders = [];
+  const marginX = fi.width * 0.08;
+  const availW = fi.width - marginX * 2;
+  const invW = Math.min(34, availW / (FI_COLS + 1.5));
+  const invH = invW * 0.75;
+  const gapX = invW * 0.35;
+  const gapY = invH * 0.35;
+  const startX = marginX + invW/2;
+  const startY = fi.height * 0.12;
+  const typesByRow = ["squatter","medium","medium","big","big"];
+  const ptsByRow = [30, 20, 20, 10, 10];
+  for (let r = 0; r < FI_ROWS; r++){
+    for (let c = 0; c < FI_COLS; c++){
+      FI.invaders.push({
+        x: startX + c * (invW + gapX),
+        y: startY + r * (invH + gapY),
+        w: invW, h: invH,
+        row:r, col:c,
+        type: typesByRow[r],
+        pts: ptsByRow[r],
+        alive: true,
+        frame: 0,
+        bombTimer: Math.random() * 3000
+      });
     }
   }
-  // Golden NUGGET UFO: bonus target, ~40% chance once per wave (wave>=2), purely additive
+  FI.rowCounts = [FI_COLS, FI_COLS, FI_COLS, FI_COLS, FI_COLS];
+  FI.direction = 1;
+  FI.stepInterval = 850;
+  FI.stepTimer = 0;
+  FI.marchOffset = 0;
+  // golden nugget UFO — same bonus logic as before
   if (fi.wave >= 2 && Math.random() < 0.40){
-    fi.ufo = { x: -30, y: h * 0.55, w: 34, h: 18, dx: fi.width * 0.0035 + fi.wave * 0.0006, alive: true, hits: 0, hitsNeeded: 2 + Math.floor(fi.wave/3) };
+    FI.ufoTimer = 1200 + Math.random() * 2400;
+  } else {
+    FI.ufoTimer = 0;
   }
 }
-function fiMovePlayer(dir){
-  if (!fi.on) return;
-  const speed = fi.width * 0.08;
-  fi.playerX += dir * speed;
-  const pad = fi.width * 0.06;
-  fi.playerX = Math.max(pad, Math.min(fi.width - pad, fi.playerX));
-  const p = el("fiPlayer");
-  p.style.left = fi.playerX + "px";
-  p.style.transform = "translateX(-50%)";
-}
-function fiFire(){
-  if (!fi.on) return;
-  AudioFX.fiShot();
-  const p = el("fiPlayer");
-  if (p){
-    p.classList.add("flash","recoil");
-    setTimeout(() => p.classList.remove("flash"), 130);
-    setTimeout(() => p.classList.remove("recoil"), 90);
-  }
-  fi.bullets.push({ x: fi.playerX, y: fi.height - 58, vy: -fi.height * 0.022, alive: true });
-}
-function fiSpawnTurd(x, y){
-  fi.bums.push({ x: x, y: y, w: 22, h: 22, dx: (Math.random()-.5)*2, dy: 0, type: "fall", alive: true, bob: 0 });
-}
-function fiKillBum(i){
-  const b = fi.bums[i];
-  if (!b) return;
-  const arena = el("fiArena");
-  // combo popup
-  fi.combo++; fi.comboTimer = 1200;
-  const mult = 1 + Math.min(5, Math.floor(fi.combo/3));
-  const pts = 10 * mult * (b.type === "bomber" ? 2 : 1) * (fi.mega ? 2 : 1);
-  fi.score += pts;
-  const comboEl = el("fiCombo");
-  if (comboEl){
-    comboEl.textContent = (fi.combo >= 2 ? fi.combo + "× COMBO! +" : "+") + pts;
-    comboEl.classList.remove("show"); void comboEl.offsetWidth; comboEl.classList.add("show");
-    setTimeout(() => comboEl.classList.remove("show"), 700);
-  }
-  // explosion burst on arena
-  if (arena){
-    const boom = document.createElement("div"); boom.className = "fi-boom";
-    boom.style.left = b.x + "px"; boom.style.top = b.y + "px";
-    boom.innerHTML = '<div class="core"></div><div class="ring"></div>';
-    for (let k = 0; k < 8; k++){
-      const bit = document.createElement("i"); bit.className = "bit";
-      const ang = (k / 8) * Math.PI * 2;
-      const dist = 22 + Math.random() * 18;
-      bit.style.setProperty("--tx", Math.cos(ang) * dist + "px");
-      bit.style.setProperty("--ty", Math.sin(ang) * dist + "px");
-      boom.appendChild(bit);
-    }
-    arena.appendChild(boom);
-    requestAnimationFrame(() => boom.classList.add("burst"));
-    setTimeout(() => boom.remove(), 400);
-  }
-  // particles
-  for (let k=0;k<6;k++){
-    fi.particles.push({ x: b.x, y: b.y, vx:(Math.random()-.5)*5, vy:(Math.random()-.5)*5, life:1, size:3+Math.random()*5, color: b.type==="bomber"?"#8d6e63":"#a1887f" });
-  }
-  // screen shake
-  const arenaShake = el("fiArena");
-  if (arenaShake){
-    arenaShake.classList.remove("shake-soft","shake-hard");
-    void arenaShake.offsetWidth;
-    arenaShake.classList.add(b.type === "bomber" ? "shake-hard" : "shake-soft");
-    setTimeout(() => arenaShake.classList.remove("shake-soft","shake-hard"), b.type === "bomber" ? 360 : 220);
-  }
-  AudioFX.coin();
-  fi.bums.splice(i, 1);
-  fiTopbar();
-}
-function fiWaveCleared(){
-  if (fi.bums.length) return;
-  fi.score += 50 * fi.wave;
-  const banner = el("fiBossBanner");
-  banner.textContent = "WAVE " + fi.wave + " FLUSHED — +" + (50*fi.wave);
-  banner.classList.add("show");
-  setTimeout(() => banner.classList.remove("show"), 1500);
-  fi.wave++;
-  fiTopbar();
-  setTimeout(() => fiBuildWave(), 900);
-}
-function fiUpdate(now){
-  if (!fi.on) return;
-  const dt = Math.min(50, now - fi.lastT);
-  fi.lastT = now;
-  // combo decay
-  if (fi.comboTimer > 0){ fi.comboTimer -= dt; if (fi.comboTimer <= 0) fi.combo = 0; }
-  // move bums
-  const speed = 0.001 * fi.width * (1 + fi.wave * 0.06);
-  const wobble = 0.003 * fi.width;
-  fi.bums.forEach(b => {
-    b.bob += 0.08;
-    if (b.type === "dribbler"){
-      b.x += b.dx * speed * 1.4 + Math.sin(b.bob)*wobble;
-    } else if (b.type === "bomber"){
-      b.x += b.dx * speed * 0.9;
-      if (Math.random() < .005 + fi.wave*.001){
-        fi.drops.push({ x: b.x, y: b.y + b.h/2, vy: fi.height*0.006, alive: true });
-      }
-    } else if (b.type === "fall"){
-      b.y += fi.height * 0.012;
-      b.x += Math.sin(b.bob)*wobble*0.5;
-    } else {
-      b.x += b.dx * speed;
-    }
-    if (b.x < b.w/2 || b.x > fi.width - b.w/2) b.dx *= -1;
-    // descent
-    if (b.type !== "fall"){
-      const descendEvery = fi.mega ? 900 : Math.max(400, 1400 - fi.wave*80);
-      if (now % descendEvery < dt) b.y += b.h * 0.35;
-    }
-  });
-  // drops
-  fi.drops = fi.drops.filter(d => {
-    d.y += d.vy;
-    if (d.y > fi.height - 20){
-      // splat on floor
-      for (let k=0;k<3;k++) fi.particles.push({ x: d.x, y: fi.height-20, vx:(Math.random()-.5)*4, vy:-Math.random()*4, life:1, size:4+Math.random()*6, color:"#6d4c41" });
-      return false;
-    }
-    return true;
-  });
-  // UFO (golden nugget bonus target)
-  if (fi.ufo){
-    fi.ufo.x += fi.ufo.dx;
-    if (fi.ufo.x > fi.width + 40) fi.ufo = null;
-  }
-  // bullets
-  fi.bullets = fi.bullets.filter(b => {
-    b.y += b.vy;
-    if (b.y < 0) return false;
-    let hit = false;
-    if (fi.ufo){
-      const u = fi.ufo;
-      if (Math.abs(b.x - u.x) < u.w/2 + 4 && Math.abs(b.y - u.y) < u.h/2 + 4){
-        u.hits++;
-        if (u.hits >= u.hitsNeeded){
-          fi.score += 100;
-          const comboEl = el("fiCombo");
-          if (comboEl){ comboEl.textContent = "NUGGET! +100"; comboEl.classList.remove("show"); void comboEl.offsetWidth; comboEl.classList.add("show"); setTimeout(() => comboEl.classList.remove("show"), 900); }
-          try { AudioFX.megaFart(3); } catch(e){}
-          const arena = el("fiArena");
-          if (arena){
-            const boom = document.createElement("div"); boom.className = "fi-boom";
-            boom.style.left = u.x + "px"; boom.style.top = u.y + "px";
-            boom.innerHTML = '<div class="core"></div><div class="ring"></div>';
-            for (let k = 0; k < 10; k++){
-              const bit = document.createElement("i"); bit.className = "bit";
-              const ang = (k / 10) * Math.PI * 2;
-              const dist = 26 + Math.random() * 20;
-              bit.style.setProperty("--tx", Math.cos(ang) * dist + "px");
-              bit.style.setProperty("--ty", Math.sin(ang) * dist + "px");
-              boom.appendChild(bit);
-            }
-            arena.appendChild(boom);
-            requestAnimationFrame(() => boom.classList.add("burst"));
-            setTimeout(() => boom.remove(), 400);
-            arena.classList.remove("shake-soft","shake-hard"); void arena.offsetWidth; arena.classList.add("shake-hard");
-            setTimeout(() => arena.classList.remove("shake-soft","shake-hard"), 360);
-          }
-          fiTopbar();
-          fi.ufo = null;
+
+function fiBuildShields(){
+  FI.shields = [];
+  const n = 4;
+  const margin = fi.width * 0.05;
+  const totalW = fi.width - margin * 2;
+  const gap = (totalW - n * FI_SHIELD_W) / (n - 1);
+  const y = fi.height * 0.72;
+  for (let i = 0; i < n; i++){
+    const px = Math.floor(margin + i * (FI_SHIELD_W + gap));
+    const py = Math.floor(y);
+    const img = fiCtx.createImageData(FI_SHIELD_W, FI_SHIELD_H);
+    for (let x = 0; x < FI_SHIELD_W; x++){
+      for (let y_ = 0; y_ < FI_SHIELD_H; y_++){
+        // arch shape
+        const inside = (y_ > 12 || (x > 10 && x < FI_SHIELD_W - 10)) &&
+                       !(y_ > FI_SHIELD_H - 10 && x > 6 && x < FI_SHIELD_W - 6);
+        const idx = (y_ * FI_SHIELD_W + x) * 4;
+        if (inside){
+          img.data[idx] = 235; img.data[idx+1] = 220; img.data[idx+2] = 200; img.data[idx+3] = 255;
+        } else {
+          img.data[idx] = img.data[idx+1] = img.data[idx+2] = img.data[idx+3] = 0;
         }
-        hit = true;
       }
     }
-    for (let i=0;i<fi.bums.length && !hit;i++){
-      const e = fi.bums[i];
-      if (!e.alive) continue;
-      if (Math.abs(b.x - e.x) < e.w/2 + 6 && Math.abs(b.y - e.y) < e.h/2 + 6){
-        fiKillBum(i); hit = true;
+    FI.shields.push({ x: px, y: py, w: FI_SHIELD_W, h: FI_SHIELD_H, img: img });
+  }
+}
+
+function fiShieldHit(s, x, y, radius){
+  const sx = Math.floor(x - s.x); const sy = Math.floor(y - s.y);
+  const r2 = radius * radius;
+  let hitAny = false;
+  for (let px = Math.max(0, sx - radius); px < Math.min(s.w, sx + radius + 1); px++){
+    for (let py = Math.max(0, sy - radius); py < Math.min(s.h, sy + radius + 1); py++){
+      const dx = px - sx, dy = py - sy;
+      if (dx*dx + dy*dy <= r2){
+        const idx = (py * s.w + px) * 4;
+        if (s.img.data[idx+3] > 0){ s.img.data[idx+3] = 0; hitAny = true; }
       }
     }
-    return !hit;
-  });
-  // particles
-  fi.particles = fi.particles.filter(p => {
-    p.x += p.vx; p.y += p.vy; p.vy += 0.2; p.life -= 0.03;
-    return p.life > 0;
-  });
-  // collision with player
-  const playerW = 40;
-  for (const b of fi.bums){
-    if (b.type === "fall") continue;
-    if (Math.abs(b.x - fi.playerX) < playerW/2 + b.w/2 && b.y > fi.height - 80){
-      fiDie(b); return;
-    }
   }
-  for (const d of fi.drops){
-    if (Math.abs(d.x - fi.playerX) < playerW/2 + 8 && d.y > fi.height - 50){
-      fiDie({x:d.x, y:d.y, w:20, h:20, type:"drop"}); return;
-    }
-  }
-  if (fi.bums.some(b => b.type !== "fall" && b.y > fi.height - 50)){
-    fiDie(fi.bums.find(b => b.type !== "fall")); return;
-  }
-  fiRender();
-  fiWaveCleared();
-  fi.raf = requestAnimationFrame(fiUpdate);
+  return hitAny;
 }
-function fiRender(){
-  const arena = el("fiArena");
-  // remove old bums/drops/UFO rendered by DOM
-  arena.querySelectorAll(".fi-bum, .fi-drop, .fi-ufo").forEach(e => e.remove());
-  fi.bums.forEach(b => {
-    const e = document.createElement("div");
-    e.className = "fi-bum fi-bum-" + b.type;
-    e.style.left = b.x + "px"; e.style.top = b.y + "px";
-    e.style.width = b.w + "px"; e.style.height = b.h + "px";
-    const sprite = document.createElement("div"); sprite.className = "fi-sprite";
-    sprite.innerHTML = '<i class="p1"></i><i class="p2"></i><i class="p3"></i><i class="p4"></i><i class="p5"></i><i class="eye"></i><i class="eye r"></i>' + (b.type === "dribbler" ? '<i class="drib"></i>' : b.type === "bomber" ? '<i class="fuse"></i>' : '');
-    e.appendChild(sprite);
-    e.appendChild(document.createTextNode(" ")); // keep line-height anchor
-    arena.appendChild(e);
-  });
-  fi.drops.forEach(d => {
-    const e = document.createElement("div");
-    e.className = "fi-drop";
-    e.style.left = d.x + "px"; e.style.top = d.y + "px";
-    arena.appendChild(e);
-  });
-  // golden nugget UFO
-  if (fi.ufo){
-    const u = document.createElement("div");
-    u.className = "fi-ufo";
-    u.style.left = fi.ufo.x + "px"; u.style.top = fi.ufo.y + "px";
-    u.style.width = fi.ufo.w + "px"; u.style.height = fi.ufo.h + "px";
-    arena.appendChild(u);
-  }
-  // particles overlay on arena
-  arena.querySelectorAll(".fi-part").forEach(e => e.remove());
-  fi.particles.forEach(p => {
-    const e = document.createElement("div");
-    e.className = "fi-part";
-    e.style.left = p.x + "px"; e.style.top = p.y + "px";
-    e.style.width = p.size + "px"; e.style.height = p.size + "px";
-    e.style.background = p.color; e.style.opacity = p.life;
-    e.style.transform = "translate(-50%, -50%)";
-    arena.appendChild(e);
-  });
-  // loo-roll bolts
-  arena.querySelectorAll(".fi-bolt").forEach(e => e.remove());
-  fi.bullets.forEach(b => {
-    const e = document.createElement("div");
-    e.className = "fi-bolt";
-    e.style.left = b.x + "px"; e.style.top = b.y + "px";
-    arena.appendChild(e);
-  });
+
+function fiShieldRect(s){
+  return { x: s.x, y: s.y, w: s.w, h: s.h };
 }
-function fiDie(hitBy){
-  cancelAnimationFrame(fi.raf); fi.raf = 0; fi.on = false;
+
+function fiMovePlayer(dir){
+  if (!fi.on || FI.over) return;
+  const speed = fi.width * 0.075;
+  FI.playerX += dir * speed;
+  const pad = FI.playerW / 2 + 4;
+  FI.playerX = Math.max(pad, Math.min(fi.width - pad, FI.playerX));
+}
+
+function fiFire(){
+  if (!fi.on || FI.over) return;
+  const now = performance.now();
+  if (now - FI.lastShot < FI.shotCooldown) return;
+  FI.lastShot = now;
+  AudioFX.fiShot();
+  // jiggle + recoil
+  FI.playerJiggle = 12;
+  FI.ballRecoil = 8;
+  FI.bullets.push({ x: FI.playerX, y: fi.height - FI.playerH - 10, vy: -fi.height * 0.013, alive: true });
+}
+
+function fiDie(reason){
+  if (FI.over) return;
+  FI.over = true;
+  cancelAnimationFrame(fi.raf); fi.raf = 0;
   AudioFX.lose();
-  // full-screen death splatter
   fiSplatterFull();
   const banner = el("fiBossBanner");
-  banner.textContent = "THE TURDS HAVE TAKEN THE BOG!";
-  banner.classList.add("show");
+  if (banner){ banner.textContent = reason || "THE TURDS TOOK THE BOG"; banner.classList.add("show"); }
   setTimeout(() => {
-    banner.classList.remove("show");
+    if (banner) banner.classList.remove("show");
     if (fi.mid) fiMidGameEnd(false);
     else fiEnd(false);
   }, 1600);
 }
+
+function fiWaveCleared(){
+  if (FI.invaders.some(i => i.alive)) return;
+  if (FI.cleared) return;
+  FI.cleared = true;
+  const bonus = 50 * FI.wave;
+  FI.score += bonus; fi.score += bonus;
+  fiCombo("WAVE " + FI.wave + " FLUSHED +" + bonus);
+  FI.wave++; fi.wave = FI.wave;
+  fiTopbar();
+  setTimeout(() => {
+    if (!fi.on) return;
+    FI.cleared = false;
+    fiBuildWave();
+    // speed up each wave
+    FI.stepInterval = Math.max(220, 850 - (FI.wave - 1) * 80);
+  }, 900);
+}
+
+function fiCombo(txt){
+  const c = el("fiCombo");
+  if (!c) return;
+  c.textContent = txt;
+  c.classList.remove("show"); void c.offsetWidth; c.classList.add("show");
+  setTimeout(() => c.classList.remove("show"), 900);
+}
+
 function fiSplatterFull(){
   const s = el("screen-fartinvaders");
+  if (!s) return;
   for (let i=0;i<40;i++){
     const p = document.createElement("div");
     p.className = "bonus-particle";
@@ -9412,14 +9167,328 @@ function fiSplatterFull(){
     s.appendChild(p);
     setTimeout(() => p.remove(), 1500);
   }
-  shake("shake-hard");
+  const wrap = el("fiCanvasWrap");
+  if (wrap){ wrap.classList.remove("shake-soft","shake-hard"); void wrap.offsetWidth; wrap.classList.add("shake-hard"); setTimeout(() => wrap.classList.remove("shake-soft","shake-hard"), 360); }
 }
-function fiSplatter(){ /* legacy stub */ }
+
+function fiUpdate(now){
+  if (!fi.on || FI.over) return;
+  const dt = Math.min(50, now - fi.lastT);
+  fi.lastT = now;
+
+  // update timers
+  if (FI.playerJiggle > 0) FI.playerJiggle = Math.max(0, FI.playerJiggle - dt * 0.06);
+  if (FI.ballRecoil > 0) FI.ballRecoil = Math.max(0, FI.ballRecoil - dt * 0.06);
+
+  // march invaders
+  if (!FI.cleared){
+    FI.stepTimer += dt;
+    if (FI.stepTimer >= FI.stepInterval){
+      FI.stepTimer = 0;
+      FI.marchOffset += FI.direction;
+      let hitEdge = false;
+      const stepX = FI.invaders[0] ? FI.invaders[0].w * 0.25 : 6;
+      for (const inv of FI.invaders){
+        if (!inv.alive) continue;
+        inv.x += FI.direction * stepX;
+        inv.frame = 1 - inv.frame;
+        if (inv.x < inv.w/2 + 4 || inv.x > fi.width - inv.w/2 - 4) hitEdge = true;
+      }
+      if (hitEdge){
+        FI.direction *= -1;
+        for (const inv of FI.invaders) if (inv.alive) inv.y += inv.h * 0.45;
+      }
+    }
+  }
+
+  // UFO
+  if (FI.ufoTimer > 0){
+    FI.ufoTimer -= dt;
+    if (FI.ufoTimer <= 0 && !FI.ufo){
+      const y = fi.height * 0.08;
+      const dir = Math.random() > 0.5 ? 1 : -1;
+      FI.ufo = { x: dir > 0 ? -30 : fi.width + 30, y: y, w: 40, h: 20, dx: dir * (fi.width * 0.002 + fi.wave * 0.0004), alive: true, pts: 100 };
+    }
+  }
+  if (FI.ufo){
+    FI.ufo.x += FI.ufo.dx;
+    if ((FI.ufo.dx > 0 && FI.ufo.x > fi.width + 50) || (FI.ufo.dx < 0 && FI.ufo.x < -50)) FI.ufo = null;
+  }
+
+  // bombs
+  if (!FI.cleared){
+    for (const inv of FI.invaders){
+      if (!inv.alive) continue;
+      inv.bombTimer -= dt;
+      if (inv.bombTimer <= 0){
+        // lower rows more likely to drop; random column near player
+        const chance = 0.003 + (FI_ROWS - inv.row) * 0.001;
+        if (Math.random() < chance){
+          FI.bombs.push({ x: inv.x, y: inv.y + inv.h/2, vy: fi.height * 0.005, alive: true });
+        }
+        inv.bombTimer = 800 + Math.random() * 2200;
+      }
+    }
+  }
+  for (let i = FI.bombs.length - 1; i >= 0; i--){
+    const b = FI.bombs[i];
+    b.y += b.vy;
+    if (b.y > fi.height){ FI.bombs.splice(i,1); continue; }
+    // hit player
+    if (Math.abs(b.x - FI.playerX) < FI.playerW/2 + 4 && Math.abs(b.y - (fi.height - FI.playerH/2)) < FI.playerH/2 + 6){
+      fiDie("DIRECT HIT ON THE COCK");
+      return;
+    }
+    // hit shields
+    for (const s of FI.shields){
+      const sr = fiShieldRect(s);
+      if (b.x >= sr.x && b.x <= sr.x + sr.w && b.y >= sr.y && b.y <= sr.y + sr.h){
+        if (fiShieldHit(s, b.x, b.y, 5)){ fiSplatParticles(b.x, b.y, "#6d4c41", 4); FI.bombs.splice(i,1); break; }
+      }
+    }
+  }
+
+  // bullets
+  for (let i = FI.bullets.length - 1; i >= 0; i--){
+    const b = FI.bullets[i];
+    b.y += b.vy;
+    if (b.y < 0){ FI.bullets.splice(i,1); continue; }
+    let hit = false;
+    // ufo
+    if (FI.ufo && Math.abs(b.x - FI.ufo.x) < FI.ufo.w/2 + 4 && Math.abs(b.y - FI.ufo.y) < FI.ufo.h/2 + 4){
+      FI.score += FI.ufo.pts; fi.score += FI.ufo.pts;
+      fiCombo("NUGGET! +" + FI.ufo.pts);
+      fiSplatParticles(FI.ufo.x, FI.ufo.y, "#ffd700", 14);
+      AudioFX.megaFart(3);
+      FI.ufo = null;
+      hit = true;
+    }
+    // invaders
+    if (!hit){
+      for (let j = FI.invaders.length - 1; j >= 0; j--){
+        const inv = FI.invaders[j];
+        if (!inv.alive) continue;
+        if (Math.abs(b.x - inv.x) < inv.w/2 + 4 && Math.abs(b.y - inv.y) < inv.h/2 + 6){
+          inv.alive = false;
+          FI.score += inv.pts; fi.score += inv.pts;
+          fiRowDie(inv.row);
+          fiSplatParticles(inv.x, inv.y, fiTurdColor(inv.type), 10);
+          fiSpeedUp();
+          hit = true;
+          break;
+        }
+      }
+    }
+    // shields (player bullets erode from top)
+    if (!hit){
+      for (const s of FI.shields){
+        const sr = fiShieldRect(s);
+        if (b.x >= sr.x && b.x <= sr.x + sr.w && b.y >= sr.y && b.y <= sr.y + sr.h){
+          if (fiShieldHit(s, b.x, b.y, 4)){ hit = true; fiSplatParticles(b.x, b.y, "#cfc0a8", 3); break; }
+        }
+      }
+    }
+    if (hit){ FI.bullets.splice(i,1); }
+  }
+
+  // particles
+  for (let i = FI.particles.length - 1; i >= 0; i--){
+    const p = FI.particles[i];
+    p.x += p.vx; p.y += p.vy; p.vy += 0.25; p.life -= 0.025;
+    if (p.life <= 0) FI.particles.splice(i,1);
+  }
+
+  // lose: invaders reached bottom line
+  for (const inv of FI.invaders){
+    if (inv.alive && inv.y + inv.h/2 >= fi.height - FI.playerH - 16){
+      fiDie("THE TURDS LANDED");
+      return;
+    }
+  }
+
+  fiTopbar();
+  fiWaveCleared();
+  fiRender();
+  fi.raf = requestAnimationFrame(fiUpdate);
+}
+
+function fiRowDie(row){
+  FI.rowCounts[row]--;
+}
+function fiSpeedUp(){
+  const alive = FI.invaders.filter(i => i.alive).length;
+  const total = FI_COLS * FI_ROWS;
+  // classic: speed increases as invaders die
+  const factor = 1 + (total - alive) / total * 2.2;
+  FI.stepInterval = Math.max(140, Math.floor((850 - (FI.wave - 1) * 80) / factor));
+}
+function fiTurdColor(type){
+  return type === "squatter" ? "#8d6e63" : type === "medium" ? "#6d4c41" : "#4e342e";
+}
+function fiSplatParticles(x, y, color, count){
+  for (let k=0;k<count;k++){
+    const ang = Math.random() * Math.PI * 2;
+    const spd = 1.5 + Math.random() * 3.5;
+    FI.particles.push({ x:x, y:y, vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd - 1, life:1, size:2+Math.random()*5, color:color });
+  }
+  const wrap = el("fiCanvasWrap");
+  if (wrap){ wrap.classList.remove("shake-soft","shake-hard"); void wrap.offsetWidth; wrap.classList.add("shake-soft"); setTimeout(() => wrap.classList.remove("shake-soft","shake-hard"), 220); }
+  AudioFX.coin();
+}
+
+function fiRender(){
+  const ctx = fiCtx;
+  if (!ctx) return;
+  ctx.clearRect(0, 0, fi.width, fi.height);
+
+  // ground line
+  const groundY = fi.height - 8;
+  ctx.fillStyle = "rgba(227,178,60,.35)";
+  ctx.fillRect(0, groundY, fi.width, 2);
+
+  // shields
+  for (const s of FI.shields){
+    ctx.putImageData(s.img, s.x, s.y);
+  }
+
+  // player: cartoon cock-and-bollocks
+  const cx = FI.playerX, cy = fi.height - FI.playerH/2 - 8;
+  const jiggleX = Math.sin(FI.playerJiggle * 1.2) * 3;
+  const recoilY = FI.ballRecoil;
+  ctx.save();
+  ctx.translate(cx + jiggleX, cy + recoilY);
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = "#1a1a1a";
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  // shaft (cartoon cock)
+  const shaftW = FI.playerW * 0.32, shaftH = FI.playerH * 0.85;
+  ctx.fillStyle = "#f4c2c2";
+  ctx.beginPath();
+  ctx.roundRect(-shaftW/2, -shaftH/2, shaftW, shaftH, 6);
+  ctx.fill(); ctx.stroke();
+  // bellend
+  ctx.fillStyle = "#e8a8a8";
+  ctx.beginPath();
+  ctx.ellipse(0, -shaftH/2 - 5, shaftW*0.7, 7, 0, 0, Math.PI*2);
+  ctx.fill(); ctx.stroke();
+  // muzzle flash when jiggling
+  if (FI.playerJiggle > 5){
+    ctx.fillStyle = "rgba(255,255,255,.85)";
+    ctx.beginPath();
+    ctx.arc(0, -shaftH/2 - 12, 7 + Math.random()*5, 0, Math.PI*2);
+    ctx.fill();
+  }
+  // bollocks (two recoil balls)
+  const ballR = FI.playerW * 0.22;
+  ctx.fillStyle = "#e6b8b8";
+  ctx.beginPath(); ctx.arc(-ballR*0.9, shaftH/2 - ballR*0.3 + recoilY*0.5, ballR, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.arc(ballR*0.9, shaftH/2 - ballR*0.3 + recoilY*0.5, ballR, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.restore();
+
+  // jizz bolts
+  for (const b of FI.bullets){
+    ctx.save();
+    ctx.translate(b.x, b.y);
+    ctx.fillStyle = "rgba(255,255,255,.95)";
+    ctx.strokeStyle = "rgba(200,220,255,.6)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, -7);
+    ctx.lineTo(3, 2);
+    ctx.lineTo(0, 6);
+    ctx.lineTo(-3, 2);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    // drippy tip
+    ctx.fillStyle = "#fff";
+    ctx.beginPath(); ctx.arc(0, -9, 2, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  // bombs (turd drops)
+  for (const b of FI.bombs){
+    ctx.save();
+    ctx.translate(b.x, b.y);
+    ctx.fillStyle = "#5d4037";
+    ctx.beginPath();
+    ctx.arc(0, 0, 5, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = "#8d6e63";
+    ctx.beginPath(); ctx.arc(-2, -2, 2, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  // invaders (turds)
+  for (const inv of FI.invaders){
+    if (!inv.alive) continue;
+    ctx.save();
+    ctx.translate(inv.x, inv.y + (inv.frame ? -2 : 0));
+    fiDrawTurd(ctx, inv.type, inv.w, inv.h);
+    ctx.restore();
+  }
+
+  // ufo (golden nugget)
+  if (FI.ufo){
+    ctx.save();
+    ctx.translate(FI.ufo.x, FI.ufo.y);
+    ctx.fillStyle = "#ffd700";
+    ctx.shadowColor = "#ffd700"; ctx.shadowBlur = 14;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, FI.ufo.w/2, FI.ufo.h/2, 0, 0, Math.PI*2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = "#ffecb3";
+    ctx.beginPath(); ctx.ellipse(0, -FI.ufo.h*0.15, FI.ufo.w*0.22, FI.ufo.h*0.25, 0, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  // particles
+  for (const p of FI.particles){
+    ctx.globalAlpha = Math.max(0, p.life);
+    ctx.fillStyle = p.color;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+}
+
+function fiDrawTurd(ctx, type, w, h){
+  // 2020-style cartoon turd: lumpy swirly shape with face
+  ctx.fillStyle = fiTurdColor(type);
+  ctx.strokeStyle = "rgba(0,0,0,.35)";
+  ctx.lineWidth = 1.5;
+  const sc = type === "squatter" ? 0.75 : type === "medium" ? 0.9 : 1.0;
+  const rw = w * sc, rh = h * sc;
+  ctx.beginPath();
+  ctx.ellipse(0, rh*0.25, rw*0.35, rh*0.28, 0, 0, Math.PI*2);
+  ctx.ellipse(0, -rh*0.05, rw*0.28, rh*0.22, 0, 0, Math.PI*2);
+  ctx.ellipse(0, -rh*0.28, rw*0.18, rh*0.14, 0, 0, Math.PI*2);
+  ctx.fill(); ctx.stroke();
+  // eyes
+  ctx.fillStyle = "#fff";
+  ctx.beginPath(); ctx.arc(-rw*0.12, -rh*0.1, rw*0.07, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(rw*0.12, -rh*0.1, rw*0.07, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = "#111";
+  ctx.beginPath(); ctx.arc(-rw*0.1, -rh*0.08, rw*0.03, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(rw*0.14, -rh*0.08, rw*0.03, 0, Math.PI*2); ctx.fill();
+  // mouth / detail
+  ctx.strokeStyle = "#3e2723";
+  ctx.beginPath();
+  if (type === "squatter"){
+    ctx.arc(0, rh*0.05, rw*0.1, 0, Math.PI);
+  } else if (type === "medium"){
+    ctx.moveTo(-rw*0.1, rh*0.08); ctx.lineTo(rw*0.1, rh*0.08);
+  } else {
+    ctx.arc(0, rh*0.1, rw*0.12, 0, Math.PI, true);
+  }
+  ctx.stroke();
+}
+
 function fiEnd(won){
   fiShow(false);
   showScreen("table");
-  if (won) addScore(fi.banked, "FART INVADERS BANKED", "banked " + fi.banked + " from the skies");
-  setVerdict('<div class="verdict-line ' + (won ? "win" : "lose") + '">' + (won ? "🚀 FART INVADERS CLEARED — BANKED " + fi.banked : "🚀 FART INVADERS OVER — BANKED " + fi.banked) + '</div><div class="verdict-sub">TABLE RESUMES</div>');
+  if (won) addScore(fi.banked, "TURD INVADERS BANKED", "banked " + fi.banked + " from the bog");
+  setVerdict('<div class="verdict-line ' + (won ? "win" : "lose") + '">' + (won ? "🍆 TURD INVADERS CLEARED — BANKED " + fi.banked : "🍆 TURD INVADERS OVER — BANKED " + fi.banked) + '</div><div class="verdict-sub">TABLE RESUMES</div>');
   AudioFX.resumeMusic();
   renderNextButton();
 }
@@ -9430,20 +9499,21 @@ function fiMidGameStart(){
   fiReset();
   fi.lastT = performance.now();
   fi.raf = requestAnimationFrame(fiUpdate);
+  fiSubUpdate();
 }
 function fiMidGameEnd(won){
   fi.mid = false;
   fiShow(false);
   showScreen("table");
-  if (won) addScore(fi.banked, "FART INVADERS BANKED", "banked " + fi.banked + " from the bums");
-  setVerdict('<div class="verdict-line ' + (won ? "win" : "lose") + '">' + (won ? "🚀 FART INVADERS BANKED — " + fi.banked : "🚀 FART INVADERS OVER — BANKED " + fi.banked) + '</div><div class="verdict-sub">TABLE RESUMES</div>');
+  if (won) addScore(fi.banked, "TURD INVADERS BANKED", "banked " + fi.banked + " from the bums");
+  setVerdict('<div class="verdict-line ' + (won ? "win" : "lose") + '">' + (won ? "🍆 TURD INVADERS BANKED — " + fi.banked : "🍆 TURD INVADERS OVER — BANKED " + fi.banked) + '</div><div class="verdict-sub">TABLE RESUMES</div>');
   AudioFX.resumeMusic();
   renderNextButton();
   try { updateBonusPill(); } catch(e){}
 }
 function fiWalkAway(){
-  if (!fi.on) return;
-  fi.banked = fi.score + fi.wave * 25;
+  if (!fi.on || FI.over) return;
+  fi.banked = FI.score + FI.wave * 25;
   cancelAnimationFrame(fi.raf); fi.raf = 0; fi.on = false;
   if (fi.mid) fiMidGameEnd(true);
   else fiEnd(true);
@@ -9456,10 +9526,13 @@ function maybeTriggerFartInvaders(oldWave){
   if (!offer) return;
   game.fiOffered = true;
   offerBonus("fartinvaders");
-  bonusToast("🚀 FART INVADERS: THE BUMS ARE ATTACKING. FINISH THE ROUND…");
+  bonusToast("🍆 TURD INVADERS: THE SEWERS HAVE OPENED. FINISH THE ROUND…");
   try { updateBonusPill(); } catch(e){}
 }
-
+function fiSubUpdate(){
+  const sub = el("fiSub");
+  if (sub) sub.textContent = "SLIDE TO STEER THE COCK CANNON. BLAST THE TURD ARMY. BANK & WALK TO CASH OUT.";
+}
 function openFartInvaders(){
   const m = getFartMeter();
   if (m.charges <= 0){ showNoCharges(); return; }
@@ -9471,7 +9544,7 @@ function openFartInvaders(){
   fiReset();
   fi.on = true;
   fiTopbar();
-  fiLog("BUMS INCOMING — LAST ONE STANDING BANKS THE SCORE");
+  fiSubUpdate();
   fi.raf = requestAnimationFrame(fiUpdate);
 }
 
@@ -9776,36 +9849,30 @@ const fiRight = document.getElementById("fiRight");
 const fiFireBtn = document.getElementById("fiFire");
 const fiBack = document.getElementById("fiBack");
 const fiWalk = document.getElementById("fiWalk");
-const fiZoneLeft = document.getElementById("fiZoneLeft");
-const fiZoneRight = document.getElementById("fiZoneRight");
-if (fiLeft){ fiLeft.addEventListener("pointerdown", () => { if (fi.on) fiMovePlayer(-1); }); fiLeft.addEventListener("pointerup", () => {}); }
-if (fiRight){ fiRight.addEventListener("pointerdown", () => { if (fi.on) fiMovePlayer(1); }); fiRight.addEventListener("pointerup", () => {}); }
+if (!fiCanvas) fiCanvas = document.getElementById("fiCanvas");
+if (fiLeft){ fiLeft.addEventListener("pointerdown", () => { if (fi.on) fiMovePlayer(-1); }); }
+if (fiRight){ fiRight.addEventListener("pointerdown", () => { if (fi.on) fiMovePlayer(1); }); }
 if (fiFireBtn) fiFireBtn.addEventListener("click", fiFire);
 if (fiBack) fiBack.addEventListener("click", () => { AudioFX.click(); if (fi.on && fi.mid) return; fiWalkAway(); });
 if (fiWalk) fiWalk.addEventListener("click", () => { AudioFX.click(); fiWalkAway(); });
-(function fiZones(){
-  function bindZone(zone, dir){
-    if (!zone) return;
-    zone.addEventListener("touchstart", e => { e.preventDefault(); if (fi.on) fiMovePlayer(dir); }, {passive:false});
-    zone.addEventListener("touchend", e => { e.preventDefault(); if (fi.on) fiFire(); }, {passive:false});
-    zone.addEventListener("pointerdown", e => { if (e.pointerType !== "touch" && fi.on) fiMovePlayer(dir); });
-  }
-  bindZone(fiZoneLeft, -1);
-  bindZone(fiZoneRight, 1);
-})();
-(function fiSwipe(){
-  const arena = document.getElementById("fiArena");
-  if (!arena) return;
-  let sx = 0, firing = false;
-  arena.addEventListener("touchstart", e => { sx = e.touches[0].clientX; firing = false; }, {passive:true});
-  arena.addEventListener("touchmove", e => {
-    const dx = e.touches[0].clientX - sx;
-    if (dx > 12){ fiMovePlayer(1); sx = e.touches[0].clientX; }
-    else if (dx < -12){ fiMovePlayer(-1); sx = e.touches[0].clientX; }
-  }, {passive:true});
-  arena.addEventListener("touchend", e => {
-    if (!firing && Math.abs(e.changedTouches[0].clientX - sx) < 16){ fiFire(); firing = true; }
-  }, {passive:true});
+(function fiCanvasControls(){
+  const canvas = fiCanvas;
+  if (!canvas) return;
+  let moveInterval = null, moveDir = 0;
+  function startMove(dir){ if (moveInterval) return; moveDir = dir; moveInterval = setInterval(() => { if (fi.on) fiMovePlayer(dir); }, 80); }
+  function stopMove(){ if (moveInterval){ clearInterval(moveInterval); moveInterval = null; } }
+  canvas.addEventListener("pointerdown", e => {
+    if (!fi.on) return;
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    if (x < rect.width / 2){ startMove(-1); }
+    else { startMove(1); }
+    fiFire();
+  }, {passive:false});
+  canvas.addEventListener("pointerup", () => stopMove());
+  canvas.addEventListener("pointerleave", () => stopMove());
+  canvas.addEventListener("pointercancel", () => stopMove());
 })();
 window.debugFartInvaders = function(){ offerBonus("fartinvaders"); };
 
@@ -9816,6 +9883,9 @@ function updateHomeChip(){
   if (!c) return;
   const title = !el("screen-title").classList.contains("hidden");
   c.classList.toggle("show", !title);
+  // menu button only belongs to the title HUD; keep it hidden on game screens
+  const m = document.getElementById("btnMenu");
+  if (m){ m.style.display = title ? "" : "none"; }
 }
 (function moveHomeChip(){
   // phones: HOME lives in the HUD button row (evenly spaced under the title)
