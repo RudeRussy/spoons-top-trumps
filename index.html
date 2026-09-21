@@ -177,21 +177,27 @@ body::before{
   display:none;
   min-width:44px;
   min-height:44px;
-  width:44px;
+  width:auto;
+  min-width:68px;
   height:44px;
   border-radius:10px;
   align-items:center;
   justify-content:center;
-  padding:0;
+  gap:4px;
+  padding:0 8px;
   background:transparent;
   color:var(--cream);
   border:1px solid rgba(242,232,213,.3);
-  font-size:0;
+  font-size:10px;
   font-weight:900;
   -webkit-tap-highlight-color:transparent;
   backdrop-filter:none;
   overflow:hidden;
   z-index:auto;
+}
+#homeChip span{
+  font-size:20px;
+  line-height:1;
 }
 
 .table{
@@ -270,7 +276,19 @@ header#hud{
   text-shadow:0 0 8px rgba(255,201,77,.6);
   font-size:12px;
   white-space:nowrap;
-  padding-right:2px;
+  padding:5px 11px;
+  background:rgba(20,25,32,.55);
+  border:1px solid rgba(227,178,60,.35);
+  border-radius:999px;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+}
+#scoreChipLabel{
+  font-size:8px;
+  letter-spacing:.1em;
+  opacity:.75;
+  color:var(--cream);
 }
 
 .chip{
@@ -328,13 +346,29 @@ header#hud{
   cursor:pointer;
   min-width:44px;
   min-height:44px;
-  width:44px;
+  width:auto;
+  min-width:52px;
   height:44px;
-  padding:0;
+  padding:3px 6px 2px;
   font-size:16px;
   border-radius:10px;
   flex:0 0 auto;
   box-sizing:border-box;
+  display:inline-flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:0;
+  line-height:1;
+}
+.hudbtn .hudbtn-label{
+  font-size:7px;
+  font-weight:800;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  opacity:.9;
+  margin-top:1px;
+  white-space:nowrap;
 }
 
 .hudbtn:hover{
@@ -2140,6 +2174,58 @@ button.stat .keyhint{
   animation:comboPop .6s var(--ease-spring), pigWobble .5s .3s ease-in-out 2;
 }
 
+/* ui-labels-71-r76: centred modal toast over dimmed table cards */
+#toastOverlay{
+  position:absolute;
+  inset:0;
+  z-index:var(--z-toast);
+  display:none;
+  place-items:center;
+  background:rgba(4,6,9,.78);
+  backdrop-filter:blur(2px);
+  padding:max(20px, env(safe-area-inset-top)) 20px max(20px, env(safe-area-inset-bottom));
+  touch-action:manipulation;
+}
+#toastOverlay.show{
+  display:grid;
+}
+.toast-box{
+  background:#141920;
+  border:2px solid var(--gold);
+  border-radius:16px;
+  padding:22px 26px;
+  max-width:min(92vw, 440px);
+  text-align:center;
+  box-shadow:0 0 40px rgba(255,201,77,.35), 0 16px 40px rgba(0,0,0,.5);
+  animation:toastBoxIn .35s var(--ease-spring);
+  pointer-events:none;
+}
+.toast-title{
+  font-family:var(--font-arcade);
+  color:var(--gold);
+  font-size:13px;
+  letter-spacing:.12em;
+  margin-bottom:10px;
+}
+.toast-message{
+  font-family:var(--font-arcade);
+  color:var(--cream);
+  font-size:clamp(14px, 4vw, 20px);
+  line-height:1.5;
+  letter-spacing:.04em;
+}
+.toast-hint{
+  font-size:10px;
+  font-weight:800;
+  color:var(--muted);
+  margin-top:14px;
+  letter-spacing:.08em;
+}
+@keyframes toastBoxIn{
+  from{ opacity:0; transform:scale(.9) translateY(20px); }
+  to{ opacity:1; transform:scale(1) translateY(0); }
+}
+
 #roundActions #btnNext{
   margin:0 auto;
 }
@@ -2405,10 +2491,7 @@ header#hud .score > *{
   min-height:28px;
 }
 
-#homeChip::before{
-  content:"🏠";
-  font-size:20px;
-}
+
 
 #homeChip:hover{
   background:rgba(242,232,213,.12);
@@ -3245,15 +3328,18 @@ header#hud .brand small{
 .hudbtn, #homeChip{
   flex:0 0 auto;
   min-width:38px;
-  width:38px;
+  width:auto;
   max-width:none;
 }
 .hudbtn{
-  padding:0;
+  padding:2px 4px 1px;
   min-width:38px;
   min-height:38px;
   height:38px;
   font-size:14px;
+}
+.hudbtn .hudbtn-label{
+  font-size:6px;
 }
 #homeChip{
   order:0;
@@ -3261,18 +3347,16 @@ header#hud .brand small{
   min-height:38px;
   height:38px;
   border-radius:10px;
-  padding:0;
-  font-size:0;
+  padding:0 6px;
+  font-size:9px;
 }
 #homeChip.show{
   display:inline-flex;
   align-items:center;
   gap:4px;
-  font-size:0;
 }
-#homeChip::before{
-  content:"🏠";
-  font-size:14px;
+#homeChip span{
+  font-size:16px;
 }
 header#hud .score{
   flex:1 1 0;
@@ -3750,6 +3834,23 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
   font-size:14px;
   flex:1.5;
 }
+.fi-fire .fi-btn-label{ font-size:8px; }
+.fi-btn-label{
+  display:block;
+  font-size:8px;
+  font-weight:800;
+  letter-spacing:.04em;
+  margin-top:1px;
+}
+.fi-hint{
+  font-size:11px;
+  font-weight:700;
+  color:var(--muted);
+  text-align:center;
+  margin:8px 0 4px;
+  max-width:560px;
+  padding:0 12px;
+}
 .fi-close{
   background:transparent;
   border-color:var(--muted);
@@ -4083,10 +4184,15 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
   }
   #bonusPill{ font-size:10px; padding:6px 8px; }
 }
+/* ui-labels-71-r76: on tiny screens, drop the score label so the number still fits */
+@media (max-width:360px){
+  #scoreChipLabel{ display:none; }
+  #scoreChip{ padding:4px 8px; }
+}
 </style>
 </head>
 <body>
-<button id="homeChip" aria-label="Home">🏠 HOME</button>
+<button id="homeChip" aria-label="Home"><span aria-hidden="true">🏠</span> HOME</button>
 <div id="crt" aria-hidden="true"></div>
 <div id="vign" aria-hidden="true"></div>
 
@@ -4094,7 +4200,7 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
   <div class="brand">SPOONS <em>TOP TRUMPS</em><small id="modeLabel">ARCADE</small></div>
   <div class="score">
     <span class="chip token" id="nearMissChip" style="display:none;" title="Free rematch token held">🎟️ REMATCH</span>
-    <span id="scoreChip">0</span>
+    <span class="chip score-chip" id="scoreChip" title="Your score"><span id="scoreChipLabel">SCORE</span> <b id="scoreChipVal">0</b></span>
     <span id="bonusPill" title="Bonus round armed — CLICK HERE to start it now">🎁 BONUS READY — CLICK HERE</span>
     <span class="chip combo" id="comboChip">🥓 STREAK ×2</span>
     <span class="chip round" id="waveChip"><span id="waveChipLabel">WAVE</span> <b id="countWave">1</b></span>
@@ -4105,9 +4211,9 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
   </div>
   <span class="chip demo" id="demoChip" style="display:none;">DEMO</span>
   <div id="hudButtons" style="display:flex;">
-    <button class="hudbtn" id="btnMusic" title="Music (N)" aria-label="Toggle music">🎵</button>
-    <button class="hudbtn" id="btnMute" title="Mute (M)" aria-label="Toggle sound effects">🔊</button>
-    <button class="hudbtn" id="btnPause" title="Pause (P)" aria-label="Pause menu">⏸</button>
+    <button class="hudbtn" id="btnMusic" title="Music (N)" aria-label="Toggle music">🎵<span class="hudbtn-label">MUSIC</span></button>
+    <button class="hudbtn" id="btnMute" title="Mute (M)" aria-label="Toggle sound effects">🔊<span class="hudbtn-label">SOUND</span></button>
+    <button class="hudbtn" id="btnPause" title="Pause (P)" aria-label="Pause menu">⏸<span class="hudbtn-label">PAUSE</span></button>
   </div>
 </header>
 
@@ -4115,7 +4221,7 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
 
   <!-- TITLE -->
   <section id="screen-title" class="screen">
-  <button class="hudbtn" id="btnMenu" aria-label="Menu">☰</button>
+  <button class="hudbtn" id="btnMenu" aria-label="Menu">☰<span class="hudbtn-label">MENU</span></button>
   <div class="duck-banner" id="duckBanner" aria-hidden="true">
     <div class="duck-track">
       <span class="duck-unit">🦆 <span class="duck-sign">SPOONS TOP TRUMPS</span></span>
@@ -4192,6 +4298,7 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
     </div>
     <div id="comboPop">COMBO ×2</div>
     <div id="verdict" aria-live="polite"></div>
+
     <div id="roundActions"></div>
   
   <div id="fartMan" aria-hidden="true">
@@ -4262,6 +4369,15 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
       <button id="btnOverMenu" class="btn btn-ghost" style="color:#f2e8d5;">CHANGE MODE</button>
     </div>
   </section>
+
+  <!-- ui-labels-71-r76: centred modal toast over the active screen -->
+  <div id="toastOverlay" role="status" aria-live="polite" aria-atomic="true">
+    <div class="toast-box">
+      <div class="toast-title" id="toastTitle">HEADS UP</div>
+      <div class="toast-message" id="toastMessage"></div>
+      <div class="toast-hint">TAP TO DISMISS · AUTO-CLOSES IN 3s</div>
+    </div>
+  </div>
 
 </main>
 
@@ -4533,11 +4649,12 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
           <div class="fi-zone fi-zone-right" id="fiZoneRight"></div>
         </div>
       </div>
+      <p class="fi-hint" id="fiHint">TAP LEFT / RIGHT SIDE OF THE BOG TO MOVE · HIT FIRE TO BLAST</p>
       <div class="fi-controls">
-        <button class="fi-btn" id="fiLeft">◀</button>
-        <button class="fi-btn fi-fire" id="fiFire">FIRE</button>
-        <button class="fi-btn" id="fiRight">▶</button>
-        <button class="fi-btn fi-walk" id="fiWalk">BANK &amp; WALK</button>
+        <button class="fi-btn" id="fiLeft" aria-label="Move left">◀<span class="fi-btn-label">LEFT</span></button>
+        <button class="fi-btn fi-fire" id="fiFire" aria-label="Fire">🔥<span class="fi-btn-label">FIRE</span></button>
+        <button class="fi-btn" id="fiRight" aria-label="Move right">▶<span class="fi-btn-label">RIGHT</span></button>
+        <button class="fi-btn fi-walk" id="fiWalk" aria-label="Bank and walk">🚶<span class="fi-btn-label">BANK &amp; WALK</span></button>
       </div>
     </div>
   </section>
@@ -4601,7 +4718,7 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
         <button class="linkbtn" id="tabPub">MY SPOONS</button> ·
         <button class="linkbtn" id="tabPubPlayer">PLAYERS AT MY SPOONS</button> ·
         <button class="linkbtn" id="tabLockin">🔒 LOCK-IN</button> ·
-        <button class="linkbtn" id="tabAch">🏆 <span id="achChip">0</span></button>
+        <button class="linkbtn" id="tabAch" aria-label="Achievements">🏆 ACHIEVEMENTS <span id="achChip">0</span></button>
       </div>
       <div class="boards-list" id="boardsList"></div>
       <div class="boards-status" id="boardsStatus"></div>
@@ -7558,7 +7675,9 @@ function renderHud(){
   try { renderBonusScratch(); } catch(e){}
   try { updateBonusPill(); } catch(e){}
   const potNow = game.pot.length;
-  el("scoreChip").textContent = String(game.score).padStart(6, "0");
+  const sc = el("scoreChip");
+  const scVal = el("scoreChipVal") || sc;
+  scVal.textContent = String(game.score).padStart(6, "0");
   el("modeLabel").textContent = MODES[game.mode].label;
   el("countPlayer").textContent = game.playerDeck.length;
   el("countAi").textContent = game.aiDeck.length;
@@ -8222,28 +8341,36 @@ function openBogRoll(){
   el("brCleared").textContent = "0"; el("brBanked").textContent = "0"; el("brSafe").textContent = "0";
   brRender(); brLog("CHOOSE YOUR CUBICLE.");
 }
-function bonusToast(msg){ try { if (Math.random() < 0.15) AudioFX.shout(); } catch(e){}
+let _toastTimer = null;
+function bonusToast(msg){
+  try { if (Math.random() < 0.15) AudioFX.shout(); } catch(e){}
   try {
-    const slot = document.getElementById("bonusToastSlot");
-    if (slot){
-      slot.innerHTML = "";
-      const t = document.createElement("span");
-      t.className = "toast-inflow";
-      t.textContent = msg;
-      slot.appendChild(t);
-      setTimeout(() => { t.style.transition = "opacity .4s"; t.style.opacity = "0"; }, 3600);
-      setTimeout(() => { if (slot.contains(t)) slot.innerHTML = ""; }, 4200);
+    const overlay = document.getElementById("toastOverlay");
+    const message = document.getElementById("toastMessage");
+    if (overlay && message){
+      message.textContent = msg;
+      overlay.classList.add("show");
+      if (_toastTimer) clearTimeout(_toastTimer);
+      _toastTimer = setTimeout(() => { overlay.classList.remove("show"); _toastTimer = null; }, 2800);
       return;
     }
-    // fallback: floating toast (screens without the strip)
+    // fallback for screens without the overlay
     const t = document.createElement("div");
     t.style.cssText = "position:fixed;left:50%;bottom:84px;transform:translateX(-50%);background:rgba(20,25,32,.95);color:#f2e8d5;border:1px solid rgba(227,178,60,.6);border-radius:12px;padding:10px 16px;font-weight:800;font-size:13px;z-index:var(--z-modal);box-shadow:0 6px 24px rgba(0,0,0,.5);max-width:86vw;text-align:center";
     t.textContent = msg;
     document.body.appendChild(t);
-    setTimeout(() => { t.style.transition = "opacity .4s"; t.style.opacity = "0"; }, 3600);
-    setTimeout(() => t.remove(), 4200);
+    setTimeout(() => { t.style.transition = "opacity .4s"; t.style.opacity = "0"; }, 2600);
+    setTimeout(() => t.remove(), 3200);
   } catch(e){}
 }
+(function wireToastDismiss(){
+  const overlay = document.getElementById("toastOverlay");
+  if (!overlay) return;
+  overlay.addEventListener("click", () => {
+    overlay.classList.remove("show");
+    if (_toastTimer){ clearTimeout(_toastTimer); _toastTimer = null; }
+  });
+})();
 function maybeTriggerFartOff(){
   // streak x4+ (pig moment) — once per game, no persisted suppression
   if (game.foOffered) return;
@@ -9366,15 +9493,29 @@ const pin2El = el("signupPin2");
 if (pin2El) pin2El.addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); el("signupPub").focus(); } });
 el("signupPub").addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); doSignup(); } });
 
+function setHudIcon(id, icon){
+  const btn = el(id);
+  if (!btn) return;
+  const span = btn.querySelector(".hudbtn-label");
+  if (span){ btn.textContent = ""; btn.appendChild(document.createTextNode(icon)); btn.appendChild(span); }
+  else { btn.textContent = icon; }
+}
+function setHudIcon(id, icon){
+  const btn = el(id);
+  if (!btn) return;
+  const span = btn.querySelector(".hudbtn-label");
+  if (span){ btn.textContent = ""; btn.appendChild(document.createTextNode(icon)); btn.appendChild(span); }
+  else { btn.textContent = icon; }
+}
 el("btnMute").addEventListener("click", () => {
   AudioFX.unlock();
   const m = AudioFX.toggleMute();
-  el("btnMute").textContent = m ? "🔇" : "🔊";
+  setHudIcon("btnMute", m ? "🔇" : "🔊");
 });
 el("btnMusic").addEventListener("click", () => {
   AudioFX.unlock();
   const on = AudioFX.toggleMusic();
-  el("btnMusic").textContent = on ? "🎵" : "🎵̸";
+  setHudIcon("btnMusic", on ? "🎵" : "🎵̸");
   el("btnMusic").style.opacity = on ? "1" : "0.45";
   // long-press not needed: each double-click advances the track
 });
@@ -9382,9 +9523,9 @@ el("btnMusic").addEventListener("dblclick", () => {
   const n = AudioFX.cycleTrack();
   bonusToast("🎵 TRACK: " + n);
 });
-el("btnMusic").textContent = AudioFX.musicEnabled() ? "🎵" : "🎵̸";
+setHudIcon("btnMusic", AudioFX.musicEnabled() ? "🎵" : "🎵̸");
 el("btnMusic").style.opacity = AudioFX.musicEnabled() ? "1" : "0.45";
-el("btnMute").textContent = AudioFX.isMuted() ? "🔇" : "🔊";
+setHudIcon("btnMute", AudioFX.isMuted() ? "🔇" : "🔊");
 el("btnPause").addEventListener("click", togglePause);
 el("btnResume").addEventListener("click", togglePause);
 el("btnQuit").addEventListener("click", () => {
