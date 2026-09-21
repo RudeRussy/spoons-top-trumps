@@ -2174,6 +2174,17 @@ button.stat .keyhint{
   animation:comboPop .6s var(--ease-spring), pigWobble .5s .3s ease-in-out 2;
 }
 
+/* toast-fade-74-r79: non-blocking bottom strip (round-flow messages never block taps) */
+#toastStrip{
+  position:fixed; left:50%; bottom:96px; transform:translateX(-50%) translateY(12px);
+  max-width:min(92vw,420px); padding:9px 16px; border-radius:12px;
+  background:rgba(20,25,32,.94); color:#f2e8d5; border:1px solid rgba(227,178,60,.55);
+  font-weight:800; font-size:13px; line-height:1.35; text-align:center;
+  opacity:0; pointer-events:none; z-index:var(--z-toast);
+  transition:opacity .28s ease, transform .28s ease;
+}
+#toastStrip.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
 /* ui-labels-71-r76: centred modal toast over dimmed table cards */
 #toastOverlay{
   position:absolute;
@@ -4555,6 +4566,9 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
 
 </main>
 
+  <!-- toast-fade-74-r79: non-blocking bottom strip for round-flow messages -->
+  <div id="toastStrip" role="status" aria-live="polite" aria-atomic="true"></div>
+
 <!-- MENU BROWSER -->
 <div id="browser" role="dialog" aria-label="Menu browser">
   <div class="browser-inner">
@@ -4975,7 +4989,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "no-foreign-shouts-73-r78";
+  const BUILD_STAMP = "toast-fade-74-r79";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -7340,7 +7354,7 @@ function resolveRound(){
       const granted = grantNearMissToken();
       if (granted){
         game.turnOwner = "player";
-        bonusToast("NEAR MISS! Free rematch token — use it on the next round");
+        bonusToast("NEAR MISS! Free rematch token — use it on the next round", {modal:true});
       }
     }
   } else {
@@ -7777,9 +7791,9 @@ function doMysteryDrop(){
     card.__gold = true;
     card.__boostedStat = key;
     card.__boostedValue = Math.max(1, Math.round(card[key] * 1.5));
-    bonusToast("📦 MYSTERY MENU DROP! GOLD +50% " + key.toUpperCase());
+    if (!window._mysteryModalShown){ bonusToast("📦 MYSTERY MENU DROP! GOLD +50% " + key.toUpperCase(), {modal:true}); window._mysteryModalShown = true; } else { bonusToast("📦 MYSTERY MENU DROP! GOLD +50% " + key.toUpperCase()); }
   } else {
-    bonusToast("📦 MYSTERY MENU DROP!");
+    if (!window._mysteryModalShown){ bonusToast("📦 MYSTERY MENU DROP!", {modal:true}); window._mysteryModalShown = true; } else { bonusToast("📦 MYSTERY MENU DROP!"); }
   }
   game.playerDeck.push(card);
   sparkleDrop();
@@ -8017,9 +8031,20 @@ function renderVerdict(winner, margin){
 }
 function setVerdict(html){ el("verdict").innerHTML = html; }
 function clearActions(){ el("roundActions").innerHTML = ""; }
+function dismissAllToasts(){
+  try {
+    const overlay = document.getElementById("toastOverlay");
+    if (overlay) overlay.classList.remove("show");
+    const strip = document.getElementById("toastStrip");
+    if (strip) strip.classList.remove("show");
+    if (_toastTimer) { clearTimeout(_toastTimer); _toastTimer = null; }
+    if (window._stripTimer) { clearTimeout(window._stripTimer); window._stripTimer = null; }
+  } catch(e){}
+}
 function renderNextButton(onClick){
   el("roundActions").innerHTML = '<button id="btnNext" class="btn btn-cream">NEXT CARD</button>';
   const btn = el("btnNext");
+  btn.addEventListener("click", dismissAllToasts);
   if (typeof onClick === "function") btn.addEventListener("click", onClick);
   else btn.addEventListener("click", () => { if (game.phase === "reveal" && maybePendingBonus()) return; if (game.phase === "reveal") beginRound(); });
 }
@@ -8548,8 +8573,22 @@ function openBogRoll(){
   brRender(); brLog("CHOOSE YOUR CUBICLE.");
 }
 let _toastTimer = null;
-function bonusToast(msg){
+function bonusToast(msg, opts){
   try { if (Math.random() < 0.15) AudioFX.shout(); } catch(e){}
+  // toast-fade-74-r79: default = non-blocking bottom strip; {modal:true} = full overlay
+  const wantModal = !!(opts && opts.modal);
+  if (!wantModal){
+    try {
+      const strip = document.getElementById("toastStrip");
+      if (strip){
+        strip.textContent = msg;
+        strip.classList.add("show");
+        if (window._stripTimer) clearTimeout(window._stripTimer);
+        window._stripTimer = setTimeout(() => { strip.classList.remove("show"); window._stripTimer = null; }, 1200);
+        return;
+      }
+    } catch(e){}
+  }
   try {
     const overlay = document.getElementById("toastOverlay");
     const message = document.getElementById("toastMessage");
@@ -8569,6 +8608,7 @@ function bonusToast(msg){
     setTimeout(() => t.remove(), 3200);
   } catch(e){}
 }
+
 (function wireToastDismiss(){
   const overlay = document.getElementById("toastOverlay");
   if (!overlay) return;
