@@ -3168,6 +3168,9 @@ from{ transform:scale(.92); opacity:0; } to{ transform:scale(1); opacity:1; }
 }
 .fi-boss-banner.show{ animation:verdictIn .6s var(--ease-spring) forwards; }
 .fi-arena{ position:relative; overflow:hidden; }
+/* pixel-art FI entities are rendered as layered divs; emoji backup kept hidden in DOM */
+.fi-sprite{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); pointer-events:none; }
+.fi-sprite i{ position:absolute; display:block; }
 .fi-combo{
   position:absolute;
   top:8px; left:50%;
@@ -3767,40 +3770,216 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
   overflow:hidden;
   touch-action:none;
   user-select:none;
+  /* subtle CRT: scanlines + vignette + phosphor glow */
 }
+.fi-arena::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  z-index:20;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(30,40,55,.12) 0%, rgba(0,0,0,.55) 85%),
+    repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0px, rgba(0,0,0,.18) 1px, transparent 1px, transparent 3px);
+  mix-blend-mode:multiply;
+}
+.fi-arena::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  z-index:21;
+  box-shadow:inset 0 0 36px rgba(0,0,0,.6), inset 0 0 8px rgba(227,178,60,.15);
+  border-radius:12px;
+}
+.fi-arena.shake-soft{ animation:fiShake .22s ease-out; }
+.fi-arena.shake-hard{ animation:fiShake .36s ease-out; }
+@keyframes fiShake{
+  0%,100%{ transform:translate(0,0); }
+  20%{ transform:translate(-3px,2px); }
+  40%{ transform:translate(3px,-2px); }
+  60%{ transform:translate(-2px,-3px); }
+  80%{ transform:translate(2px,3px); }
+}
+@media (prefers-reduced-motion:reduce){
+  .fi-arena.shake-soft,.fi-arena.shake-hard{ animation:none; }
+}
+/* ---- turd invaders pixel-art sprites ---- */
 .fi-bum{
   position:absolute;
-  font-size:clamp(22px,5.5vw,34px);
-  line-height:1;
-  text-align:center;
+  width:28px; height:22px;
   transform:translate(-50%,-50%);
   transition:opacity .15s;
   pointer-events:none;
-  filter:drop-shadow(0 2px 2px rgba(0,0,0,.5));
 }
-.fi-bum.dead{
-  opacity:0;
-  transform:translate(-50%,-50%) scale(0.3);
+.fi-bum.dead{ opacity:0; transform:translate(-50%,-50%) scale(0.3); }
+/* normal turd: lumpy brown pixel blob */
+.fi-bum-normal .fi-sprite i{ background:#6d4c41; }
+.fi-bum-normal .fi-sprite .p1{ width:8px; height:8px; left:10px; top:0; }
+.fi-bum-normal .fi-sprite .p2{ width:12px; height:10px; left:8px; top:6px; }
+.fi-bum-normal .fi-sprite .p3{ width:6px; height:6px; left:4px; top:10px; }
+.fi-bum-normal .fi-sprite .p4{ width:6px; height:6px; left:18px; top:10px; }
+.fi-bum-normal .fi-sprite .p5{ width:10px; height:8px; left:9px; top:14px; }
+.fi-bum-normal .fi-sprite .eye{ width:2px; height:2px; background:#111; left:12px; top:8px; }
+.fi-bum-normal .fi-sprite .eye.r{ left:18px; }
+/* dribbler: greener + extra top wobble */
+.fi-bum-dribbler .fi-sprite i{ background:#5d8c5a; }
+.fi-bum-dribbler .fi-sprite .p1{ width:8px; height:8px; left:10px; top:0; }
+.fi-bum-dribbler .fi-sprite .p2{ width:12px; height:10px; left:8px; top:6px; }
+.fi-bum-dribbler .fi-sprite .p3{ width:6px; height:6px; left:4px; top:10px; }
+.fi-bum-dribbler .fi-sprite .p4{ width:6px; height:6px; left:18px; top:10px; }
+.fi-bum-dribbler .fi-sprite .p5{ width:10px; height:8px; left:9px; top:14px; }
+.fi-bum-dribbler .fi-sprite .eye{ width:2px; height:2px; background:#111; left:12px; top:8px; }
+.fi-bum-dribbler .fi-sprite .eye.r{ left:18px; }
+.fi-bum-dribbler .fi-sprite .drib{ width:4px; height:4px; background:#8bc34a; left:4px; top:16px; animation:fiDrib .35s ease-in-out infinite alternate; }
+@keyframes fiDrib{ from{ transform:translateY(0); } to{ transform:translateY(6px); } }
+/* bomber: darker + fuse */
+.fi-bum-bomber .fi-sprite i{ background:#4e342e; }
+.fi-bum-bomber .fi-sprite .p1{ width:8px; height:8px; left:10px; top:0; }
+.fi-bum-bomber .fi-sprite .p2{ width:12px; height:10px; left:8px; top:6px; }
+.fi-bum-bomber .fi-sprite .p3{ width:6px; height:6px; left:4px; top:10px; }
+.fi-bum-bomber .fi-sprite .p4{ width:6px; height:6px; left:18px; top:10px; }
+.fi-bum-bomber .fi-sprite .p5{ width:10px; height:8px; left:9px; top:14px; }
+.fi-bum-bomber .fi-sprite .eye{ width:2px; height:2px; background:#fff; left:12px; top:8px; }
+.fi-bum-bomber .fi-sprite .eye.r{ left:18px; }
+.fi-bum-bomber .fi-sprite .fuse{ width:2px; height:6px; background:#ff5252; left:14px; top:-5px; animation:fiFuse .2s steps(2) infinite; }
+@keyframes fiFuse{ 0%{ opacity:1; } 50%{ opacity:.4; } }
+.fi-bum-bomber::after{
+  content:""; position:absolute; left:50%; top:50%; width:46px; height:46px; transform:translate(-50%,-50%);
+  border-radius:50%; background:radial-gradient(circle, rgba(255,82,82,.25) 0%, transparent 70%);
+  animation:fiBomberPulse 1s ease-in-out infinite;
+  pointer-events:none;
 }
+@keyframes fiBomberPulse{ 0%,100%{ transform:translate(-50%,-50%) scale(.9); opacity:.7; } 50%{ transform:translate(-50%,-50%) scale(1.15); opacity:1; } }
+/* marching wobble tied to bob */
+.fi-bum{ animation:fiMarch .8s steps(2) infinite; }
+.fi-bum:nth-child(odd){ animation-delay:-.4s; }
+@keyframes fiMarch{ 0%{ transform:translate(-50%,-50%) translateY(0); } 100%{ transform:translate(-50%,-50%) translateY(-3px); } }
 .fi-player{
   position:absolute;
   bottom:4px;
   left:50%;
   transform:translateX(-50%);
-  font-size:clamp(32px,8vw,48px);
-  line-height:1;
-  filter:drop-shadow(0 3px 3px rgba(0,0,0,.5));
+  width:44px; height:44px;
   pointer-events:none;
+  transition:transform .06s ease-out;
 }
-.fi-bolt, .fi-turd{
+.fi-player.recoil{ transform:translateX(-50%) translateY(4px) scale(0.96); }
+/* pixel-art cannon-toilet body */
+.fi-player .fi-cannon{
   position:absolute;
-  font-size:clamp(16px,4vw,24px);
-  line-height:1;
+  left:50%; bottom:34px;
+  width:8px; height:18px;
+  background:linear-gradient(180deg,#cfd8dc,#90a4ae);
+  border:1px solid #546e7a;
+  border-radius:2px;
+  transform:translateX(-50%);
+}
+.fi-player .fi-bowl{
+  position:absolute;
+  left:50%; bottom:0;
+  width:34px; height:34px;
+  background:#e3f2fd;
+  border:2px solid #90a4ae;
+  border-radius:50% 50% 45% 45%;
+  transform:translateX(-50%);
+  box-shadow:inset -4px -4px 0 rgba(0,0,0,.1);
+}
+.fi-player .fi-bowl::after{
+  content:""; position:absolute; left:8px; top:8px; width:14px; height:14px;
+  border-radius:50%; background:#4fc3f7; opacity:.7;
+}
+/* muzzle flash */
+.fi-flash{
+  position:absolute;
+  left:50%; bottom:52px;
+  width:10px; height:10px;
+  transform:translateX(-50%);
+  background:#ffeb3b;
+  border-radius:50%;
+  box-shadow:0 0 10px #ffeb3b, 0 0 18px #ff9800;
+  opacity:0;
+  pointer-events:none;
+  z-index:10;
+  transition:none;
+}
+.fi-player.flash .fi-flash{ animation:fiFlash .12s ease-out; }
+@keyframes fiFlash{ 0%{ opacity:1; transform:translateX(-50%) scale(1); } 100%{ opacity:0; transform:translateX(-50%) scale(2.2); } }
+/* loo-roll bolt */
+.fi-bolt{
+  position:absolute;
+  width:8px; height:14px;
+  background:#fff;
+  border:1px solid #cfd8dc;
+  border-radius:2px;
+  transform:translate(-50%,-50%);
+  pointer-events:none;
+  box-shadow:0 1px 2px rgba(0,0,0,.3);
+}
+/* turd drop */
+.fi-drop{
+  position:absolute;
+  width:8px; height:8px;
+  background:#6d4c41;
+  border-radius:50%;
   transform:translate(-50%,-50%);
   pointer-events:none;
 }
-.fi-bolt{ filter:drop-shadow(0 1px 1px rgba(255,255,255,.3)); }
-.fi-turd{ filter:drop-shadow(0 2px 2px rgba(0,0,0,.4)); }
+/* explosion burst */
+.fi-boom{
+  position:absolute;
+  left:50%; top:50%;
+  width:6px; height:6px;
+  transform:translate(-50%,-50%);
+  pointer-events:none;
+  z-index:12;
+}
+.fi-boom .ring{
+  position:absolute; left:50%; top:50%;
+  width:8px; height:8px; margin-left:-4px; margin-top:-4px;
+  border:2px solid #ff9800; border-radius:50%;
+  opacity:0;
+}
+.fi-boom .core{
+  position:absolute; left:50%; top:50%;
+  width:6px; height:6px; margin-left:-3px; margin-top:-3px;
+  background:#fff; border-radius:50%;
+  opacity:0;
+}
+.fi-boom.burst .ring{ animation:fiRing .28s ease-out forwards; }
+.fi-boom.burst .core{ animation:fiCore .18s ease-out forwards; }
+.fi-boom .bit{
+  position:absolute; left:50%; top:50%;
+  width:3px; height:3px; margin-left:-1.5px; margin-top:-1.5px;
+  background:#8d6e63; border-radius:1px;
+  opacity:0;
+}
+.fi-boom.burst .bit{ animation:fiBit .35s ease-out forwards; }
+@keyframes fiRing{ 0%{ transform:scale(.5); opacity:1; } 100%{ transform:scale(5); opacity:0; } }
+@keyframes fiCore{ 0%{ transform:scale(1); opacity:1; } 100%{ transform:scale(2.5); opacity:0; } }
+@keyframes fiBit{ 0%{ transform:translate(0,0) scale(1); opacity:1; } 100%{ transform:translate(var(--tx), var(--ty)) scale(0); opacity:0; } }
+/* golden NUGGET UFO */
+.fi-ufo{
+  position:absolute;
+  transform:translate(-50%,-50%);
+  pointer-events:none;
+  z-index:11;
+  animation:fiUfoBob 1.2s ease-in-out infinite alternate;
+}
+.fi-ufo::before{
+  content:""; position:absolute; left:0; top:6px; width:100%; height:10px;
+  background:radial-gradient(ellipse at center, #ffd700 0%, #ffb300 60%, transparent 70%);
+  border-radius:50%;
+  box-shadow:0 0 14px #ffd700, 0 0 28px rgba(255,215,0,.6);
+}
+.fi-ufo::after{
+  content:""; position:absolute; left:30%; top:0; width:40%; height:8px;
+  background:linear-gradient(180deg,#fff9c4,#fbc02d);
+  border-radius:50% 50% 40% 40%;
+}
+@keyframes fiUfoBob{ from{ transform:translate(-50%,-50%) translateY(0); } to{ transform:translate(-50%,-50%) translateY(-4px); } }
+.fi-part{ position:absolute; border-radius:50%; pointer-events:none; }
+.fi-walk{ background:linear-gradient(180deg, #4a7c59, #33513c); color:#fff; }
 .fi-controls{
   display:flex;
   gap:10px;
@@ -4643,7 +4822,7 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
       <div class="fi-topbar" id="fiTopbar">SCORE 0 · WAVE 1 · LIVES 1 · BANKED 0</div>
       <div class="fi-arena" id="fiArena">
         <div class="fi-combo" id="fiCombo"></div>
-        <div class="fi-player" id="fiPlayer">🚽</div>
+        <div class="fi-player" id="fiPlayer"><div class="fi-cannon"></div><div class="fi-bowl"></div><div class="fi-flash"></div></div>
         <div class="fi-zones">
           <div class="fi-zone fi-zone-left" id="fiZoneLeft"></div>
           <div class="fi-zone fi-zone-right" id="fiZoneRight"></div>
@@ -4801,7 +4980,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "ui-labels-71-r76";
+  const BUILD_STAMP = "turd-invaders-arcade-72-r77";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -5123,6 +5302,10 @@ const AudioFX = (() => {
   window.MEGA_POOL = MEGA_POOL;
   window.MEGA_LONG_FILES = MEGA_LONG_FILES;
   window.MEGA_COMEDY_FILES = MEGA_COMEDY_FILES;
+  const FI_SHOT_SRC = "sfx/fart-s1.mp3"; // short punchy fart clip reused as cannon blast
+  const FI_SHOT_POOL = [];
+  const FI_SHOT_POOL_SIZE = 6;
+  let fiShotIdx = 0;
   function preloadFarts(){
     if (FART_POOL.length || !FART_FILES.length) return;
     FART_FILES.forEach(src => { try { const a = new Audio(src); a.preload = "auto"; a.load(); FART_POOL.push(a); } catch(e){} });
@@ -5132,6 +5315,12 @@ const AudioFX = (() => {
     [...MEGA_LONG_FILES, ...MEGA_COMEDY_FILES, ...MEGA_TOON_FILES].forEach(src => {
       try { const a = new Audio(src); a.preload = "auto"; a.load(); MEGA_POOL.push({ src, a }); } catch(e){}
     });
+  }
+  function preloadFiShots(){
+    if (FI_SHOT_POOL.length || !FI_SHOT_SRC) return;
+    for (let i = 0; i < FI_SHOT_POOL_SIZE; i++){
+      try { const a = new Audio(FI_SHOT_SRC); a.preload = "auto"; a.load(); FI_SHOT_POOL.push(a); } catch(e){}
+    }
   }
   let fartAudio = null;
   function fetchWithTimeout(url, opts, ms){
@@ -5283,7 +5472,7 @@ function nextTrackIdx(){ // random next, never the same SONG in a row (ext+short
   function resumeMusic(){ if (musicOn && !muted && !musicTimer) startMusic(); }
   return {
     unlock(){
-      ac(); silentKick(); preloadFarts();
+      ac(); silentKick(); preloadFarts(); preloadFiShots();
       // iOS: the physical silent switch silences WebAudio unless the page holds an
       // active <audio> media session. Open a silent looping one inside the first gesture.
       try {
@@ -5318,6 +5507,28 @@ function nextTrackIdx(){ // random next, never the same SONG in a row (ext+short
     bacon(step){
       if (step >= 4){ this.fart(); return; } // 4+ streaks: the pig takes over
       const f = [659, 784, 880, 988][Math.min(step - 2, 3)] || 659; tone(f, 0.1, "square", 0.05); tone(f * 1.5, 0.12, "square", 0.04, 0.06);
+    },
+    fiShot(){
+      // Turd Invaders cannon: round-robin clone pool so rapid taps overlap cleanly on iOS
+      try {
+        if (!FI_SHOT_POOL.length) preloadFiShots();
+        if (!FI_SHOT_POOL.length) throw new Error("no shot pool");
+        const a = FI_SHOT_POOL[fiShotIdx % FI_SHOT_POOL.length];
+        fiShotIdx++;
+        a.pause();
+        a.currentTime = 0;
+        a.volume = 0.85;
+        a.playbackRate = 1.5 + Math.random() * 0.25; // pitched-up cannon punch
+        const p = a.play();
+        if (p && p.catch) p.catch(() => {});
+        return;
+      } catch(e){ /* fall through to synth shot */ }
+      const c = ac(); if (!c || muted) return;
+      const t = c.currentTime;
+      const o = c.createOscillator(), g = c.createGain();
+      o.type = "square"; o.frequency.setValueAtTime(180, t); o.frequency.exponentialRampToValueAtTime(90, t + 0.12);
+      g.gain.setValueAtTime(0.12, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.14);
+      o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + 0.15);
     },
     fart(){
       // Fart pack: preloaded samples (CC0, fartsoundboard.com), random pick; synth fallback.
@@ -8678,7 +8889,7 @@ function foMidGameEnd(won){
   renderNextButton();
   try { updateBonusPill(); } catch(e){}
 }
-const fi = { on:false, score:0, wave:1, lives:1, banked:0, width:0, height:0, playerX:0, bullets:[], bums:[], drops:[], particles:[], lastT:0, raf:0, mid:false, epoch:0, combo:0, comboTimer:0, mega:false };
+const fi = { on:false, score:0, wave:1, lives:1, banked:0, width:0, height:0, playerX:0, bullets:[], bums:[], drops:[], particles:[], lastT:0, raf:0, mid:false, epoch:0, combo:0, comboTimer:0, mega:false, ufo:null };
 const FI_WIDTH = 12;
 const FI_COLS = 8;
 const FI_ROWS = 4;
@@ -8699,7 +8910,7 @@ function fiReset(){
   fi.width = arena.clientWidth;
   fi.height = arena.clientHeight;
   fi.playerX = fi.width / 2;
-  fi.bullets = []; fi.bums = []; fi.drops = []; fi.particles = [];
+  fi.bullets = []; fi.bums = []; fi.drops = []; fi.particles = []; fi.ufo = null;
   fi.score = 0; fi.wave = 1; fi.lives = 1; fi.banked = 0; fi.combo = 0; fi.comboTimer = 0; fi.mega = false;
   fiTopbar();
   const p = el("fiPlayer");
@@ -8738,6 +8949,10 @@ function fiBuildWave(){
       fi.bums.push(b);
     }
   }
+  // Golden NUGGET UFO: bonus target, ~40% chance once per wave (wave>=2), purely additive
+  if (fi.wave >= 2 && Math.random() < 0.40){
+    fi.ufo = { x: -30, y: h * 0.55, w: 34, h: 18, dx: fi.width * 0.0035 + fi.wave * 0.0006, alive: true, hits: 0, hitsNeeded: 2 + Math.floor(fi.wave/3) };
+  }
 }
 function fiMovePlayer(dir){
   if (!fi.on) return;
@@ -8751,8 +8966,14 @@ function fiMovePlayer(dir){
 }
 function fiFire(){
   if (!fi.on) return;
-  AudioFX.fart(1);
-  fi.bullets.push({ x: fi.playerX, y: fi.height - 50, vy: -fi.height * 0.02, alive: true });
+  AudioFX.fiShot();
+  const p = el("fiPlayer");
+  if (p){
+    p.classList.add("flash","recoil");
+    setTimeout(() => p.classList.remove("flash"), 130);
+    setTimeout(() => p.classList.remove("recoil"), 90);
+  }
+  fi.bullets.push({ x: fi.playerX, y: fi.height - 58, vy: -fi.height * 0.022, alive: true });
 }
 function fiSpawnTurd(x, y){
   fi.bums.push({ x: x, y: y, w: 22, h: 22, dx: (Math.random()-.5)*2, dy: 0, type: "fall", alive: true, bob: 0 });
@@ -8760,6 +8981,7 @@ function fiSpawnTurd(x, y){
 function fiKillBum(i){
   const b = fi.bums[i];
   if (!b) return;
+  const arena = el("fiArena");
   // combo popup
   fi.combo++; fi.comboTimer = 1200;
   const mult = 1 + Math.min(5, Math.floor(fi.combo/3));
@@ -8771,9 +8993,34 @@ function fiKillBum(i){
     comboEl.classList.remove("show"); void comboEl.offsetWidth; comboEl.classList.add("show");
     setTimeout(() => comboEl.classList.remove("show"), 700);
   }
+  // explosion burst on arena
+  if (arena){
+    const boom = document.createElement("div"); boom.className = "fi-boom";
+    boom.style.left = b.x + "px"; boom.style.top = b.y + "px";
+    boom.innerHTML = '<div class="core"></div><div class="ring"></div>';
+    for (let k = 0; k < 8; k++){
+      const bit = document.createElement("i"); bit.className = "bit";
+      const ang = (k / 8) * Math.PI * 2;
+      const dist = 22 + Math.random() * 18;
+      bit.style.setProperty("--tx", Math.cos(ang) * dist + "px");
+      bit.style.setProperty("--ty", Math.sin(ang) * dist + "px");
+      boom.appendChild(bit);
+    }
+    arena.appendChild(boom);
+    requestAnimationFrame(() => boom.classList.add("burst"));
+    setTimeout(() => boom.remove(), 400);
+  }
   // particles
   for (let k=0;k<6;k++){
     fi.particles.push({ x: b.x, y: b.y, vx:(Math.random()-.5)*5, vy:(Math.random()-.5)*5, life:1, size:3+Math.random()*5, color: b.type==="bomber"?"#8d6e63":"#a1887f" });
+  }
+  // screen shake
+  const arenaShake = el("fiArena");
+  if (arenaShake){
+    arenaShake.classList.remove("shake-soft","shake-hard");
+    void arenaShake.offsetWidth;
+    arenaShake.classList.add(b.type === "bomber" ? "shake-hard" : "shake-soft");
+    setTimeout(() => arenaShake.classList.remove("shake-soft","shake-hard"), b.type === "bomber" ? 360 : 220);
   }
   AudioFX.coin();
   fi.bums.splice(i, 1);
@@ -8831,16 +9078,55 @@ function fiUpdate(now){
     }
     return true;
   });
+  // UFO (golden nugget bonus target)
+  if (fi.ufo){
+    fi.ufo.x += fi.ufo.dx;
+    if (fi.ufo.x > fi.width + 40) fi.ufo = null;
+  }
   // bullets
   fi.bullets = fi.bullets.filter(b => {
     b.y += b.vy;
     if (b.y < 0) return false;
     let hit = false;
-    for (let i=0;i<fi.bums.length;i++){
+    if (fi.ufo){
+      const u = fi.ufo;
+      if (Math.abs(b.x - u.x) < u.w/2 + 4 && Math.abs(b.y - u.y) < u.h/2 + 4){
+        u.hits++;
+        if (u.hits >= u.hitsNeeded){
+          fi.score += 100;
+          const comboEl = el("fiCombo");
+          if (comboEl){ comboEl.textContent = "NUGGET! +100"; comboEl.classList.remove("show"); void comboEl.offsetWidth; comboEl.classList.add("show"); setTimeout(() => comboEl.classList.remove("show"), 900); }
+          try { AudioFX.megaFart(3); } catch(e){}
+          const arena = el("fiArena");
+          if (arena){
+            const boom = document.createElement("div"); boom.className = "fi-boom";
+            boom.style.left = u.x + "px"; boom.style.top = u.y + "px";
+            boom.innerHTML = '<div class="core"></div><div class="ring"></div>';
+            for (let k = 0; k < 10; k++){
+              const bit = document.createElement("i"); bit.className = "bit";
+              const ang = (k / 10) * Math.PI * 2;
+              const dist = 26 + Math.random() * 20;
+              bit.style.setProperty("--tx", Math.cos(ang) * dist + "px");
+              bit.style.setProperty("--ty", Math.sin(ang) * dist + "px");
+              boom.appendChild(bit);
+            }
+            arena.appendChild(boom);
+            requestAnimationFrame(() => boom.classList.add("burst"));
+            setTimeout(() => boom.remove(), 400);
+            arena.classList.remove("shake-soft","shake-hard"); void arena.offsetWidth; arena.classList.add("shake-hard");
+            setTimeout(() => arena.classList.remove("shake-soft","shake-hard"), 360);
+          }
+          fiTopbar();
+          fi.ufo = null;
+        }
+        hit = true;
+      }
+    }
+    for (let i=0;i<fi.bums.length && !hit;i++){
       const e = fi.bums[i];
       if (!e.alive) continue;
       if (Math.abs(b.x - e.x) < e.w/2 + 6 && Math.abs(b.y - e.y) < e.h/2 + 6){
-        fiKillBum(i); hit = true; break;
+        fiKillBum(i); hit = true;
       }
     }
     return !hit;
@@ -8872,25 +9158,33 @@ function fiUpdate(now){
 }
 function fiRender(){
   const arena = el("fiArena");
-  // remove old bums/drops rendered by DOM
-  arena.querySelectorAll(".fi-bum, .fi-drop").forEach(e => e.remove());
+  // remove old bums/drops/UFO rendered by DOM
+  arena.querySelectorAll(".fi-bum, .fi-drop, .fi-ufo").forEach(e => e.remove());
   fi.bums.forEach(b => {
     const e = document.createElement("div");
     e.className = "fi-bum fi-bum-" + b.type;
-    e.textContent = b.type === "bomber" ? "💣" : (b.type === "dribbler" ? "🌀" : "💩");
     e.style.left = b.x + "px"; e.style.top = b.y + "px";
     e.style.width = b.w + "px"; e.style.height = b.h + "px";
-    e.style.lineHeight = b.h + "px";
-    e.style.transform = "translate(-50%, -50%)";
+    const sprite = document.createElement("div"); sprite.className = "fi-sprite";
+    sprite.innerHTML = '<i class="p1"></i><i class="p2"></i><i class="p3"></i><i class="p4"></i><i class="p5"></i><i class="eye"></i><i class="eye r"></i>' + (b.type === "dribbler" ? '<i class="drib"></i>' : b.type === "bomber" ? '<i class="fuse"></i>' : '');
+    e.appendChild(sprite);
+    e.appendChild(document.createTextNode(" ")); // keep line-height anchor
     arena.appendChild(e);
   });
   fi.drops.forEach(d => {
     const e = document.createElement("div");
     e.className = "fi-drop";
-    e.textContent = "🟤";
     e.style.left = d.x + "px"; e.style.top = d.y + "px";
     arena.appendChild(e);
   });
+  // golden nugget UFO
+  if (fi.ufo){
+    const u = document.createElement("div");
+    u.className = "fi-ufo";
+    u.style.left = fi.ufo.x + "px"; u.style.top = fi.ufo.y + "px";
+    u.style.width = fi.ufo.w + "px"; u.style.height = fi.ufo.h + "px";
+    arena.appendChild(u);
+  }
   // particles overlay on arena
   arena.querySelectorAll(".fi-part").forEach(e => e.remove());
   fi.particles.forEach(p => {
@@ -8900,6 +9194,14 @@ function fiRender(){
     e.style.width = p.size + "px"; e.style.height = p.size + "px";
     e.style.background = p.color; e.style.opacity = p.life;
     e.style.transform = "translate(-50%, -50%)";
+    arena.appendChild(e);
+  });
+  // loo-roll bolts
+  arena.querySelectorAll(".fi-bolt").forEach(e => e.remove());
+  fi.bullets.forEach(b => {
+    const e = document.createElement("div");
+    e.className = "fi-bolt";
+    e.style.left = b.x + "px"; e.style.top = b.y + "px";
     arena.appendChild(e);
   });
 }
