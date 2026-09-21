@@ -2620,7 +2620,7 @@ header#hud .score > *{
 #screen-title h1{
   font-family:var(--font-display);
   color:var(--cream);
-  font-size:clamp(34px,8.5vw,86px);
+  font-size:max(18px, min(8.5vw, 60px));
   line-height:1.12;
   text-shadow:0 0 18px rgba(226,43,60,.55), 0 5px 0 rgba(0,0,0,.5);
   margin-bottom:10px;
@@ -4033,7 +4033,7 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
 /* ===== title-fit-67-r73: whole title screen must fit phone proportions (URL bar up too) ===== */
 @media (max-height: 780px){
   #screen-title{ padding-top:max(2vh, env(safe-area-inset-top) + 4px); }
-  #screen-title h1{ font-size:clamp(28px,7vw,60px); margin-bottom:5px; }
+  #screen-title h1{ font-size:max(16px, min(7vw, 50px)); margin-bottom:5px; }
   #screen-title .duck-banner{ margin-bottom:8px; padding:3px 0; }
   #screen-title .title-tag{ margin-bottom:3px; font-size:9px; }
   #screen-title .title-strip{ margin:3px auto 3px; min-height:0; }
@@ -4049,7 +4049,7 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
 @media (max-height: 640px){
   #screen-title{ padding-top:4px; justify-content:flex-start; }
   #screen-title .duck-banner, #screen-title .title-tag, #screen-title .title-strip, #screen-title .order-hint, #screen-title .title-sub{ display:none; }
-  #screen-title h1{ font-size:clamp(21px,5.8vw,34px); margin-bottom:3px; }
+  #screen-title h1{ font-size:max(14px, min(5.8vw, 34px)); margin-bottom:3px; }
   #screen-title .modebtn{ padding:7px 12px 3px; min-height:33px; }
   #screen-title .btnMenu{ display:none; }
 }
@@ -4658,7 +4658,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "title-fit-67-r73";
+  const BUILD_STAMP = "title-fit-ios-69-r75";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -9681,14 +9681,44 @@ game.demo = false;
 Spoons.preloadMyPub();
 initOrderPanelKeyboard();
 
-
-
-
-
-
-
-
-
+/* ---------- iOS title-fit safety: ensure TOP TRUMPS never clips #stage ---------- */
+let __fitTitleBusy = false;
+function fitTitle(){
+  if (__fitTitleBusy) return;
+  __fitTitleBusy = true;
+  requestAnimationFrame(() => {
+    try {
+      const stage = document.getElementById('stage');
+      const h1 = document.querySelector('#screen-title h1');
+      const red = h1 && h1.querySelector('.red');
+      if (!stage || !h1 || !red) return;
+      const stageRect = stage.getBoundingClientRect();
+      const red0 = red.getBoundingClientRect();
+      if (stageRect.width === 0 || red0.width === 0) return;
+      h1.style.fontSize = '';
+      let fs = parseFloat(getComputedStyle(h1).fontSize) || 24;
+      const minFs = 14;
+      const margin = 8;
+      for (let i = 0; i < 40 && fs >= minFs; i++, fs--){
+        h1.style.fontSize = fs + 'px';
+        const rr = red.getBoundingClientRect();
+        if (rr.left >= stageRect.left + margin && rr.right <= stageRect.right - margin) break;
+      }
+    } catch(e){}
+    __fitTitleBusy = false;
+  });
+}
+if (document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', fitTitle);
+} else {
+  fitTitle();
+}
+if (document.fonts && document.fonts.ready){
+  document.fonts.ready.then(fitTitle).catch(() => fitTitle());
+}
+window.addEventListener('resize', fitTitle);
+window.addEventListener('orientationchange', fitTitle);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) fitTitle(); });
 </script>
   
 </body>
