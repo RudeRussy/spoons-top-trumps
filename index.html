@@ -390,6 +390,66 @@ header#hud{
 }
 
 /* ---------- new-games-64-r70 CSS ---------- */
+
+/* ---------- whacka-drunk-r82 ---------- */
+.whacka-wrap{justify-content:flex-start;padding-top:max(12px, env(safe-area-inset-top))}
+.whacka-board{
+  display:grid;grid-template-columns:repeat(3, 1fr);gap:14px;width:min(90vw, 400px);margin:10px auto;
+  background:linear-gradient(180deg, rgba(20,25,32,.7), rgba(20,25,32,.5));border-radius:16px;padding:14px;
+  box-shadow:inset 0 4px 24px rgba(0,0,0,.55);
+}
+.whacka-hole{
+  position:relative;aspect-ratio:1/1;border-radius:50%;overflow:hidden;
+  background:radial-gradient(circle at 50% 80%, #2b1d12 0%, #15100c 70%);
+  box-shadow:inset 0 -6px 12px rgba(0,0,0,.7), 0 2px 4px rgba(255,255,255,.05);
+}
+.whacka-hole.active .whacka-drunk{ transform:translateY(0); opacity:1; }
+.whacka-hole.active .whacka-lid{ transform:translateY(55%); opacity:.4; }
+.whacka-drunk{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(34px,10vw,54px);
+  transform:translateY(75%);opacity:0;transition:transform .12s ease-out, opacity .08s ease-out;cursor:pointer;user-select:none;
+  filter:drop-shadow(0 4px 6px rgba(0,0,0,.6));
+}
+.whacka-lid{
+  position:absolute;inset:0;border-radius:50%;pointer-events:none;z-index:2;
+  background:radial-gradient(circle at 50% 30%, rgba(255,255,255,.06), transparent 60%), #1b130d;
+  box-shadow:0 2px 0 rgba(255,255,255,.04) inset;
+  transition:transform .12s ease-out, opacity .08s ease-out;
+}
+.whacka-hole.whacked .whacka-drunk{ transform:translateY(75%) rotate(-8deg); filter:grayscale(1) brightness(.8); }
+.whacka-hole.whacked::after{
+  content:"";position:absolute;left:50%;top:45%;width:60%;height:60%;border-radius:50%;
+  background:radial-gradient(circle, rgba(255,255,255,.9) 0%, rgba(227,178,60,.4) 40%, transparent 70%);
+  transform:translate(-50%,-50%) scale(0);animation:whackaStar .35s ease-out forwards;pointer-events:none;z-index:3;
+}
+@keyframes whackaStar{ 0%{transform:translate(-50%,-50%) scale(.2);opacity:1} 100%{transform:translate(-50%,-50%) scale(1.4);opacity:0} }
+.whacka-hole.bonk .whacka-drunk{ animation:whackaBonk .18s ease-out; }
+@keyframes whackaBonk{ 0%{transform:translateY(0) scale(1)} 50%{transform:translateY(-12%) scale(1.12)} 100%{transform:translateY(75%) scale(.9)} }
+.whacka-hole.xeyes .whacka-drunk::after{
+  content:"✕✕";position:absolute;left:50%;top:55%;transform:translate(-50%,-50%);font-size:14px;color:#000;
+  font-weight:900;letter-spacing:-1px;text-shadow:0 0 2px rgba(255,255,255,.6);
+}
+.whacka-drunk.lad::before{content:"🍺";}
+.whacka-drunk.roundbuyer::before{content:"🍻";filter:drop-shadow(0 0 10px #ffd700);}
+.whacka-drunk.karaoke::before{content:"🎤";}
+.whacka-drunk.oldboy::before{content:"🧓";}
+.whacka-hole.gold-glow .whacka-drunk::before{filter:drop-shadow(0 0 16px #ffd700) brightness(1.2);}
+.whacka-hole.shake{animation:fiShake .22s ease-out;}
+.whacka-hand{
+  position:fixed;left:0;top:0;width:64px;height:64px;pointer-events:none;z-index:200;display:none;align-items:center;justify-content:center;
+  font-size:42px;transform:translate(-50%,-50%) rotate(-15deg);filter:drop-shadow(0 4px 6px rgba(0,0,0,.5));
+}
+.whacka-hand.show{display:flex;animation:whackaSlam .14s ease-out;}
+@keyframes whackaSlam{ 0%{transform:translate(-50%,-50%) rotate(-15deg) scale(.7)} 50%{transform:translate(-50%,-50%) rotate(0deg) scale(1.15)} 100%{transform:translate(-50%,-50%) rotate(-15deg) scale(1)} }
+.whacka-legend{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:min(92vw,420px);font-size:10px;opacity:.85;margin-top:6px}
+.whacka-legend-item{display:flex;align-items:center;gap:4px;background:rgba(0,0,0,.35);border-radius:8px;padding:4px 8px}
+.whacka-legend-item i{font-style:normal;font-size:18px}
+.whacka-hud span b{min-width:24px;display:inline-block}
+.whacka-wave-toast{
+  position:fixed;left:50%;top:28%;transform:translate(-50%,-50%);font-family:var(--font-arcade);font-size:22px;color:var(--gold);
+  text-shadow:0 0 20px rgba(227,178,60,.9);pointer-events:none;z-index:110;white-space:nowrap;animation:verdictIn .5s var(--ease-spring) forwards;
+}
+
 /* ---------- new-games-64-r70: kebab / quiz / carpet3 / gents ---------- */
 .ng-wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px 16px calc(20px + env(safe-area-inset-bottom));text-align:center}
 .ng-tag{font-size:11px;letter-spacing:2px;color:var(--gold);opacity:.85}
@@ -4435,6 +4495,10 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
         <span class="scratch-caption">🚀 FART INVADERS — WAVE CLEAR</span>
         <span class="scratch-body"><b>🚀</b><i class="pips" id="fiPips">····</i></span>
       </span>
+      <span class="scratch" id="scratchWhacka" title="WAVE CLEAR = DOOR DUTY">
+        <span class="scratch-caption">🍺 WHACKA DRUNK — WAVE CLEAR</span>
+        <span class="scratch-body"><b>🍺</b><i class="pips" id="whackaPips">····</i></span>
+      </span>
     </div>
     <div class="table">
       <div class="side">
@@ -4530,6 +4594,7 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
     </div>
   </div>
   <div id="toastStrip" role="status" aria-live="polite" aria-atomic="true"></div>
+  <div class="whacka-hand" id="whackaHand">👊</div>
 
 
   <div id="streakFloater"></div>
@@ -4858,6 +4923,37 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
     </div>
   </section>
 
+  <section id="screen-whacka" class="screen hidden bonus-fullscreen">
+    <div class="bonus-wrap whacka-wrap">
+      <div class="bonus-tag">THE DOOR IS SHUT IN 60 SECONDS</div>
+      <div class="bonus-back" id="whackaBack">BACK / BANK</div>
+      <h2>🍺 WHACKA DRUNK 🍺</h2>
+      <p class="bonus-sub" id="whackaSub">You're the doorman. Drunks pop up out the cubicles, over the bar, behind the kebab trays and out the beer-garden shed. Whack 'em before they cause chaos.</p>
+      <div class="ng-hud whacka-hud">
+        <span>SCORE: <b id="whackaScore">0</b></span>
+        <span>WAVE: <b id="whackaWave">1</b></span>
+        <span>LIVES: <b id="whackaLives">❤️❤️❤️</b></span>
+      </div>
+      <div id="whackaBoard" class="whacka-board">
+        <div class="whacka-hole" data-i="0"><div class="whacka-lid"></div><div class="whacka-drunk"></div></div>
+        <div class="whacka-hole" data-i="1"><div class="whacka-lid"></div><div class="whacka-drunk"></div></div>
+        <div class="whacka-hole" data-i="2"><div class="whacka-lid"></div><div class="whacka-drunk"></div></div>
+        <div class="whacka-hole" data-i="3"><div class="whacka-lid"></div><div class="whacka-drunk"></div></div>
+        <div class="whacka-hole" data-i="4"><div class="whacka-lid"></div><div class="whacka-drunk"></div></div>
+        <div class="whacka-hole" data-i="5"><div class="whacka-lid"></div><div class="whacka-drunk"></div></div>
+        <div class="whacka-hole" data-i="6"><div class="whacka-lid"></div><div class="whacka-drunk"></div></div>
+        <div class="whacka-hole" data-i="7"><div class="whacka-lid"></div><div class="whacka-drunk"></div></div>
+        <div class="whacka-hole" data-i="8"><div class="whacka-lid"></div><div class="whacka-drunk"></div></div>
+      </div>
+      <div class="whacka-legend">
+        <span class="whacka-legend-item"><i class="wd-lad"></i> Whack the drunks</span>
+        <span class="whacka-legend-item"><i class="wd-gold"></i> GOLD = round-buyer — DON'T TOUCH</span>
+        <span class="whacka-legend-item"><i class="wd-mic"></i> MIC = karaoke bloke — bonus</span>
+        <span class="whacka-legend-item"><i class="wd-old"></i> OLD BOY — penalty if whacked</span>
+      </div>
+      <div class="ng-verdict" id="whackaVerdict"></div>
+    </div>
+  </section>
 
 
   <section class="boards-overlay" id="boardsOverlay" role="dialog" aria-modal="true" aria-label="Leaderboards">
@@ -4951,7 +5047,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = 'comedy-v1-r81a';
+  const BUILD_STAMP = 'whacka-drunk-r82';
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -5913,10 +6009,11 @@ function updateBodyLock(){
     visible("screen-kebab") ||
     visible("screen-quiz") ||
     visible("screen-carpet3") ||
-    visible("screen-gents");
+    visible("screen-gents") ||
+    visible("screen-whacka");
   document.body.style.overflow = any ? "hidden" : "";
   document.body.style.touchAction = any ? "none" : "";
-  const bonusActive = visible("screen-bonus") || visible("screen-bogroll") || visible("screen-fartoff") || visible("screen-fartinvaders");
+  const bonusActive = visible("screen-bonus") || visible("screen-bogroll") || visible("screen-fartoff") || visible("screen-fartinvaders") || visible("screen-whacka");
   const hud = document.getElementById("hud");
   if (hud) hud.style.visibility = bonusActive ? "hidden" : "";
   document.body.classList.toggle("bonus-locked", bonusActive);
@@ -7039,6 +7136,7 @@ const game = {
   duel:{ seed:null, bag:[], p1Score:0, p2Score:0, player:1, bagBuilt:false },
   demo:false, pendingMode:null,
   rng:Math.random,
+  whackaOffered:false,
 };
 
 function refillBag(){ refillBagRng(); }
@@ -7076,7 +7174,7 @@ function startGame(mode){
   const M = MODES[mode];
   game.playerDeck = []; game.aiDeck = []; game.pot = []; game.bag = [];
   game.turnOwner = "player"; game.statKey = null;
-  game.score = 0; game.streak = 0; game.foOffered = false; game.brOffered = false; game.fiOffered = false; game.kebabOffered = false; game.quizOffered = false; game.c3Offered = false; game.gtOffered = false; pendingBonus.queue.length = 0; game.paused = false;; game.bestStreak = 0; game.biggestPot = 0;
+  game.score = 0; game.streak = 0; game.foOffered = false; game.brOffered = false; game.fiOffered = false; game.kebabOffered = false; game.quizOffered = false; game.c3Offered = false; game.gtOffered = false; game.whackaOffered = false; pendingBonus.queue.length = 0; game.paused = false;; game.bestStreak = 0; game.biggestPot = 0;
   game.roundsPlayed = 0; game.statWins = {}; game.pickHistory = {};
   resetScoreLedger();
   game.wave = 1; game.aiLevel = M.waves ? 0 : 1;
@@ -7374,6 +7472,7 @@ function resolveRound(){
     try { maybeTriggerQuiz(); } catch(e){}
     try { maybeTriggerCarpet3(); } catch(e){}
     try { maybeTriggerGents(); } catch(e){}
+    try { maybeTriggerWhacka(); } catch(e){}
   if (game.__bonusPillArmed){ game.__bonusPillArmed = false; if (maybePendingBonus()) return; }
     renderNextButton();
     return;
@@ -7755,9 +7854,17 @@ function doMysteryDrop(){
     card.__gold = true;
     card.__boostedStat = key;
     card.__boostedValue = Math.max(1, Math.round(card[key] * 1.5));
-    bonusToast("📦 MYSTERY MENU DROP! GOLD +50% " + key.toUpperCase(), firstMystery ? {modal:true} : undefined);
+    if (firstMystery){
+      bonusToast("📦 MYSTERY MENU DROP! GOLD +50% " + key.toUpperCase(), {modal:true});
+    } else {
+      bonusToast("📦 MYSTERY MENU DROP! GOLD +50% " + key.toUpperCase());
+    }
   } else {
-    bonusToast("📦 MYSTERY MENU DROP!", firstMystery ? {modal:true} : undefined);
+    if (firstMystery){
+      bonusToast("📦 MYSTERY MENU DROP!", {modal:true});
+    } else {
+      bonusToast("📦 MYSTERY MENU DROP!");
+    }
   }
   game.playerDeck.push(card);
   sparkleDrop();
@@ -8642,6 +8749,7 @@ function maybePendingBonus(){ // returns true if a bonus round took over
   if (t === "quiz"){ qzMidGameStart(); return true; }
   if (t === "carpet3"){ cmMidGameStart(); return true; }
   if (t === "gents"){ gtMidGameStart(); return true; }
+  if (t === "whacka"){ whackaStart(); return true; }
   return false;
 }
 
@@ -8858,6 +8966,154 @@ function gtEnd(banked){
   AudioFX.resumeMusic(); renderNextButton(); try{ updateBonusPill(); }catch(e){}
 }
 
+
+
+/* ---------- WHACKA DRUNK ---------- */
+function whackaStop(){
+  if (whacka.popTimer){ clearInterval(whacka.popTimer); whacka.popTimer = null; }
+  if (whacka.timer){ clearTimeout(whacka.timer); whacka.timer = null; }
+  whacka.on = false;
+}
+
+var whacka = {on:false, score:0, wave:1, lives:3, combo:0, timer:null, popTimer:null, holes:[], nextId:1, done:false, mid:false};
+const WHACKA_TYPES = ['lad','lad','lad','lad','karaoke','oldboy','roundbuyer','roundbuyer'];
+const WHACKA_TAUNTS = [
+  "OI MATE, THE BAR'S SHUT.","NO KEBABS AFTER MIDNIGHT.","SHOES OFF OR YOU'RE OUT.","SINGING? THAT'S A BAN.","WHERE'S YOUR TABLE?","2AM ENERGY. WRONG PUB.","OLD BILL'S ON THE WAY.","CLEAN IT UP. NOW."
+];
+function whackaShow(v){ var s=el("screen-whacka"); if(s) s.classList.toggle("hidden",!v); updateBodyLock(); }
+function whackaLives(){ return "❤️".repeat(Math.max(0, whacka.lives)); }
+function whackaHud(){
+  el("whackaScore").textContent = whacka.score;
+  el("whackaWave").textContent = whacka.wave;
+  el("whackaLives").textContent = whackaLives();
+}
+function whackaToast(msg){
+  const t = document.createElement("div"); t.className="whacka-wave-toast"; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),1400);
+}
+function whackaTypeFromId(id){ return (id||"").split("_")[0] || "lad"; }
+function whackaBoard(){
+  const b = el("whackaBoard"); if(!b) return;
+  b.querySelectorAll(".whacka-hole").forEach((h,i)=>{
+    h.dataset.i = i;
+    const d = h.querySelector(".whacka-drunk"); if(d){ d.className = "whacka-drunk"; d.textContent = ""; d.dataset.id=""; }
+    h.classList.remove("active","whacked","bonk","xeyes","gold-glow","shake");
+  });
+}
+function whackaPop(){
+  if (!whacka.on || whacka.done) return;
+  const holes = Array.from(el("whackaBoard").querySelectorAll(".whacka-hole:not(.active):not(.whacked)"));
+  if (!holes.length) return;
+  const count = Math.min(holes.length, Math.max(1, Math.floor(1 + whacka.wave * 0.55)));
+  const picked = holes.sort(()=>Math.random()-0.5).slice(0,count);
+  picked.forEach(h=>{
+    const typeRoll = Math.random();
+    let type = typeRoll < 0.55 ? "lad" : typeRoll < 0.70 ? "karaoke" : typeRoll < 0.85 ? "oldboy" : "roundbuyer";
+    if (whacka.wave % 3 === 0 && Math.random() < .25) type = "roundbuyer";
+    const d = h.querySelector(".whacka-drunk");
+    d.className = "whacka-drunk " + type; d.dataset.id = type + "_" + (whacka.nextId++); d.textContent = "";
+    h.classList.add("active"); if (type === "roundbuyer") h.classList.add("gold-glow");
+    const upMs = Math.max(420, 1100 - whacka.wave * 90 - Math.max(0, whacka.combo-1)*40);
+    const stayMs = Math.max(700, 1700 - whacka.wave * 80 - Math.max(0, whacka.combo-1)*30);
+    setTimeout(()=>{ if(h.classList.contains("active")) h.classList.remove("gold-glow"); }, stayMs);
+    const escapeTimer = setTimeout(()=>{
+      if (h.classList.contains("active") && !h.classList.contains("whacked")){
+        h.classList.remove("active"); h.classList.remove("gold-glow");
+        const t = whackaTypeFromId(d.dataset.id);
+        if (t !== "roundbuyer"){ whacka.combo=0; whacka.lives--; whackaHud(); AudioFX.lose(); bonusToast("NEAR MISS — HE DUCKED BACK DOWN."); shake("shake-soft"); }
+        if (whacka.lives <= 0) whackaEnd(0);
+      }
+    }, upMs + stayMs);
+    h._escapeTimer = escapeTimer;
+  });
+}
+function whackaWaveClear(){
+  whacka.wave++;
+  whackaHud();
+  AudioFX.wave();
+  if (whacka.wave % 3 === 0){
+    whackaToast("SPOONS AFTER HOURS CHAOS");
+    bonusToast("THE WHOLE GRID'S GOING. HOLD THE DOOR.");
+    shake("shake-hard");
+  } else {
+    whackaToast("WAVE " + whacka.wave + " — FASTER NOW");
+  }
+  clearInterval(whacka.popTimer);
+  const interval = Math.max(420, 1100 - whacka.wave * 70);
+  whacka.popTimer = setInterval(whackaPop, interval);
+}
+function whackaTap(e){
+  if (!whacka.on || whacka.done) return;
+  const h = e.target.closest(".whacka-hole");
+  if (!h || !h.classList.contains("active")) return;
+  const d = h.querySelector(".whacka-drunk");
+  if (!d || h.classList.contains("whacked")) return;
+  const type = whackaTypeFromId(d.dataset.id);
+  clearTimeout(h._escapeTimer || 0);
+  h.classList.add("whacked"); h.classList.remove("active");
+  if (type === "roundbuyer"){
+    whacka.combo = 0; whacka.score = Math.max(0, whacka.score - 150);
+    whackaHud(); AudioFX.shout(); shake("shake-soft"); bonusToast("THAT'S THE ROUND-BUYER! YOU'VE DOOMED US ALL — -150");
+  } else if (type === "oldboy"){
+    whacka.combo = 0; whacka.score = Math.max(0, whacka.score - 200); whacka.lives = Math.max(0, whacka.lives-1);
+    whackaHud(); AudioFX.shout(); shake("shake-soft"); bonusToast("HE'S 82! HAVE SOME SHAME — -200");
+    if (whacka.lives <= 0) { whackaEnd(0); return; }
+  } else {
+    whacka.combo++;
+    let pts = type === "karaoke" ? 200 : 100;
+    pts = Math.floor(pts * (1 + Math.min(whacka.combo-1,9)*0.1));
+    whacka.score += pts; whackaHud();
+    AudioFX.fiShot();
+    shake("shake-soft");
+    h.classList.add("bonk");
+    setTimeout(()=>h.classList.remove("bonk"),180);
+    h.classList.add("xeyes");
+    const detail = type === "karaoke" ? "KARAOKE BLOKE" : whacka.combo > 1 ? "COMBO ×" + whacka.combo : null;
+    flyUpScore(pts, detail);
+    if (whacka.combo % 5 === 0) bonusToast(whacka.combo + " ON THE BOUNCE — THE LANDLORD'S NOTICING.");
+    if (type === "karaoke") setTimeout(()=>bonusToast("KARAOKE BLOKE — TAKE THE MIC."), 200);
+    if (whacka.score >= whacka.wave * 700) whackaWaveClear();
+  }
+}
+function whackaTick(){
+  if (!whacka.on) return;
+  // nothing per-second; wave clears by score threshold
+}
+function whackaStart(){
+  AudioFX.stopMusic();
+  whackaStop();
+  whacka = {on:true, score:0, wave:1, lives:3, combo:0, timer:null, popTimer:null, holes:[], nextId:1, done:false, mid:true};
+  el("whackaVerdict").textContent = "";
+  whackaShow(true); whackaBoard(); whackaHud();
+  whackaToast("WAVE 1 — CLOSE THE DOOR");
+  const interval = 1100;
+  whacka.popTimer = setInterval(whackaPop, interval);
+  const b = el("whackaBoard"); b.removeEventListener("pointerdown", whackaTap); b.addEventListener("pointerdown", whackaTap);
+}
+function whackaEnd(banked){
+  whackaStop(); whacka.done=true;
+  whackaShow(false); showScreen("table");
+  if (banked > 0){
+    addScore(banked, "WHACKA DRUNK BANKED", "kept the doorman's glove warm with " + banked);
+    setVerdict('<div class="verdict-line wave-clear">🍺 WHACKA DRUNK BANKED — +' + banked + '</div><div class="verdict-sub">TABLE RESUMES. THE LANDLORD APPROVES.</div>');
+  } else {
+    setVerdict('<div class="verdict-line wave-clear">🍺 WHACKA DRUNK — THE DOOR FELL</div><div class="verdict-sub">TABLE RESUMES. DRUNKS RUN THE PUB NOW.</div>');
+  }
+  AudioFX.resumeMusic(); renderNextButton(); try{ updateBonusPill(); }catch(e){}
+}
+function whackaBack(){
+  AudioFX.click();
+  if (whacka.on && whacka.mid) return;
+  whackaShow(false); showScreen("title");
+}
+function whackaBankWalk(){
+  if (!whacka.on || whacka.done) return;
+  const banked = Math.floor(whacka.score + whacka.wave * 50);
+  whackaEnd(banked);
+}
+function maybeTriggerWhacka(){
+  if (game.whackaOffered || game.phase === "over") return;
+  if (game.wave >= 2 && Math.random() < 0.35){ game.whackaOffered = true; offerBonus("whacka"); bonusToast("🍺 WHACKA DRUNK: THE DOOR NEEDS YOU. FINISH THE ROUND…"); try{ updateBonusPill(); }catch(e){} }
+}
 
 function cmMidGameStart(){ c3MidGameStart(); }
 function kbMidGameStart(){ kebabMidGameStart(); }
@@ -9578,6 +9834,15 @@ function renderBonusScratch(){
     }
     const sb = document.getElementById("scratchBog");
     if (sb) sb.classList.toggle("arm", pendingBonus.queue.indexOf("bogroll") !== -1);
+    const whS = document.getElementById("scratchWhacka");
+    if (whS) whS.classList.toggle("arm", pendingBonus.queue.indexOf("whacka") !== -1);
+    const whP = document.getElementById("whackaPips");
+    if (whP){
+      const w = Math.min(4, Math.max(0, (game.wave || 1) - 1));
+      let out = "";
+      for (let k = 0; k < 4; k++) out += '<i class="' + (k < w ? "on" : "") + '">' + (k < w ? "█" : "·") + "</i>";
+      whP.innerHTML = out;
+    }
     const fiS = document.getElementById("scratchFartInvaders");
     if (fiS) fiS.classList.toggle("arm", pendingBonus.queue.indexOf("fartinvaders") !== -1);
     const fip = document.getElementById("fiPips");
@@ -9696,7 +9961,7 @@ function startBonusNow(){
       if (pendingBonus.queue.length) maybePendingBonus();
       // Guard: if no bonus screen is visible after dispatch, force-open the next queued bonus directly.
       const bonusVisible = function(id){ const el = document.getElementById(id); return el && !el.classList.contains("hidden"); };
-      if (pendingBonus.queue.length && !bonusVisible("screen-fartinvaders") && !bonusVisible("screen-bogroll") && !bonusVisible("screen-fartoff") && !bonusVisible("screen-kebab") && !bonusVisible("screen-quiz") && !bonusVisible("screen-carpet3") && !bonusVisible("screen-gents")){
+      if (pendingBonus.queue.length && !bonusVisible("screen-fartinvaders") && !bonusVisible("screen-bogroll") && !bonusVisible("screen-fartoff") && !bonusVisible("screen-kebab") && !bonusVisible("screen-quiz") && !bonusVisible("screen-carpet3") && !bonusVisible("screen-gents") && !bonusVisible("screen-whacka")){
         maybePendingBonus();
       }
     } catch(e3){ logBonusEvent("startGame-error", String(e3).slice(0,80)); }
@@ -9880,6 +10145,23 @@ if (fiWalk) fiWalk.addEventListener("click", () => { AudioFX.click(); fiWalkAway
   canvas.addEventListener("pointercancel", () => stopMove());
 })();
 window.debugFartInvaders = function(){ offerBonus("fartinvaders"); };
+window.debugWhacka = function(){ offerBonus("whacka"); };
+
+(function whackaHandTrack(){
+  const hand = el("whackaHand");
+  if (!hand) return;
+  document.addEventListener("pointermove", e=>{
+    const s = el("screen-whacka");
+    if (!s || s.classList.contains("hidden")) { hand.classList.remove("show"); return; }
+    hand.style.left = e.clientX + "px"; hand.style.top = e.clientY + "px"; hand.classList.add("show");
+  });
+  document.addEventListener("pointerdown", e=>{
+    const s = el("screen-whacka");
+    if (!s || s.classList.contains("hidden")) return;
+    hand.style.left = e.clientX + "px"; hand.style.top = e.clientY + "px"; hand.classList.add("show");
+    setTimeout(()=>hand.classList.remove("show"), 160);
+  });
+})();
 
 /* ==================== 7. WIRING ==================== */
 /* ---------- home chip wiring ---------- */
@@ -9937,6 +10219,11 @@ el("brBack").addEventListener("click", () => {
   AudioFX.click();
   if (br.mid) { /* mid-game: no premature exit */ return; }
   brShow(false); showScreen("title");
+});
+el("whackaBack").addEventListener("click", () => {
+  AudioFX.click();
+  if (whacka.on && whacka.mid) { whackaBankWalk(); return; }
+  whackaShow(false); showScreen("title");
 });
 (function foBind(){
   const s = el("screen-fartoff");
