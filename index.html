@@ -348,6 +348,12 @@ header#hud{
 .screen.hidden{
   display:none;
 }
+/* half-cut-71-r77: #screen-title and #screen-table set display:flex with ID specificity,
+   which outranked .screen.hidden and kept the wrong screen visible on narrow phones. */
+#screen-title.screen.hidden,
+#screen-table.screen.hidden{
+  display:none;
+}
 
 /* ---------- new-games-64-r70 CSS ---------- */
 /* ---------- new-games-64-r70: kebab / quiz / carpet3 / gents ---------- */
@@ -4678,7 +4684,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "hud-brand-70-r76";
+  const BUILD_STAMP = "half-cut-71-r77";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
