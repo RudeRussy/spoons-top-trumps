@@ -4623,7 +4623,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = "new-games-64-r70";
+  const BUILD_STAMP = "gross-sfx-65-r71";
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -4922,10 +4922,14 @@ const statByKey = key => STATS.find(s => s.key === key);
 /* ==================== 2. AUDIO (synthesized, no files) ==================== */
 /* 0.1s of silence as a data URI — keeps an <audio> media session alive on iOS,
    bypassing the physical silent switch for WebAudio. */
-const FART_FILES = ["sfx/fart-alt.mp3", "sfx/fart-bad-chili.mp3", "sfx/fart-chair.mp3", "sfx/fart-computer.mp3", "sfx/fart-crazy.mp3", "sfx/fart-innocent.mp3", "sfx/fart-pig.mp3", "sfx/fart-push.mp3", "sfx/fart-real.mp3", "sfx/fart-reverb.mp3", "sfx/fart-s1.mp3", "sfx/fart-s2.mp3", "sfx/fart-s3.mp3", "sfx/fart-s4.mp3", "sfx/fart-s5.mp3", "sfx/fart-trumpet.mp3", "sfx/fart-wav506.mp3"];
+const FART_FILES = ["sfx/fart-wet-church.mp3", "sfx/fart-big-wet.mp3", "sfx/gut-rumble.mp3", "sfx/fart-alt.mp3", "sfx/fart-bad-chili.mp3", "sfx/fart-chair.mp3", "sfx/fart-computer.mp3", "sfx/fart-crazy.mp3", "sfx/fart-innocent.mp3", "sfx/fart-pig.mp3", "sfx/fart-push.mp3", "sfx/fart-real.mp3", "sfx/fart-reverb.mp3", "sfx/fart-s1.mp3", "sfx/fart-s2.mp3", "sfx/fart-s3.mp3", "sfx/fart-s4.mp3", "sfx/fart-s5.mp3", "sfx/fart-trumpet.mp3", "sfx/fart-wav506.mp3"];
 const MEGA_LONG_FILES = ["sfx/mega-long.mp3","sfx/mega-epic.mp3","sfx/mega-agonized.mp3","sfx/mega-cavern.mp3"];
-const MEGA_COMEDY_FILES = ["sfx/mega-oldman.mp3","sfx/mega-groan.mp3","sfx/mega-grandad.mp3","sfx/mega-burp.mp3","sfx/mega-juicy.mp3"];
+const MEGA_COMEDY_FILES = ["sfx/belch-disgusting.mp3", "sfx/belch-gross-long.mp3", "sfx/burps-assorted.mp3", "sfx/beer-slurp.mp3", "sfx/mega-oldman.mp3","sfx/mega-groan.mp3","sfx/mega-grandad.mp3","sfx/mega-burp.mp3","sfx/mega-juicy.mp3"];
 const MEGA_TOON_FILES = ["sfx/mega-toon1.mp3","sfx/mega-toon2.mp3","sfx/mega-toon3.mp3","sfx/mega-toon4.mp3","sfx/mega-short1.mp3"];
+
+const SHOUT_FILES = ["sfx/fuckoff.mp3","sfx/fucking-hell.mp3","sfx/fuck-you-man.mp3","sfx/can-you-stop.mp3","sfx/stop-bullshit.mp3","sfx/what-the-fuck.mp3","sfx/bollocks-pirate.mp3","sfx/kurwa.mp3","sfx/gamer-rage.mp3","sfx/thicker-shout.mp3","sfx/buttface.mp3","sfx/scream-young.mp3"];
+const SHOUT_POOL = [];
+try { window.__spoonsAudioProbe = { FART_FILES, MEGA_COMEDY_FILES, SHOUT_FILES, SHOUT_POOL }; } catch(e){}
 const SILENT_WAV = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
 const AudioFX = (() => {
   let ctx = null;
@@ -5152,6 +5156,18 @@ function nextTrackIdx(){ // random next, never the same SONG in a row (ext+short
       } catch (e) { /* fall through to synth */ }
       try { fartManShow(900); } catch(e){}
       this.synthFart();
+    },
+    shout(){
+      /* gross-sfx-65-r71: random disgusted pub shout — lose states, hard fails */
+      try {
+        if (!SHOUT_POOL.length){
+          SHOUT_FILES.forEach(src => { try { const a = new Audio(src); a.preload = "auto"; a.load(); SHOUT_POOL.push(a); } catch(e){} });
+        }
+        if (!SHOUT_POOL.length) return;
+        const a = SHOUT_POOL[Math.floor(Math.random() * SHOUT_POOL.length)];
+        a.currentTime = 0; a.volume = 0.85;
+        const p = a.play(); if (p && p.catch) p.catch(() => {});
+      } catch(e){}
     },
     shitterWin(){
       try {
@@ -6934,6 +6950,7 @@ function resolveRound(){
     game.streak = 0;
     try { if (game.aiCard && game.aiCard.cat === "COLD DRINK") achCheck("loseToColdDrink"); } catch(e){}
     AudioFX.lose(); shake("shake-hard");
+    try { if (Math.random() < 0.25) AudioFX.shout(); } catch(e){}
     if (margin === 1){
       game.nearMissStoredAi = game.aiCard;
       const granted = grantNearMissToken();
@@ -7939,6 +7956,7 @@ function foRelease(forcedShart){
     for (let i=0;i<12;i++) foParticle(cx + (Math.random()-.5)*40, cy + (Math.random()-.5)*40, "skid");
     shake("shake-hard");
     AudioFX.lose();
+    try { AudioFX.shout(); } catch(e){}
     foLog("💩 SHART! YOU'VE DONE YOUR TROUSERS. LANDLORD WINS THE ROUND.");
     foTaunt("HAHA — NASTY! WASH YOURSELF.");
     fo.ai++; foMeterPct(1, "ai"); el("foScoreAi").textContent = fo.ai; el("foScoreYou").textContent = fo.you;
@@ -8129,6 +8147,7 @@ function brPick(idx){
     const steam = el("brSteam");
     for (let i=0;i<6;i++) brSteamAt(br.doors[i]);
     AudioFX.lose();
+    try { AudioFX.shout(); } catch(e){}
     brLog("💩 THE FLOATER STRIKES IN " + CUBICLE_NAMES[idx] + "! NOTHING BANKED.");
     el("brCubicleName").textContent = "CUBICLE OF DOOM";
     setTimeout(() => { brMidGameEnd(0); }, 1200);
@@ -8142,7 +8161,7 @@ function openBogRoll(){
   el("brCleared").textContent = "0"; el("brBanked").textContent = "0"; el("brSafe").textContent = "0";
   brRender(); brLog("CHOOSE YOUR CUBICLE.");
 }
-function bonusToast(msg){
+function bonusToast(msg){ try { if (Math.random() < 0.15) AudioFX.shout(); } catch(e){}
   try {
     const slot = document.getElementById("bonusToastSlot");
     if (slot){
@@ -8229,6 +8248,7 @@ function kbFail(){
   kb.done = true; clearInterval(kb.timer);
   var st = el("kbStack"); st.textContent = "🥙💥🧅🍅🌶️";
   el("kbVerdict").textContent = "IT ALL WENT HORIZONTAL. EAT IT OFF THE FLOOR.";
+  try { AudioFX.shout(); } catch(e){}
   AudioFX.fart(); shake("shake-hard");
   setTimeout(function(){ kbEnd(0,false); }, 1100);
 }
@@ -8285,7 +8305,7 @@ function qzRender(){
     b.addEventListener("click", function(){
       if (qz.done) return;
       if (o.w){ // picked the "correct" daft answer → the pub hears it
-        qz.done = true; AudioFX.fart(); shake("shake-hard");
+        qz.done = true; AudioFX.fart(); try { AudioFX.shout(); } catch(e){} shake("shake-hard");
         el("qzQ").textContent = "YOU ACTUALLY ANSWERED SERIOUSLY. THE WHOLE PUB HEARD IT.";
         setTimeout(function(){ qzEnd(0); }, 1200);
       } else {
