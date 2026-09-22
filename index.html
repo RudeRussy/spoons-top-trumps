@@ -729,6 +729,15 @@ header#hud{
 .bonus-fullscreen.hidden{
   display:none !important;
 }
+/* perf r96: when a fullscreen bonus runs, freeze the page's CSS animations
+   underneath — they kept compositing at 60fps under an opaque overlay (iPhone crawl) */
+body.bonus-live .screen:not(.bonus-fullscreen){
+  animation-play-state:paused;
+}
+body.bonus-live .screen:not(.bonus-fullscreen) *,
+body.bonus-live .screen:not(.bonus-fullscreen){
+  animation-play-state:paused;
+}
 .bonus-fullscreen .bonus-wrap{
   flex:1 1 auto;
   min-height:0;
@@ -5442,7 +5451,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = 'fart-pack-79-r95';
+  const BUILD_STAMP = 'fart-pack-79-r96';
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -8879,6 +8888,7 @@ function foShow(on_){
   }
   s.classList.toggle("hidden", !on_);
   s.classList.toggle("mid", !!fo.mid);
+  document.body.classList.toggle("bonus-live", !!on_);
   updateBodyLock();
   if (on_){
     foPreload();
@@ -9580,7 +9590,8 @@ const WHACKA_TYPES = ['lad','lad','lad','lad','karaoke','oldboy','roundbuyer','r
 const WHACKA_TAUNTS = [
   "OI MATE, THE BAR'S SHUT.","NO KEBABS AFTER MIDNIGHT.","SHOES OFF OR YOU'RE OUT.","SINGING? THAT'S A BAN.","WHERE'S YOUR TABLE?","2AM ENERGY. WRONG PUB.","OLD BILL'S ON THE WAY.","CLEAN IT UP. NOW."
 ];
-function whackaShow(v){ var s=el("screen-whacka"); if(s) s.classList.toggle("hidden",!v); updateBodyLock(); }
+function whackaShow(v){
+  document.body.classList.toggle("bonus-live", !!v); var s=el("screen-whacka"); if(s) s.classList.toggle("hidden",!v); updateBodyLock(); }
 function whackaLives(){ return "❤️".repeat(Math.max(0, whacka.lives)); }
 function whackaHud(){
   el("whackaScore").textContent = whacka.score;
@@ -9733,7 +9744,8 @@ function bwHighScore(){ try { const v = localStorage.getItem(BW_LS_KEY); return 
 function bwSaveHigh(score){ try { const cur = bwHighScore(); if (score > cur) localStorage.setItem(BW_LS_KEY, String(score)); } catch(e){} }
 
 var bw = { on:false, mid:false, tile:0, tiles:[], score:0, combo:0, done:false, raf:0, lastT:0, timeLeft:0, maxTime:0, patrol:false, burst:false, strokes:[], drawing:false, canvas:null, ctx:null, width:0, height:0, particles:[] };
-function bwShow(v){ var s=el("screen-bogwall"); if(s) s.classList.toggle("hidden",!v); updateBodyLock(); if(v){ bwResize(); } }
+function bwShow(v){
+  document.body.classList.toggle("bonus-live", !!v); var s=el("screen-bogwall"); if(s) s.classList.toggle("hidden",!v); updateBodyLock(); if(v){ bwResize(); } }
 function bwEl(id){ return el(id); }
 function bwMidGameStart(){
   AudioFX.stopMusic();
@@ -10069,7 +10081,8 @@ const PS_LANDLORD_LINES = [
   "YOU'RE PAYING FOR THAT ONE."
 ];
 function psEl(id){ return el(id); }
-function psShow(v){ var s=el("screen-pintstack"); if(s) s.classList.toggle("hidden",!v); updateBodyLock(); if(v){ psResize(); } }
+function psShow(v){
+  document.body.classList.toggle("bonus-live", !!v); var s=el("screen-pintstack"); if(s) s.classList.toggle("hidden",!v); updateBodyLock(); if(v){ psResize(); } }
 function psLives(){ return "❤️".repeat(Math.max(0, ps.lives)); }
 function psHud(){
   el("psCount").textContent = ps.count;
@@ -10539,7 +10552,8 @@ var jb = {
   ring:{scale:1, pulse:0}, shake:0, glow:0, gameOver:false
 };
 function jbEl(id){ return el(id); }
-function jbShow(v){ var s=el("screen-jukebox"); if(s) s.classList.toggle("hidden",!v); updateBodyLock(); if(v){ jbResize(); } }
+function jbShow(v){
+  document.body.classList.toggle("bonus-live", !!v); var s=el("screen-jukebox"); if(s) s.classList.toggle("hidden",!v); updateBodyLock(); if(v){ jbResize(); } }
 function jbLives(){ return "❤️".repeat(Math.max(0, jb.lives)); }
 function jbHud(){
   const m = 1 + Math.min(jb.combo, 10) * 0.1;
@@ -11104,7 +11118,10 @@ function fiInitCanvas(){
   // Force a layout pass so wrap has computed size even if screen just unhidden
   try { void wrap.offsetHeight; } catch(e){}
   const rect = wrap.getBoundingClientRect ? wrap.getBoundingClientRect() : {width:0, height:0};
-  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  // perf r96: cap backing store at 1.5 on phones — halving pixels/frame was the
+  // single biggest fps win on iPhone; invaders don't need retina backing
+  const isPhone = matchMedia("(pointer: coarse)").matches;
+  const dpr = Math.min(isPhone ? 1.5 : 2, window.devicePixelRatio || 1);
   const w = Math.max(320, Math.floor(rect.width || wrap.clientWidth || window.innerWidth || 320));
   const h = Math.max(420, Math.floor(rect.height || wrap.clientHeight || (window.innerHeight * 0.55) || 420));
   fi.width = w; fi.height = h;
@@ -11145,6 +11162,7 @@ function fiTopbar(){
 function fiShow(on_){
   const s = el("screen-fartinvaders");
   if (!on_){ fi.epoch++; if (fi.raf){ cancelAnimationFrame(fi.raf); fi.raf = 0; } fi.on = false; if (game.phase === "play" && !game.paused) AudioFX.resumeMusic(); }
+  document.body.classList.toggle("bonus-live", !!on_);
   if (s){
     s.classList.toggle("hidden", !on_);
     s.classList.toggle("mid", !!fi.mid);
