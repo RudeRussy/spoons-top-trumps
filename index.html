@@ -5426,7 +5426,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = 'fart-pack-79-r88';
+  const BUILD_STAMP = 'fart-pack-79-r89';
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -5754,9 +5754,12 @@ const AudioFX = (() => {
   const FI_SHOT_POOL = [];
   const FI_SHOT_POOL_SIZE = 6;
   let fiShotIdx = 0;
+  let FART_CLONE_POOL = []; let fartCloneIdx = 0;
   function preloadFarts(){
     if (FART_POOL.length || !FART_FILES.length) return;
     FART_FILES.forEach(src => { try { const a = new Audio(src); a.preload = "auto"; a.load(); FART_POOL.push(a); } catch(e){} });
+    // prebuilt round-robin clones (2 per file) — no per-shot element creation
+    FART_FILES.forEach(src => { for (let k = 0; k < 2; k++){ try { const a = new Audio(src); a.preload = "auto"; a.load(); FART_CLONE_POOL.push(a); } catch(e){} } });
   }
   function preloadMegas(){
     if (MEGA_POOL.length) return;
@@ -5960,11 +5963,15 @@ function nextTrackIdx(){ // random next, never the same SONG in a row (ext+short
       const f = [659, 784, 880, 988][Math.min(step - 2, 3)] || 659; tone(f, 0.1, "square", 0.05); tone(f * 1.5, 0.12, "square", 0.04, 0.06);
     },
     fartShot(){
-      // random fart cannon blast (Turd Invaders): clone so rapid fire overlaps
+      // random fart cannon blast (Turd Invaders): round-robin prebuilt clones —
+      // NEVER new/cloneNode per shot (element churn = GC freezes on iOS)
       try {
         if (!FART_POOL.length) preloadFarts();
-        if (!FART_POOL.length) throw new Error("no fart pool");
-        const a = FART_POOL[Math.floor(Math.random() * FART_POOL.length)].cloneNode();
+        const pool = FART_CLONE_POOL.length ? FART_CLONE_POOL : FART_POOL;
+        if (!pool.length) throw new Error("no fart pool");
+        const a = pool[fartCloneIdx % pool.length];
+        fartCloneIdx++;
+        a.pause();
         a.currentTime = 0;
         a.volume = Math.min(1, 0.85 * AudioFX.master * AudioFX.sfx);
         a.playbackRate = 0.9 + Math.random() * 0.55;
@@ -8743,13 +8750,20 @@ const foSong = {
   fartKick(when){
     try {
       if (!FART_FILES.length) return;
-      const a = new Audio(FART_FILES[Math.floor(Math.random() * FART_FILES.length)]);
-      a.currentTime = 0;
-      a.volume = Math.min(1, 0.75 * AudioFX.master * AudioFX.sfx) * (1 - this.duckAmt);
-      a.playbackRate = 0.75 + Math.random() * 0.35;
+      if (!FART_CLONE_POOL.length) preloadFarts();
+      if (!FART_CLONE_POOL.length) return;
+      const a = FART_CLONE_POOL[fartCloneIdx % FART_CLONE_POOL.length];
+      fartCloneIdx++;
       const c = AudioFX.ac();
       const wait = c ? Math.max(0, (when - c.currentTime) * 1000) : 0;
-      setTimeout(() => { const p = a.play(); if (p && p.catch) p.catch(() => {}); }, wait);
+      setTimeout(() => {
+        try {
+          a.pause(); a.currentTime = 0;
+          a.volume = Math.min(1, 0.75 * AudioFX.master * AudioFX.sfx) * (1 - this.duckAmt);
+          a.playbackRate = 0.75 + Math.random() * 0.35;
+          const p = a.play(); if (p && p.catch) p.catch(() => {});
+        } catch(e){}
+      }, wait);
     } catch(e){}
   },
   tick(){
@@ -8794,9 +8808,11 @@ const FO_TAUNTS = [
   "LET IT OUT OR I'LL EVICT YOU MYSELF!",
   "THAT'S NOT A TRUMP, THAT'S A WHISPER FROM A SPARROW'S BUM!"
 ];
+let FO_CLONE_POOL = []; let foCloneIdx = 0;
 function foPreload(){
   if (FO_POOL.length || !FO_FILES.length) return;
   FO_FILES.forEach(src => { try { const a = new Audio(src); a.preload = "auto"; a.load(); FO_POOL.push(a); } catch(e){} });
+  FO_FILES.forEach(src => { for (let k = 0; k < 2; k++){ try { const a = new Audio(src); a.preload = "auto"; a.load(); FO_CLONE_POOL.push(a); } catch(e){} } });
 }
 const fo = { on:false, holding:false, holdStart:0, meter:0, raf:0, you:0, ai:0, busy:false, mid:false, epoch:0, tauntIdx:0 };
 function foShow(on_){
@@ -8877,7 +8893,8 @@ function foParticle(x, y, type="puff"){
 function foPlaySample(idx, rate){
   try {
     let a;
-    if (FO_POOL.length){ a = FO_POOL[idx % FO_POOL.length].cloneNode(); }
+    if (FO_CLONE_POOL.length){ a = FO_CLONE_POOL[foCloneIdx % FO_CLONE_POOL.length]; foCloneIdx++; a.pause(); a.currentTime = 0; }
+    else if (FO_POOL.length){ a = FO_POOL[idx % FO_POOL.length].cloneNode(); }
     else { a = new Audio(FO_FILES[idx % FO_FILES.length]); }
     a.preservesPitch = false; a.playbackRate = rate; a.volume = Math.min(1, AudioFX.master * AudioFX.sfx);
     a.play().catch(()=>{});
