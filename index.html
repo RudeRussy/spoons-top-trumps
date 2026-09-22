@@ -5442,7 +5442,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = 'fart-pack-79-r94';
+  const BUILD_STAMP = 'fart-pack-79-r95';
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -8781,7 +8781,8 @@ const foSong = {
   fartKick(when){
     try {
       if (!FART_FILES.length) return;
-      if (!FART_CLONE_POOL.length) preloadFarts();
+      // no preloadFarts() mid-song — a burst of element decodes during the anthem
+      // froze iOS Safari. Empty pool = silent kick (synth bass still plays).
       if (!FART_CLONE_POOL.length) return;
       const a = FART_CLONE_POOL[fartCloneIdx % FART_CLONE_POOL.length];
       fartCloneIdx++;
@@ -8841,6 +8842,7 @@ const FO_TAUNTS = [
 ];
 let FO_CLONE_POOL = []; let foCloneIdx = 0;
 let foLazyIdx = 0;
+let FO_RUMBLE = null;
 function foPreload(){
   if (FO_POOL.length || !FO_FILES.length) return;
   // iOS freeze fix: 8 files × 2 clones to start, rest trickle in one per 1.5s
@@ -8848,8 +8850,15 @@ function foPreload(){
   const first = FO_FILES.slice(0, START);
   first.forEach(src => { try { const a = new Audio(src); a.preload = "auto"; a.load(); FO_POOL.push(a); } catch(e){} });
   first.forEach(src => { for (let k = 0; k < CLONES; k++){ try { const a = new Audio(src); a.preload = "auto"; a.load(); FO_CLONE_POOL.push(a); } catch(e){} } });
+  // one prebuilt gut-rumble element for charge sounds (no new Audio per hold)
+  try {
+    const rumbleSrc = FART_FILES.find(s => s.includes("gut-rumble")) || FART_FILES[0];
+    FO_RUMBLE = new Audio(rumbleSrc); FO_RUMBLE.preload = "auto"; FO_RUMBLE.load();
+  } catch(e){ FO_RUMBLE = null; }
   const extendOne = () => {
     if (foLazyIdx >= FO_FILES.length) return;
+    // iOS freeze fix: NEVER decode new audio while the fight is live — defer.
+    if (fo.on){ setTimeout(extendOne, 5000); return; }
     const src = FO_FILES[foLazyIdx++];
     try { const a = new Audio(src); a.preload = "auto"; a.load(); FO_POOL.push(a);
       const c = new Audio(src); c.preload = "auto"; c.load(); FO_CLONE_POOL.push(c);
@@ -8873,6 +8882,7 @@ function foShow(on_){
   updateBodyLock();
   if (on_){
     foPreload();
+    try { preloadFarts(); } catch(e){} // warm fart-kick pool BEFORE anthem starts
     foLog("FIRST TO 3. HOLD AND LET RIP.");
     fo.tauntIdx = 0;
     foTaunt("THE LANDLORD CRACKS HIS KNUCKLES...");
@@ -8938,8 +8948,8 @@ function foPlaySample(idx, rate){
   try {
     let a;
     if (FO_CLONE_POOL.length){ a = FO_CLONE_POOL[foCloneIdx % FO_CLONE_POOL.length]; foCloneIdx++; a.pause(); a.currentTime = 0; }
-    else if (FO_POOL.length){ a = FO_POOL[idx % FO_POOL.length].cloneNode(); }
-    else { a = new Audio(FO_FILES[idx % FO_FILES.length]); }
+    else if (FO_POOL.length){ a = FO_POOL[idx % FO_POOL.length]; } // direct play, NO cloneNode mid-game
+    // empty pools = silence (never new Audio() during play — that froze iOS)
     a.preservesPitch = false; a.playbackRate = rate; a.volume = Math.min(1, AudioFX.master * AudioFX.sfx);
     a.play().catch(()=>{});
     return a;
@@ -8976,9 +8986,10 @@ function foHoldStart_(e){
   AudioFX.click();
   // start a low gut rumble as the charge builds
   try {
-  const rumbleSrc = FART_FILES.find(s => s.includes("gut-rumble")) || FART_FILES[Math.floor(Math.random()*FART_FILES.length)];
-  const r = new Audio(rumbleSrc); r.currentTime = 0; r.volume = 0.45 * AudioFX.master * AudioFX.sfx; r.playbackRate = 0.65;
-  const p = r.play(); if (p && p.catch) p.catch(() => {});
+  // iOS freeze fix: prebuilt rumble (built once in foPreload) — was new Audio() per hold
+  const r = (typeof FO_RUMBLE !== "undefined" && FO_RUMBLE) ? FO_RUMBLE : null;
+  if (r){ r.currentTime = 0; r.volume = 0.45 * AudioFX.master * AudioFX.sfx; r.playbackRate = 0.65;
+    const p = r.play(); if (p && p.catch) p.catch(() => {}); }
   } catch(e){}
   fo.holding = true; fo.holdStart = performance.now(); fo.busy = true;
   foMeterPct(0, "you"); foRisk(0);
