@@ -686,13 +686,11 @@ header#hud{
 }
 
 
-/* ---------- new-games-64-r70: kebab / quiz / carpet3 / gents ---------- */
+/* ---------- new-games-64-r70: quiz / carpet3 / gents (kebab removed r97) ---------- */
 .ng-wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px 16px calc(20px + env(safe-area-inset-bottom));text-align:center}
 .ng-tag{font-size:11px;letter-spacing:2px;color:var(--gold);opacity:.85}
 .ng-board{width:min(92vw,420px);border-radius:14px;background:rgba(0,0,0,.35);box-shadow:0 8px 30px rgba(0,0,0,.5)}
-#kbRod{height:10px;border-radius:5px;background:linear-gradient(90deg,#d9b26a,#8a5a2b);transform-origin:50% 50%}
-#kbStack{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;min-height:56px;align-items:center;font-size:30px}
-#kbStack span{filter:drop-shadow(0 3px 4px rgba(0,0,0,.5))}
+
 .kb-hint{font-size:12px;opacity:.75}
 #qzAnswers{display:flex;flex-direction:column;gap:10px;width:min(92vw,420px)}
 #qzAnswers button{min-height:52px;font-size:15px;font-weight:800;border-radius:12px;border:2px solid rgba(242,232,213,.25);background:rgba(0,0,0,.4);color:var(--cream, #f2e8d5)}
@@ -5236,21 +5234,7 @@ html, body{ overflow-x:clip; }
     </div>
   </section>
 
-  <section id="screen-kebab" class="screen hidden bonus-fullscreen">
-    <div class="bonus-wrap">
-      <div class="bonus-tag">SPOONS KEBAB (NEXT DOOR)</div>
-      <div class="bonus-back" id="kbBack">WALK AWAY</div>
-      <h2>🥙 KEBAB BUILDER 🥙</h2>
-      <p class="bonus-sub">TAP LEFT / RIGHT to lob meat. Stack 8+ before the doner does a somersault and the lads laugh you out of the shop.</p>
-      <div class="ng-hud"><span>STACK: <b id="kbCount">0</b></span><span>TIME: <b id="kbTime">25</b>s</span></div>
-      <div class="ng-board" style="padding:14px;display:flex;flex-direction:column;gap:12px;align-items:center">
-        <div id="kbStack"></div>
-        <div id="kbRod" style="width:220px"></div>
-      </div>
-      <div class="ng-verdict" id="kbVerdict"></div>
-      <div class="kb-hint">MEGA KEBAB at 12. Nobody has ever seen it.</div>
-    </div>
-  </section>
+  
   <section id="screen-quiz" class="screen hidden bonus-fullscreen">
     <div class="bonus-wrap">
       <div class="bonus-tag">TUESDAY PUB QUIZ</div>
@@ -5290,7 +5274,7 @@ html, body{ overflow-x:clip; }
       <div class="bonus-tag">THE DOOR IS SHUT IN 60 SECONDS</div>
       <div class="bonus-back" id="whackaBack">BACK / BANK</div>
       <h2>🍺 WHACKA DRUNK 🍺</h2>
-      <p class="bonus-sub" id="whackaSub">You're the doorman. Drunks pop up out the cubicles, over the bar, behind the kebab trays and out the beer-garden shed. Whack 'em before they cause chaos.</p>
+      <p class="bonus-sub" id="whackaSub">You're the doorman. Drunks pop up out the cubicles, over the bar, behind the pork scratchings and out the beer-garden shed. Whack 'em before they cause chaos.</p>
       <div class="ng-hud whacka-hud">
         <span>SCORE: <b id="whackaScore">0</b></span>
         <span>WAVE: <b id="whackaWave">1</b></span>
@@ -5512,7 +5496,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = 'fart-pack-79-r96';
+  const BUILD_STAMP = 'kebab-gone-80-r97';
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -6526,7 +6510,6 @@ function updateBodyLock(){
     visible("screen-bogroll") ||
     visible("screen-fartoff") ||
     visible("screen-fartinvaders") ||
-    visible("screen-kebab") ||
     visible("screen-quiz") ||
     visible("screen-carpet3") ||
     visible("screen-gents") ||
@@ -7699,7 +7682,7 @@ function startGame(mode){
   const M = MODES[mode];
   game.playerDeck = []; game.aiDeck = []; game.pot = []; game.bag = [];
   game.turnOwner = "player"; game.statKey = null;
-  game.score = 0; game.streak = 0; game.foOffered = false; game.brOffered = false; game.fiOffered = false; game.kebabOffered = false; game.quizOffered = false; game.c3Offered = false; game.gtOffered = false; game.whackaOffered = false; game.bwOffered = false; game.pintstackOffered = false; game.jukeboxOffered = false; pendingBonus.queue.length = 0; game.paused = false;; game.bestStreak = 0; game.biggestPot = 0;
+  game.score = 0; game.streak = 0; game.foOffered = false; game.brOffered = false; game.fiOffered = false; game.quizOffered = false; game.c3Offered = false; game.gtOffered = false; game.whackaOffered = false; game.bwOffered = false; game.pintstackOffered = false; game.jukeboxOffered = false; pendingBonus.queue.length = 0; game.paused = false;; game.bestStreak = 0; game.biggestPot = 0;
   game.roundsPlayed = 0; game.statWins = {}; game.pickHistory = {};
   resetScoreLedger();
   game.wave = 1; game.aiLevel = M.waves ? 0 : 1;
@@ -7995,7 +7978,6 @@ function resolveRound(){
     else { try { maybeTriggerBogRoll(false); } catch(e){} }
     if (oldWave >= 3) try { unlockLockin(); } catch(e){}
     try { maybeTriggerFartInvaders(oldWave); } catch(e){}
-    try { maybeTriggerKebab(); } catch(e){}
     try { maybeTriggerQuiz(); } catch(e){}
     try { maybeTriggerCarpet3(); } catch(e){}
     try { maybeTriggerGents(); } catch(e){}
@@ -9428,7 +9410,6 @@ function maybePendingBonus(){ // returns true if a bonus round took over
   if (t === "fartoff"){ foMidGameStart(); return true; }
   if (t === "bogroll"){ brMidGameStart(); return true; }
   if (t === "fartinvaders"){ fiMidGameStart(); return true; }
-  if (t === "kebab"){ kbMidGameStart(); return true; }
   if (t === "quiz"){ qzMidGameStart(); return true; }
   if (t === "carpet3"){ cmMidGameStart(); return true; }
   if (t === "gents"){ gtMidGameStart(); return true; }
@@ -9440,63 +9421,7 @@ function maybePendingBonus(){ // returns true if a bonus round took over
 }
 
 
-/* ============ new-games-64-r70: Kebab / Quiz / Carpet3 / Gents ============ */
-var kb = {on:false, items:0, sway:0, swayDir:1, swayPos:0, timer:null, tLeft:25, done:false};
-var qz = {on:false, qi:0, bank:0, qs:[], done:false};
-var c3 = {on:false, score:0, tLeft:30, timer:null, grid:[], sel:-1, done:false};
-var gt = {on:false, served:0, miss:0, tLeft:25, timer:null, doors:[], freeIdx:0, done:false};
-
-var KB_ITEMS = ["🥙","🧅","🍅","🌶️","🧄","🥒","🍖","🧀","🫑","🍆"];
-function kbShow(v){ var s=el("screen-kebab"); if(s) s.classList.toggle("hidden",!v); if(v){kbRenderRod();} updateBodyLock(); }
-function kbRenderRod(){ var r=el("kbRod"); if(!r) return; var n=kb.items; r.style.transform="rotate("+(kb.swayPos*2.2)+"deg)"; r.style.boxShadow = n>=12 ? "0 0 18px var(--gold)" : "none"; }
-function kbAddItem(side){
-  if (!kb.on || kb.done) return;
-  kb.swayPos += (side?1:-1) * (1 + kb.items*0.18);
-  if (Math.abs(kb.swayPos) > 9 + kb.items*0.35){ kbFail(); return; }
-  kb.items++;
-  el("kbCount").textContent = kb.items;
-  var st = el("kbStack"); var s = document.createElement("span"); s.textContent = KB_ITEMS[Math.floor(Math.random()*KB_ITEMS.length)]; st.appendChild(s);
-  AudioFX.click();
-  if (kb.items === 12){ el("kbVerdict").textContent = "🏆 MEGA KEBAB — DOUBLING THE BANK"; AudioFX.bacon(12); bonusParticles(0, -window.innerHeight*0.15, {color:"#ffd700", count:18, type:"sparkle", fixed:true}); shake("shake-soft"); }
-  if (kb.items >= 16){ kbWin(true); }
-  kbRenderRod();
-}
-function kbWin(mega){
-  kb.done = true; clearInterval(kb.timer);
-  var bank = 200 + 100*(kb.items-8); if (mega) bank *= 2;
-  setTimeout(function(){ kbEnd(bank, mega); }, 900);
-}
-function kbFail(){
-  kb.done = true; clearInterval(kb.timer);
-  var st = el("kbStack"); st.textContent = "🥙💥🧅🍅🌶️";
-  el("kbVerdict").textContent = "IT ALL WENT HORIZONTAL. THE LADS ARE POINTING. EAT IT OFF THE FLOOR.";
-  bonusParticles(0, -window.innerHeight*0.12, {color:"#8a5a2b", count:22, type:"skid", fixed:true});
-  try { AudioFX.shout(); } catch(e){}
-  AudioFX.fart(); shake("shake-hard");
-  setTimeout(function(){ kbEnd(0,false); }, 1100);
-}
-function kbTick(){
-  kb.tLeft--; var t=el("kbTime"); if(t) t.textContent = Math.max(0,kb.tLeft);
-  if (kb.tLeft <= 0){ if (kb.items >= 8) kbWin(kb.items>=12); else kbFail(); }
-}
-function kebabMidGameStart(){
-  AudioFX.stopMusic();
-  kb = {on:true, items:0, sway:0, swayDir:1, swayPos:0, timer:null, tLeft:25, done:false};
-  el("kbCount").textContent="0"; el("kbTime").textContent="25"; el("kbStack").textContent=""; el("kbVerdict").textContent="";
-  kbShow(true);
-  kb.timer = setInterval(kbTick, 1000);
-}
-function kbEnd(banked, mega){
-  kb.on=false; clearInterval(kb.timer); kbShow(false); showScreen("table");
-  if (banked>0){
-    addScore(banked, mega?"MEGA KEBAB":"KEBAB BANKED", mega?"you've built something God never intended":"a monster doner — the bin men will hate you");
-    setVerdict('<div class="verdict-line wave-clear">🥙 '+(mega?"MEGA KEBAB":"KEBAB")+' BANKED — +'+banked+'</div><div class="verdict-sub">TABLE RESUMES. MINT SAUCE EVERYWHERE.</div>');
-  } else {
-    setVerdict('<div class="verdict-line wave-clear">🥙 THE DONER COLLAPSED — NOTHING BANKED</div><div class="verdict-sub">TABLE RESUMES. FIVE SECOND RULE.</div>');
-  }
-  AudioFX.resumeMusic(); renderNextButton(); try{ updateBonusPill(); }catch(e){}
-}
-
+/* ============ new-games-64-r70: Quiz / Carpet3 / Gents (kebab removed r97) ============ */
 var QUIZ_BANK = [
   {q:"HOW MANY KCAL IN A PINT OF REGRET?", a:["About 180","Zero, it's a pint","Depends on the landlord"], wrong:1},
   {q:"WHO INVENTED THE CARPET?", a:["Victorian madman","The pattern invented itself","A bet gone wrong"], wrong:1},
@@ -11113,13 +11038,8 @@ function maybeTriggerPintstack(){
 
 
 function cmMidGameStart(){ c3MidGameStart(); }
-function kbMidGameStart(){ kebabMidGameStart(); }
 
 /* --- triggers: new games join the wave-clear rotation (each once per game) --- */
-function maybeTriggerKebab(){
-  if (game.kebabOffered || game.phase === "over") return;
-  if (game.wave >= 2 && Math.random() < 0.35){ game.kebabOffered = true; offerBonus("kebab"); bonusToast("🥙 KEBAB BUILDER: THE SHOP NEXT DOOR IS OPEN. FINISH THE ROUND…"); try{ updateBonusPill(); }catch(e){} }
-}
 function maybeTriggerQuiz(){
   if (game.quizOffered || game.phase === "over") return;
   if (game.wave >= 2 && Math.random() < 0.35){ game.quizOffered = true; offerBonus("quiz"); bonusToast("🍺 PUB QUIZ PANIC: TUESDAY QUIZ STARTS. FINISH THE ROUND…"); try{ updateBonusPill(); }catch(e){} }
@@ -12103,7 +12023,7 @@ function startBonusNow(){
       if (pendingBonus.queue.length) maybePendingBonus();
       // Guard: if no bonus screen is visible after dispatch, force-open the next queued bonus directly.
       const bonusVisible = function(id){ const el = document.getElementById(id); return el && !el.classList.contains("hidden"); };
-      if (pendingBonus.queue.length && !bonusVisible("screen-fartinvaders") && !bonusVisible("screen-bogroll") && !bonusVisible("screen-fartoff") && !bonusVisible("screen-kebab") && !bonusVisible("screen-quiz") && !bonusVisible("screen-carpet3") && !bonusVisible("screen-gents") && !bonusVisible("screen-whacka") && !bonusVisible("screen-bogwall") && !bonusVisible("screen-pintstack") && !bonusVisible("screen-jukebox")){
+      if (pendingBonus.queue.length && !bonusVisible("screen-fartinvaders") && !bonusVisible("screen-bogroll") && !bonusVisible("screen-fartoff") && !bonusVisible("screen-quiz") && !bonusVisible("screen-carpet3") && !bonusVisible("screen-gents") && !bonusVisible("screen-whacka") && !bonusVisible("screen-bogwall") && !bonusVisible("screen-pintstack") && !bonusVisible("screen-jukebox")){
         maybePendingBonus();
       }
     } catch(e3){ logBonusEvent("startGame-error", String(e3).slice(0,80)); }
