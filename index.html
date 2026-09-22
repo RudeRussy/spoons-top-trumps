@@ -4522,6 +4522,52 @@ html, body{ overflow-x:clip; }
 
 /* === ADDICTIVE-V1 additions === */
 
+/* === r94 skill chips: named, compact, tap-for-details === */
+.bonus-strip{ flex-wrap:wrap; row-gap:4px; justify-content:center; }
+.skill-chip{
+  display:inline-flex; align-items:center; gap:5px;
+  background:rgba(20,25,32,.8);
+  border:1px solid rgba(242,232,213,.28);
+  border-radius:10px;
+  padding:4px 7px;
+  font-size:10px; font-weight:800; letter-spacing:.04em;
+  color:var(--cream); cursor:pointer;
+  min-height:30px;
+  -webkit-tap-highlight-color:transparent;
+}
+.skill-chip .skill-emoji{ font-size:14px; font-style:normal; }
+.skill-chip .skill-name{ white-space:nowrap; }
+.skill-chip .pips{ margin-left:1px; }
+.skill-chip.arm{ border-color:#e3b23c; animation:chipPulse 1s ease-in-out infinite; }
+.skill-sheet{
+  position:fixed; inset:0; z-index:calc(var(--z-hud) + 5);
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(4,6,9,.72); backdrop-filter:blur(4px);
+  padding:20px;
+}
+.skill-sheet.hidden{ display:none; }
+.skill-sheet-card{
+  position:relative;
+  background:linear-gradient(160deg,#141a22,#0b0f15);
+  border:1px solid rgba(227,178,60,.5);
+  border-radius:16px;
+  padding:22px 20px 18px;
+  max-width:340px; width:min(88vw,340px);
+  text-align:center;
+  box-shadow:0 18px 50px rgba(0,0,0,.6);
+}
+.skill-sheet-card button#skillSheetClose{
+  position:absolute; top:8px; right:10px;
+  background:transparent; border:none; color:var(--cream);
+  font-size:16px; cursor:pointer; min-width:40px; min-height:40px;
+}
+.skill-sheet-emoji{ font-size:44px; line-height:1.2; }
+.skill-sheet-name{ font-family:var(--font-arcade); font-size:15px; color:var(--gold); letter-spacing:.06em; margin:8px 0 10px; }
+.skill-sheet-desc{ font-size:12.5px; line-height:1.5; color:rgba(242,232,213,.85); margin-bottom:10px; }
+.skill-sheet-progress{ display:flex; flex-direction:column; gap:4px; align-items:center; font-size:10px; color:rgba(242,232,213,.6); }
+
+
+
 /* near-miss token chip flare */
 #nearMissChip{
   background:linear-gradient(90deg,#b07b2a,#7a1f3d);
@@ -4774,32 +4820,47 @@ html, body{ overflow-x:clip; }
 
   <!-- TABLE -->
   <section id="screen-table" class="screen hidden">
-    <div class="bonus-strip">
-      <span class="scratch" id="scratchFart" title="STREAK ×4 = LANDLORD">
-        <span class="scratch-caption">💨 FART OFF — STREAK ×4</span>
-        <span class="scratch-body"><b>💨</b><i class="pips" id="foPips">····</i></span>
+    <div class="bonus-strip" id="bonusStrip">
+      <span class="skill-chip" data-skill="fartoff" id="scratchFart">
+        <span class="skill-emoji">💨</span>
+        <span class="skill-name">FART OFF</span>
+        <i class="pips" id="foPips">····</i>
+      </span>
+      <span class="skill-chip" data-skill="bogroll" id="scratchBog">
+        <span class="skill-emoji">🧻</span>
+        <span class="skill-name">BOG ROLL</span>
+        <i class="pips" id="brPips">····</i>
+      </span>
+      <span class="skill-chip" data-skill="fartinvaders" id="scratchFartInvaders">
+        <span class="skill-emoji">🚀</span>
+        <span class="skill-name">FART INVADERS</span>
+        <i class="pips" id="fiPips">····</i>
+      </span>
+      <span class="skill-chip" data-skill="whacka" id="scratchWhacka">
+        <span class="skill-emoji">🍺</span>
+        <span class="skill-name">WHACKA DRUNK</span>
+        <i class="pips" id="whackaPips">····</i>
+      </span>
+      <span class="skill-chip" data-skill="bogwall" id="scratchBogwall">
+        <span class="skill-emoji">✍️</span>
+        <span class="skill-name">BOG WALL</span>
+        <i class="pips" id="bwPips">····</i>
+      </span>
+      <span class="skill-chip" data-skill="pintstack" id="scratchPintstack">
+        <span class="skill-emoji">🥛</span>
+        <span class="skill-name">PINT STACK</span>
+        <i class="pips" id="psPips">····</i>
       </span>
       <span id="bonusToastSlot"></span>
-      <span class="scratch" id="scratchBog" title="WAVE CLEAR = CUBICLE ROLL">
-        <span class="scratch-caption">🧻 BOG ROLL — WIN A WAVE</span>
-        <span class="scratch-body"><b>🧻</b><i class="pips" id="brPips">····</i></span>
-      </span>
-      <span class="scratch" id="scratchFartInvaders" title="WAVE CLEAR = BUM ATTACK">
-        <span class="scratch-caption">🚀 FART INVADERS — WAVE CLEAR</span>
-        <span class="scratch-body"><b>🚀</b><i class="pips" id="fiPips">····</i></span>
-      </span>
-      <span class="scratch" id="scratchWhacka" title="WAVE CLEAR = DOOR DUTY">
-        <span class="scratch-caption">🍺 WHACKA DRUNK — WAVE CLEAR</span>
-        <span class="scratch-body"><b>🍺</b><i class="pips" id="whackaPips">····</i></span>
-      </span>
-      <span class="scratch" id="scratchBogwall" title="WAVE CLEAR = WALL ART">
-        <span class="scratch-caption">✍️ BOG WALL — WAVE CLEAR</span>
-        <span class="scratch-body"><b>✍️</b><i class="pips" id="bwPips">····</i></span>
-      </span>
-      <span class="scratch" id="scratchPintstack" title="WAVE CLEAR = TRAY TOWER">
-        <span class="scratch-caption">🍺 PINT STACK — WAVE CLEAR</span>
-        <span class="scratch-body"><b>🍺</b><i class="pips" id="psPips">····</i></span>
-      </span>
+    </div>
+    <div id="skillSheet" class="skill-sheet hidden">
+      <div class="skill-sheet-card">
+        <button id="skillSheetClose" aria-label="Close">✕</button>
+        <div class="skill-sheet-emoji" id="ssEmoji">💨</div>
+        <div class="skill-sheet-name" id="skillSheetName">FART OFF</div>
+        <div class="skill-sheet-desc" id="skillSheetDesc"></div>
+        <div class="skill-sheet-progress"><i class="pips" id="skillSheetPips"></i><span id="skillSheetHow"></span></div>
+      </div>
     </div>
     <div class="table">
       <div class="side">
@@ -5759,6 +5820,22 @@ const SHOUT_FILES = ["sfx/fuckoff.mp3","sfx/fucking-hell.mp3","sfx/fuck-you-man.
   // swear-pack-v1: 60-clip CC0 English shout expansion (sources in sfx/swear/SOURCES.txt)
   "sfx/swear/rage-096-son-of-a-bitch2-wav.mp3", "sfx/swear/rage-210-bullshit-wav.mp3", "sfx/swear/rage-155-Gamer-Swearing-Explicit-seg05.mp3", "sfx/swear/rage-100-What-the-hell-man-calm-blas.mp3", "sfx/swear/rage-178-motherfucker-los-mp3.mp3", "sfx/swear/rage-080-FUCKKKKK.mp3", "sfx/swear/rage-122-Fuck-mp3.mp3", "sfx/swear/rage-136-fuck-wav.mp3", "sfx/swear/rage-181-Smashing-Table-Rage.mp3", "sfx/swear/rage-198-Cartoon-Angry-Woman-Scream.mp3", "sfx/swear/rage-078-damn-it-wav.mp3", "sfx/swear/rage-187-Guy-Screams-fuck-wav.mp3", "sfx/swear/rage-146-mate-cunt-wav.mp3", "sfx/swear/rage-179-curses-wav.mp3", "sfx/swear/rage-103-Oh-Fuck-wav.mp3", "sfx/swear/rage-150-fuck_you_pig-mp3.mp3", "sfx/swear/rage-132-vulgar-8-u-bastards-wav.mp3", "sfx/swear/rage-044-Shout-Allowed-wav.mp3", "sfx/swear/rage-099-Adult-Male-Says-Oh-Fuck-voice-over-actor.mp3", "sfx/swear/rage-235-So-fucking-hard-mp3.mp3", "sfx/swear/rage-019-insults-seg11.mp3", "sfx/swear/rage-135-fuckoff-wav.mp3", "sfx/swear/rage-236-I-call-bullshit.mp3", "sfx/swear/rage-062-frustrated-scream_01-wav.mp3", "sfx/swear/rage-075-Panic-stricken-screaming-2.mp3", "sfx/swear/rage-160-mom-frustrated-style.mp3", "sfx/swear/rage-140-Fucking-Bastards.mp3", "sfx/swear/rage-047-Evan-Masturbating-Cunt-mp3-seg02.mp3", "sfx/swear/rage-185-4-3-yelling-wav.mp3", "sfx/swear/rage-134-Fuck-wav.mp3", "sfx/swear/rage-184-Girl-Screaming_01-wav.mp3", "sfx/swear/rage-001-yell-mp3.mp3", "sfx/swear/rage-002-ShitInTheLoo-MP3-seg01.mp3", "sfx/swear/rage-129-Fuck-You-All-wav.mp3", "sfx/swear/rage-182-Man-Yelling-Problem.mp3", "sfx/swear/rage-196-SHUT-UP.mp3", "sfx/swear/rage-128-tourettes-guy-damn-this-good-shit-mp3.mp3", "sfx/swear/rage-211-namaste-mother-fucker-wav.mp3", "sfx/swear/rage-115-Girl_Screams_Raw_File_mp3_v1-mp3-seg05.mp3", "sfx/swear/rage-077-Have-you-ever-felt-like-shutting-the-fuc.mp3", "sfx/swear/rage-144-Male-Screams-1-seg02.mp3", "sfx/swear/rage-149-vocals-frustrated-yell-WAV.mp3", "sfx/swear/rage-008-Oh-Shit-Silly.mp3", "sfx/swear/rage-186-noisy-cunt-mp3.mp3", "sfx/swear/rage-205-Scream_male-wav.mp3", "sfx/swear/rage-203-That-sounds-like-grade-A-bullshit-Voice.mp3", "sfx/swear/rage-045-Screaming-Fuck.mp3", "sfx/swear/rage-206-FUCK-OFF-Female-wav.mp3", "sfx/swear/rage-095-DAMN-YOU-wav.mp3", "sfx/swear/rage-082-what-the-hell-wav.mp3", "sfx/swear/rage-102-Bitch-wav.mp3", "sfx/swear/rage-177-hardcoremotherfucker-short-mp3.mp3", "sfx/swear/rage-158-stop-it-you-motherfucker.mp3", "sfx/swear/rage-222-fuck-you-man-fuck-you.mp3", "sfx/swear/rage-159-can-you-fucking-stop-it.mp3", "sfx/swear/rage-233-dont-fucking-call-me-ever-again.mp3", "sfx/swear/rage-161-listen-me-you-fucking-hippie.mp3", "sfx/swear/rage-225-what-a-fuck-are-you-doing-2.mp3", "sfx/swear/rage-188-Alter-FUCK-Angry-Guy-ogg.mp3", "sfx/swear/rage-227-i-got-no-fucking-money-man.mp3"];
 const SHOUT_POOL = [];
+let sLazyIdx = 0; // r94 trickle cursor
+/* r94: trickle loader — 10 sync at unlock, then 1 per 1.5s (bulk 71 stalled iOS) */
+function __spoonsStartShoutTrickle(){
+  if (sLazyIdx === 0 && SHOUT_POOL.length === 0){
+    SHOUT_FILES.slice(0, 10).forEach(src => { try { const a = new Audio(src); a.preload = "auto"; a.load(); SHOUT_POOL.push(a); } catch(e){} });
+    sLazyIdx = 10;
+  }
+  if (sLazyIdx >= SHOUT_FILES.length) return;
+  const step = () => {
+    if (sLazyIdx >= SHOUT_FILES.length) return;
+    try { const a = new Audio(SHOUT_FILES[sLazyIdx++]); a.preload = "auto"; a.load(); SHOUT_POOL.push(a); } catch(e){}
+    if (sLazyIdx < SHOUT_FILES.length) setTimeout(step, 1500);
+  };
+  setTimeout(step, 1500);
+}
+window.__spoonsStartShoutTrickle = __spoonsStartShoutTrickle;
 try { window.__spoonsAudioProbe = { FART_FILES, MEGA_COMEDY_FILES, SHOUT_FILES, SHOUT_POOL }; } catch(e){}
 const SILENT_WAV = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
 const AudioFX = (() => {
@@ -5966,7 +6043,8 @@ function nextTrackIdx(){ // random next, never the same SONG in a row (ext+short
     get master(){ return muted ? 0 : 1; },
     get sfx(){ return muted ? 0 : 1; },
     unlock(){
-      ac(); silentKick(); preloadFiShots(); // FART pools load lazily on game start (boot-time bulk load froze iOS)
+      ac(); silentKick(); preloadFiShots(); // r94: FART+SHOUT pools load lazily (boot-time bulk load froze iOS)
+      window.__spoonsStartShoutTrickle && window.__spoonsStartShoutTrickle();
       // iOS: the physical silent switch silences WebAudio unless the page holds an
       // active <audio> media session. Open a silent looping one inside the first gesture.
       try {
@@ -6060,9 +6138,7 @@ function nextTrackIdx(){ // random next, never the same SONG in a row (ext+short
     shout(){
       /* gross-sfx-65-r71: random disgusted pub shout — lose states, hard fails */
       try {
-        if (!SHOUT_POOL.length){
-          SHOUT_FILES.forEach(src => { try { const a = new Audio(src); a.preload = "auto"; a.load(); SHOUT_POOL.push(a); } catch(e){} });
-        }
+        if (!SHOUT_POOL.length && window.__spoonsStartShoutTrickle) window.__spoonsStartShoutTrickle();
         if (!SHOUT_POOL.length) return;
         const a = SHOUT_POOL[Math.floor(Math.random() * SHOUT_POOL.length)];
         a.currentTime = 0; a.volume = 0.85;
@@ -13129,6 +13205,63 @@ startArcadeRunForPlayer = function(player){
       playerPick(btn.dataset.stat);
     }
   }, {passive:false});
+})();
+
+
+/* === r94 skill sheet: tap any skill chip for name/desc/progress === */
+(function(){
+  const SKILLS = {
+    fartoff:       { name: "FART OFF",        emoji: "💨", desc: "Charge a rip on the bar tap. Beat THE SPOONS' blow for points. STREAK ×4 = LANDLORD ATTACK." },
+    bogroll:       { name: "BOG ROLL",        emoji: "🧻", desc: "Win waves to fill the roll. Full roll = CUBICLE ROLL jackpot spin.", },
+    fartinvaders:  { name: "FART INVADERS",   emoji: "🚀", desc: "One life. Slide the cock cannon and blast the turd army before they land. Wave clear = BUM ATTACK." },
+    whacka:        { name: "WHACKA DRUNK",    emoji: "🍺", desc: "Whack the lads as they pop from behind the bar. Wave clear = DOOR DUTY." },
+    bogwall:       { name: "BOG WALL",        emoji: "✍️", desc: "Ink graffiti on the cubicle wall before the timer dies. Landlord bust-in ends it. WAVE CLEAR = WALL ART." },
+    pintstack:     { name: "PINT STACK",      emoji: "🥛", desc: "Catch falling pints and stack the tray. Wobble physics, drunk leans. CLEAR = TRAY TOWER." }
+  };
+  let sheet = document.getElementById("skillSheet");
+  let pipsCache = {};
+  function pipsOf(id){
+    const src = document.getElementById(id);
+    return src ? src.innerHTML : "";
+  }
+  function openSheet(key){
+    const s = SKILLS[key];
+    if (!s) return;
+    const el = document.getElementById("skillSheet");
+    if (!el) return;
+    document.getElementById("ssEmoji").textContent = s.emoji;
+    document.getElementById("skillSheetName").textContent = s.name;
+    document.getElementById("skillSheetDesc").textContent = s.desc;
+    // live progress pips from the strip's own pip element:
+    const map = { fartoff:"foPips", bogroll:"brPips", fartinvaders:"fiPips", whacka:"whackaPips", bogwall:"bwPips", pintstack:"psPips" };
+    const p = document.getElementById("skillSheetPips");
+    if (p) p.innerHTML = pipsOf(map[key] || "");
+    el.classList.remove("hidden");
+  }
+  function closeSheet(){
+    const el = document.getElementById("skillSheet");
+    if (el) el.classList.add("hidden");
+  }
+  document.addEventListener("click", function(ev){
+    const chip = ev.target.closest && ev.target.closest(".skill-chip");
+    if (chip){ ev.preventDefault(); ev.stopPropagation(); openSheet(chip.getAttribute("data-skill")); return; }
+    if (ev.target.closest && ev.target.closest("#skillSheetClose")){ closeSheet(); return; }
+    if (ev.target.id === "skillSheet"){ closeSheet(); }
+  }, true);
+  // mirror arm-state from scratch ids onto chips (existing code toggles .arm on scratch*)
+  try {
+    const orig = MutationObserver;
+    ["scratchFart","scratchBog","scratchFartInvaders","scratchWhacka","scratchBogwall","scratchPintstack"].forEach(id => {
+      const src = document.getElementById(id);
+      if (!src) return;
+      new MutationObserver(() => {
+        const key = id.replace("scratch","");
+        const chip = document.querySelector('.skill-chip[data-skill="' + (id === "scratchFart" ? "fartoff" : key.charAt(0).toLowerCase() + key.slice(1)) + '"]');
+        if (chip) chip.classList.toggle("arm", src.classList.contains("arm"));
+      }).observe(src, { attributes: true, attributeFilter: ["class"] });
+    });
+  } catch(e){}
+  window._skillSheetDebug = openSheet;
 })();
 
 </script>
