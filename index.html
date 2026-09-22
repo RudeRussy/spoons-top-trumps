@@ -539,6 +539,59 @@ header#hud{
   .bw-hud{font-size:11px;gap:8px}
   .bw-controls button{font-size:11px;min-height:40px}
 }
+/* ---------- pintstack-77-r85: Pint Stack Wobble ---------- */
+.pintstack-wrap{justify-content:flex-start;padding-top:max(12px, env(safe-area-inset-top));padding-bottom:max(12px, env(safe-area-inset-bottom));touch-action:none}
+#psCanvasWrap{
+  position:relative;
+  width:min(92vw,420px);
+  height:min(55dvh,440px);
+  border-radius:14px;
+  background:linear-gradient(180deg,#2a2018 0%,#1a1410 100%);
+  box-shadow:inset 0 0 60px rgba(0,0,0,.55), 0 8px 30px rgba(0,0,0,.5);
+  overflow:hidden;
+  border:4px solid #5a4a3a;
+  margin:8px 0;
+}
+#psCanvas{
+  position:absolute;inset:0;width:100%;height:100%;
+  cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
+}
+.ps-hud{
+  display:flex;gap:14px;justify-content:center;font-size:13px;font-weight:800;opacity:.9;margin:4px 0;
+}
+.ps-hud span b{min-width:24px;display:inline-block}
+#psNextGlass{
+  width:min(92vw,420px);display:flex;align-items:center;justify-content:center;gap:10px;font-size:13px;color:var(--muted);margin:4px 0;
+}
+#psNextGlass .ps-mini{
+  width:28px;height:38px;border:2px solid rgba(242,232,213,.45);border-radius:0 0 8px 8px;background:linear-gradient(180deg,rgba(255,201,77,.25),rgba(255,201,77,.08));position:relative;
+}
+#psNextGlass .ps-mini::after{content:"";position:absolute;left:2px;right:2px;top:4px;height:8px;background:rgba(255,255,255,.55);border-radius:4px;}
+#psVerdict{
+  font-size:14px;font-weight:900;min-height:22px;max-width:min(92vw,420px);text-align:center;
+}
+#psRating{
+  display:none;flex-direction:column;align-items:center;gap:10px;width:min(92vw,420px);text-align:center;
+}
+#psRating.show{display:flex}
+#psVerdictBig{
+  font-family:var(--font-arcade);font-size:clamp(16px,5vw,26px);color:var(--gold);text-shadow:0 0 12px rgba(227,178,60,.8);
+}
+#psScoreLine{font-size:13px;color:var(--muted)}
+#psHighScore{font-size:11px;color:var(--gold);letter-spacing:.06em;}
+#psWalkBtn{
+  position:fixed;top:max(10px, env(safe-area-inset-top));right:max(10px, env(safe-area-inset-right));z-index:101;font-size:10px;letter-spacing:.08em;padding:6px 10px;border-radius:8px;background:rgba(20,25,32,.8);border:1px solid rgba(227,178,60,.35);color:var(--cream);cursor:pointer;
+}
+#psWalkBtn.mid-lock{opacity:.35;pointer-events:none}
+@media (max-width:360px){
+  .pintstack-wrap{padding-top:8px;padding-bottom:8px}
+  #psCanvasWrap{height:min(50dvh,360px)}
+  .ps-hud{font-size:11px;gap:8px}
+}
+@media (max-height:700px){
+  #psCanvasWrap{height:min(48dvh,360px)}
+}
+
 @media (max-height:700px){
   #bwCanvasWrap{height:min(48dvh,340px)}
 }
@@ -4596,6 +4649,10 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
         <span class="scratch-caption">✍️ BOG WALL — WAVE CLEAR</span>
         <span class="scratch-body"><b>✍️</b><i class="pips" id="bwPips">····</i></span>
       </span>
+      <span class="scratch" id="scratchPintstack" title="WAVE CLEAR = TRAY TOWER">
+        <span class="scratch-caption">🍺 PINT STACK — WAVE CLEAR</span>
+        <span class="scratch-body"><b>🍺</b><i class="pips" id="psPips">····</i></span>
+      </span>
     </div>
     <div class="table">
       <div class="side">
@@ -5086,6 +5143,36 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
         <button class="btn btn-cream" id="bwBank">BANK IT &amp; WALK BACK</button>
       </div>
     </div>
+  
+
+
+
+  </section>
+
+<section id="screen-pintstack" class="screen hidden bonus-fullscreen">
+    <div class="bonus-wrap pintstack-wrap">
+      <div class="bonus-tag">LAST ORDERS TRAY — DON'T DROP THE ROUND</div>
+      <button class="bonus-back" id="psBack">WALK AWAY</button>
+      <h2>🍺 PINT STACK WOBBLE 🍺</h2>
+      <p class="bonus-sub" id="psSub">Friday 1am. Tap to drop the next pint onto the tray. Stack grows, sway grows, pints get cocky. 8 glasses banked is decent, 12 is godlike.</p>
+      <div class="ps-hud">
+        <span>STACK: <b id="psCount">0</b></span>
+        <span>LIVES: <b id="psLives">❤️❤️❤️</b></span>
+        <span>MULTI: <b id="psMulti">×1</b></span>
+        <span>SCORE: <b id="psScore">0</b></span>
+      </div>
+      <div id="psNextGlass"><span>NEXT GLASS</span><div class="ps-mini"></div></div>
+      <div id="psCanvasWrap">
+        <canvas id="psCanvas" width="420" height="420"></canvas>
+      </div>
+      <div id="psVerdict">TAP THE SCREEN TO DROP</div>
+      <div id="psHighScore">BEST: 0</div>
+      <div id="psRating">
+        <div id="psVerdictBig"></div>
+        <div id="psScoreLine"></div>
+      </div>
+      <button class="btn btn-cream ps-bank" id="psBank">BANK IT &amp; WALK BACK</button>
+    </div>
   </section>
 
   <section class="boards-overlay" id="boardsOverlay" role="dialog" aria-modal="true" aria-label="Leaderboards">
@@ -5179,7 +5266,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = 'bogwall-76-r84';
+  const BUILD_STAMP = 'pintstack-77-r85';
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -6148,7 +6235,7 @@ function updateBodyLock(){
     visible("screen-bogwall");
   document.body.style.overflow = any ? "hidden" : "";
   document.body.style.touchAction = any ? "none" : "";
-  const bonusActive = visible("screen-bonus") || visible("screen-bogroll") || visible("screen-fartoff") || visible("screen-fartinvaders") || visible("screen-whacka") || visible("screen-bogwall");
+  const bonusActive = visible("screen-bonus") || visible("screen-bogroll") || visible("screen-fartoff") || visible("screen-fartinvaders") || visible("screen-whacka") || visible("screen-bogwall") || visible("screen-pintstack");
   const hud = document.getElementById("hud");
   if (hud) hud.style.visibility = bonusActive ? "hidden" : "";
   document.body.classList.toggle("bonus-locked", bonusActive);
@@ -7273,6 +7360,7 @@ const game = {
   rng:Math.random,
   whackaOffered:false,
   bwOffered:false,
+  pintstackOffered:false,
 };
 
 function refillBag(){ refillBagRng(); }
@@ -7310,7 +7398,7 @@ function startGame(mode){
   const M = MODES[mode];
   game.playerDeck = []; game.aiDeck = []; game.pot = []; game.bag = [];
   game.turnOwner = "player"; game.statKey = null;
-  game.score = 0; game.streak = 0; game.foOffered = false; game.brOffered = false; game.fiOffered = false; game.kebabOffered = false; game.quizOffered = false; game.c3Offered = false; game.gtOffered = false; game.whackaOffered = false; game.bwOffered = false; pendingBonus.queue.length = 0; game.paused = false;; game.bestStreak = 0; game.biggestPot = 0;
+  game.score = 0; game.streak = 0; game.foOffered = false; game.brOffered = false; game.fiOffered = false; game.kebabOffered = false; game.quizOffered = false; game.c3Offered = false; game.gtOffered = false; game.whackaOffered = false; game.bwOffered = false; game.pintstackOffered = false; pendingBonus.queue.length = 0; game.paused = false;; game.bestStreak = 0; game.biggestPot = 0;
   game.roundsPlayed = 0; game.statWins = {}; game.pickHistory = {};
   resetScoreLedger();
   game.wave = 1; game.aiLevel = M.waves ? 0 : 1;
@@ -7611,6 +7699,7 @@ function resolveRound(){
     try { maybeTriggerGents(); } catch(e){}
     try { maybeTriggerWhacka(); } catch(e){}
     try { maybeTriggerBogwall(); } catch(e){}
+    try { maybeTriggerPintstack(); } catch(e){}
   if (game.__bonusPillArmed){ game.__bonusPillArmed = false; if (maybePendingBonus()) return; }
     renderNextButton();
     return;
@@ -8889,6 +8978,7 @@ function maybePendingBonus(){ // returns true if a bonus round took over
   if (t === "gents"){ gtMidGameStart(); return true; }
   if (t === "whacka"){ whackaStart(); return true; }
   if (t === "bogwall"){ bwMidGameStart(); return true; }
+  if (t === "pintstack"){ pintstackStart(); return true; }
   return false;
 }
 
@@ -9576,6 +9666,466 @@ function bwBack(){
 }
 
 
+
+
+/* ---------- pintstack-77-r85: Pint Stack Wobble ---------- */
+const PS_LS_KEY = "spoons.high.pintstack";
+function psHighScore(){ try { const v = localStorage.getItem(PS_LS_KEY); return v ? parseInt(v, 10) || 0 : 0; } catch(e){ return 0; } }
+function psSaveHigh(score){ try { const cur = psHighScore(); if (score > cur) localStorage.setItem(PS_LS_KEY, String(score)); } catch(e){} }
+
+var ps = { on:false, mid:false, done:false, raf:0, lastT:0, canvas:null, ctx:null, width:0, height:0, dpr:1,
+  glasses:[], lives:3, count:0, score:0, combo:0, multi:1, falling:null, waiter:{x:-100, active:false, t:0},
+  wobbleBase:0, wobbleAmp:0, wobbleFreq:0, wobblePhase:0, lean:0, shake:0, foam:[], particles:[], texts:[],
+  previewX:0.5, autoX:0.5, autoDir:1, autoSpeed:0.35, state:"ready", groundY:0, trayX:0, trayW:0, glassW:0, glassH:0,
+  milestoneMsg:"", milestoneT:0, perfectCount:0 };
+
+const PS_VERDICTS = {
+  0:"TAP ANYWHERE TO DROP THE FIRST PINT",
+  1:"ONE DOWN. KEEP IT CIVILISED.",
+  2:"STEADY HANDS, MATE.",
+  4:"THE TRAY'S STARTING TO TALK.",
+  7:"EASY, COWBOY — THE SWAY IS REAL.",
+  8:"🍺 GOT THE ROUND IN!",
+  11:"STOP SHAKING, YOU'LL WASTE IT.",
+  12:"👑 GODLIKE STACK",
+  15:"THE BAR'S CLOSING AND YOU'RE STILL STACKING.",
+  16:"🏆 LANDLORD'S LEGEND"
+};
+const PS_LANDLORD_LINES = [
+  "OI! YOU SPILT THE ROUND!",
+  "THAT'S PINTS ON THE FLOOR, MATE.",
+  "THE TRAY DIDN'T DESERVE THAT.",
+  "YOU'RE PAYING FOR THAT ONE."
+];
+function psEl(id){ return el(id); }
+function psShow(v){ var s=el("screen-pintstack"); if(s) s.classList.toggle("hidden",!v); updateBodyLock(); if(v){ psResize(); } }
+function psLives(){ return "❤️".repeat(Math.max(0, ps.lives)); }
+function psHud(){
+  el("psCount").textContent = ps.count;
+  el("psLives").textContent = psLives();
+  el("psMulti").textContent = "×" + ps.multi;
+  el("psScore").textContent = ps.score;
+  el("psHighScore").textContent = "BEST: " + psHighScore();
+}
+function psToast(msg){
+  const t = document.createElement("div"); t.className="whacka-wave-toast"; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),1400);
+}
+
+function pintstackStart(){
+  AudioFX.stopMusic();
+  psStop();
+  ps = { on:true, mid:true, done:false, raf:0, lastT:performance.now(), canvas:el("psCanvas"), ctx:null, width:0, height:0, dpr:1,
+    glasses:[], lives:3, count:0, score:0, combo:0, multi:1, falling:null, waiter:{x:-100, active:false, t:0},
+    wobbleBase:0, wobbleAmp:0, wobbleFreq:0.0015, wobblePhase:0, lean:0, shake:0, foam:[], particles:[], texts:[],
+    previewX:0.5, autoX:0.5, autoDir:1, autoSpeed:0.35, state:"ready", groundY:0, trayX:0, trayW:0, glassW:0, glassH:0,
+    milestoneMsg:"", milestoneT:0, perfectCount:0 };
+  if(ps.canvas) ps.ctx = ps.canvas.getContext("2d");
+  ps.draw = psDraw; ps.update = psUpdate; ps.resize = psResize; ps.drop = psDrop; ps.land = psLand; ps.waiterHits = psWaiterHits;
+  psResize();
+  psShow(true);
+  psBindInput();
+  const bankBtn = el("psBank"); if(bankBtn){ bankBtn.onclick = function(){ pintstackBankWalk(); }; }
+  psHud();
+  el("psVerdict").textContent = PS_VERDICTS[0];
+  el("psRating").classList.remove("show");
+  ps.raf = requestAnimationFrame(psLoop);
+}
+function psStop(){
+  if (ps.raf){ cancelAnimationFrame(ps.raf); ps.raf = 0; }
+  ps.on = false;
+}
+function psBindInput(){
+  const wrap = el("psCanvasWrap"); if(!wrap || wrap.__psBound) return; wrap.__psBound = true;
+  const tap = e => {
+    if (!ps.on || ps.done || ps.state !== "ready") return;
+    e.preventDefault();
+    psDrop();
+  };
+  wrap.addEventListener("pointerdown", tap, {passive:false});
+  wrap.addEventListener("touchstart", e => { if(e.touches.length===1){ e.preventDefault(); tap(e); } }, {passive:false});
+}
+function psResize(){
+  const wrap = el("psCanvasWrap"); if(!wrap || !ps.canvas) return;
+  const rect = wrap.getBoundingClientRect();
+  ps.dpr = Math.min(window.devicePixelRatio || 1, 2);
+  ps.width = rect.width; ps.height = rect.height;
+  ps.canvas.width = Math.floor(rect.width*ps.dpr); ps.canvas.height = Math.floor(rect.height*ps.dpr);
+  ps.canvas.style.width = rect.width + "px"; ps.canvas.style.height = rect.height + "px";
+  if(ps.ctx) ps.ctx.setTransform(ps.dpr,0,0,ps.dpr,0,0);
+  ps.groundY = ps.height - 28;
+  ps.trayW = Math.min(ps.width*0.75, 220);
+  ps.trayX = (ps.width - ps.trayW)/2;
+  ps.glassW = Math.min(ps.trayW*0.28, 52);
+  ps.glassH = ps.glassW * 1.55;
+  ps.draw();
+}
+function psDrop(){
+  if (!ps.on || ps.done || ps.falling) return;
+  ps.state = "falling";
+  const dropX = ps.previewX;
+  const x = ps.trayX + ps.trayW*dropX - ps.glassW/2;
+  ps.falling = { x:x, y:18, vx:0, vy:0, rot:0, vrot:0, landed:false };
+  AudioFX.click();
+}
+function psLand(impact){
+  if(!ps.falling) return;
+  const fx = ps.falling.x + ps.glassW/2;
+  const stackTopY = ps.glasses.length ? Math.min(...ps.glasses.map(g=>g.y)) : ps.groundY;
+  const targetY = stackTopY - ps.glassH + 4;
+  const g = { x:ps.falling.x, y:targetY, rot:ps.lean, offset: (fx - (ps.trayX + ps.trayW*0.5)) / (ps.trayW*0.5), perfect:false };
+  const cx = ps.trayX + ps.trayW/2;
+  const offAbs = Math.abs(fx - cx);
+  const half = ps.glassW*0.5;
+  // miss if outside tray or too far off empty stack
+  if (fx < ps.trayX + 4 || fx > ps.trayX + ps.trayW - 4 || (ps.glasses.length === 0 && offAbs > ps.trayW*0.34)){
+    psSmash(fx, ps.groundY - ps.glassH*0.2);
+    return;
+  }
+  // precision combo
+  const perfect = offAbs < 6;
+  g.perfect = perfect;
+  if(perfect){ ps.combo++; ps.perfectCount++; }
+  else { ps.combo = 0; }
+  ps.multi = 1 + Math.min(ps.combo, 5) * 0.2;
+  ps.glasses.push(g);
+  ps.count++;
+  // impact lean and wobble
+  const sign = g.offset >= 0 ? 1 : -1;
+  const push = Math.abs(g.offset) * (1.2 + ps.count*0.08);
+  ps.lean += sign * push;
+  ps.wobbleAmp = Math.min(22, 1.4 + ps.count*0.55 + Math.abs(ps.lean)*0.25);
+  ps.wobbleFreq = 0.0012 + ps.count*0.00008;
+  ps.shake = Math.min(12, 2 + Math.abs(g.offset)*8);
+  ps.foam.push({x:fx - half, y:g.y, w:ps.glassW, h:ps.glassH*0.18, life:1.0, dx:(Math.random()-0.5)*40});
+  // score
+  let pts = 50 + ps.count*25 + (perfect ? 75 : 0);
+  pts = Math.floor(pts * ps.multi);
+  ps.score += pts;
+  // audio
+  if(perfect) AudioFX.wave(); else if(Math.abs(g.offset) < 0.25) AudioFX.fiShot(); else AudioFX.fart();
+  if(ps.shake > 4) shake("shake-soft");
+  // texts
+  ps.texts.push({x:fx, y:g.y - 10, text:"+"+pts, life:1.0, color: perfect ? "#ffd700" : "#f2e8d5"});
+  // verdict
+  let msg = PS_VERDICTS[ps.count] || (ps.count >= 16 ? PS_VERDICTS[16] : "KEEP IT UP, LUSH.");
+  if(perfect) msg = "PERFECT! " + msg;
+  else if(Math.abs(g.offset) > 0.35) msg = "EDGE LAND — " + msg;
+  el("psVerdict").textContent = msg;
+  ps.milestoneMsg = "";
+  if(ps.count === 8){ ps.milestoneMsg = "🍺 GOT THE ROUND IN!"; psToast("GOT THE ROUND IN!"); AudioFX.reward(); bonusParticles(0,-ps.height*0.1,{color:"#ffd700",count:16,type:"sparkle",fixed:true}); }
+  if(ps.count === 12){ ps.milestoneMsg = "👑 GODLIKE STACK"; psToast("GODLIKE STACK!"); AudioFX.reward(); shake("shake-hard"); }
+  if(ps.count === 16){ ps.milestoneMsg = "🏆 LANDLORD'S LEGEND"; psToast("LANDLORD'S LEGEND!"); AudioFX.reward(); shake("shake-hard"); }
+  ps.milestoneT = ps.milestoneMsg ? 1.4 : 0;
+  ps.falling = null;
+  ps.state = "ready";
+  // drunk lean random impulse every 3 glasses
+  if(ps.count % 3 === 0){
+    ps.lean += (Math.random()-0.5) * (1.2 + ps.count*0.15);
+  }
+  // waiter starts every 5th glass
+  if(ps.count % 5 === 0){
+    ps.waiter.active = true; ps.waiter.x = -ps.glassW*2; ps.waiter.t = 0;
+    psToast("PINT-TOSSER COMING THROUGH!");
+  }
+  psHud();
+}
+function psSmash(x, y){
+  ps.lives--;
+  ps.combo = 0; ps.multi = 1;
+  ps.shake = 10;
+  shake("shake-hard");
+  // particles
+  const n = 18 + Math.floor(Math.random()*8);
+  for(let i=0;i<n;i++){
+    const ang = Math.random()*Math.PI*2;
+    const sp = 80 + Math.random()*220;
+    ps.particles.push({x:x, y:y, vx:Math.cos(ang)*sp, vy:Math.sin(ang)*sp - 120, life:1.0, size:2+Math.random()*5, rot:Math.random()*6.28, vrot:(Math.random()-0.5)*8, color:"rgba(180,210,230,"+(0.4+Math.random()*0.4)+")"});
+  }
+  // foam bits
+  for(let i=0;i<12;i++){
+    const ang = Math.random()*Math.PI;
+    const sp = 40 + Math.random()*100;
+    ps.particles.push({x:x, y:y - ps.glassH*0.3, vx:Math.cos(ang)*sp, vy:Math.sin(ang)*sp - 60, life:1.0, size:2+Math.random()*4, rot:0, vrot:0, color:"rgba(255,255,255,"+(0.5+Math.random()*0.4)+")"});
+  }
+  AudioFX.shout();
+  try { AudioFX.fart(); } catch(e){}
+  el("psVerdict").textContent = PS_LANDLORD_LINES[Math.floor(Math.random()*PS_LANDLORD_LINES.length)];
+  ps.falling = null;
+  ps.state = "ready";
+  if(ps.lives <= 0){
+    setTimeout(()=>pintstackEnd(Math.max(0, ps.score - 200)), 900);
+  }
+  psHud();
+}
+function psWaiterHits(){
+  if(!ps.waiter.active) return false;
+  const wx = ps.trayX + ps.trayW*0.5 + ps.waiter.x;
+  const width = ps.glassW*1.6;
+  const fx = ps.falling ? ps.falling.x + ps.glassW/2 : null;
+  if(fx && Math.abs(fx - wx) < width*0.5) return true;
+  // also top glass collision while walking
+  if(ps.glasses.length){
+    const top = ps.glasses[ps.glasses.length-1];
+    const tx = top.x + ps.glassW/2;
+    if(Math.abs(tx - wx) < width*0.5) return true;
+  }
+  return false;
+}
+function psLoop(now){
+  if(!ps.on) return;
+  ps.raf = requestAnimationFrame(psLoop);
+  const dt = Math.min(33, now - ps.lastT);
+  ps.lastT = now;
+  ps.update(dt, now);
+  ps.draw();
+}
+function psUpdate(dt, now){
+  // update preview auto-sway (the glass in hand)
+  if(ps.state === "ready"){
+    ps.autoX += ps.autoDir * ps.autoSpeed * dt * 0.001;
+    if(ps.autoX > 0.82){ ps.autoX = 0.82; ps.autoDir = -1; }
+    if(ps.autoX < 0.18){ ps.autoX = 0.18; ps.autoDir = 1; }
+    ps.previewX = ps.autoX;
+  }
+  // falling physics
+  if(ps.falling && !ps.falling.landed){
+    ps.falling.vy += 0.0016 * dt; // gravity px/ms
+    ps.falling.y += ps.falling.vy * dt;
+    // waiter collision while falling
+    if(ps.waiterHits()){
+      // deflect or smash
+      ps.falling.vx += (Math.random()-0.5)*0.3;
+      ps.falling.vrot += (Math.random()-0.5)*0.004;
+      if(Math.random() < 0.35){
+        psSmash(ps.falling.x + ps.glassW/2, ps.falling.y + ps.glassH);
+        return;
+      }
+    }
+    const stackTopY = ps.glasses.length ? Math.min(...ps.glasses.map(g=>g.y)) : ps.groundY;
+    const targetY = stackTopY - ps.glassH + 4;
+    if(ps.falling.y >= targetY){
+      ps.falling.landed = true;
+      psLand(0.15 + Math.abs(ps.falling.vy)*0.4);
+    }
+  }
+  // stack physics: lean spring + damping + drunk sine
+  const targetLean = Math.sin(now * ps.wobbleFreq + ps.wobblePhase) * ps.wobbleAmp;
+  ps.lean += (targetLean - ps.lean) * 0.012 * dt;
+  ps.lean *= (1 - 0.0015 * dt); // damping
+  // random drunk impulse
+  if(Math.random() < 0.002 + ps.count*0.00015){
+    ps.lean += (Math.random()-0.5) * (0.5 + ps.count*0.06);
+  }
+  // check stack collapse
+  if(ps.glasses.length > 1){
+    const maxLean = 12 + ps.count*1.8;
+    if(Math.abs(ps.lean) > maxLean){
+      psSmash(ps.trayX + ps.trayW/2, ps.groundY - ps.glassH);
+      ps.glasses = [];
+      ps.count = 0;
+      ps.wobbleAmp = 0;
+      ps.lean = 0;
+      el("psVerdict").textContent = "THE WHOLE STACK WENT DOWN!";
+      return;
+    }
+  }
+  // update waiter
+  if(ps.waiter.active){
+    ps.waiter.t += dt;
+    ps.waiter.x = -ps.glassW*2 + (ps.trayW + ps.glassW*6) * (ps.waiter.t / 3000);
+    if(ps.waiter.t > 3200) ps.waiter.active = false;
+  }
+  // particles
+  for(let i=ps.particles.length-1;i>=0;i--){
+    const p = ps.particles[i];
+    p.x += p.vx * dt * 0.001; p.y += p.vy * dt * 0.001; p.vy += 0.0016 * dt; p.life -= dt*0.001; p.rot += p.vrot * dt * 0.001;
+    if(p.life <= 0) ps.particles.splice(i,1);
+  }
+  // foam
+  for(let i=ps.foam.length-1;i>=0;i--){
+    const f = ps.foam[i];
+    f.x += f.dx * dt * 0.001; f.life -= dt*0.0008;
+    if(f.life <= 0) ps.foam.splice(i,1);
+  }
+  // texts
+  for(let i=ps.texts.length-1;i>=0;i--){
+    const t = ps.texts[i];
+    t.y -= dt*0.04; t.life -= dt*0.001;
+    if(t.life <= 0) ps.texts.splice(i,1);
+  }
+  // shake decay
+  if(ps.shake > 0) ps.shake = Math.max(0, ps.shake - dt*0.05);
+  if(ps.milestoneT > 0) ps.milestoneT -= dt*0.001;
+}
+function psDraw(){
+  const c = ps.ctx; if(!c) return;
+  c.clearRect(0,0,ps.width,ps.height);
+  // table surface
+  c.fillStyle = "#2a2018";
+  c.fillRect(0, ps.groundY, ps.width, ps.height - ps.groundY);
+  c.strokeStyle = "#5a4a3a"; c.lineWidth = 2;
+  c.beginPath(); c.moveTo(0, ps.groundY); c.lineTo(ps.width, ps.groundY); c.stroke();
+  // tray
+  c.save();
+  c.translate(ps.trayX + ps.trayW/2, ps.groundY + 8);
+  c.rotate((ps.lean * Math.PI/180) * 0.25);
+  c.fillStyle = "#3e2e22";
+  c.fillRect(-ps.trayW/2, -8, ps.trayW, 10);
+  c.strokeStyle = "#6b5240"; c.lineWidth = 1;
+  c.strokeRect(-ps.trayW/2, -8, ps.trayW, 10);
+  c.restore();
+  // stacked glasses (from bottom up, offset by lean)
+  const stackCenterX = ps.trayX + ps.trayW/2;
+  const baseY = ps.groundY;
+  let drawn = [];
+  for(let i=0; i<ps.glasses.length; i++){
+    const g = ps.glasses[i];
+    const hOffset = (i / Math.max(1, ps.glasses.length-1) - 0.5) * 2;
+    const leanX = (ps.lean * 0.35) * hOffset;
+    const x = g.x + leanX;
+    const y = g.y;
+    psDrawGlass(c, x, y, ps.glassW, ps.glassH, 0, true);
+    drawn.push({x,y});
+  }
+  // falling glass
+  if(ps.falling){
+    psDrawGlass(c, ps.falling.x, ps.falling.y, ps.glassW, ps.glassH, ps.falling.rot, false);
+  } else if(ps.state === "ready"){
+    // preview glass at top
+    const px = ps.trayX + ps.trayW*ps.previewX - ps.glassW/2;
+    c.globalAlpha = 0.65;
+    psDrawGlass(c, px, 14, ps.glassW, ps.glassH, 0, false);
+    c.globalAlpha = 1;
+  }
+  // waiter
+  if(ps.waiter.active){
+    const wx = stackCenterX + ps.waiter.x;
+    c.font = ps.glassH + "px serif";
+    c.textAlign = "center"; c.textBaseline = "middle";
+    c.fillText("🚶", wx, ps.groundY - ps.glassH*1.4);
+  }
+  // foam splashes
+  for(const f of ps.foam){
+    c.fillStyle = "rgba(255,255,255,"+(0.25*f.life)+")";
+    c.beginPath();
+    c.ellipse(f.x + f.w/2, f.y, f.w*0.55, f.h*0.5, 0, 0, Math.PI*2);
+    c.fill();
+  }
+  // particles
+  for(const p of ps.particles){
+    c.save();
+    c.translate(p.x, p.y); c.rotate(p.rot);
+    c.fillStyle = p.color;
+    c.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+    c.restore();
+  }
+  // texts
+  for(const t of ps.texts){
+    c.save();
+    c.font = "bold 16px \"Press Start 2P\",monospace";
+    c.fillStyle = t.color;
+    c.textAlign = "center";
+    c.globalAlpha = Math.max(0, t.life);
+    c.fillText(t.text, t.x, t.y);
+    c.restore();
+  }
+  // milestone
+  if(ps.milestoneT > 0){
+    c.save();
+    c.font = "bold 18px \"Press Start 2P\",monospace";
+    c.fillStyle = "#ffd700";
+    c.textAlign = "center";
+    c.shadowColor = "rgba(255,215,0,0.8)"; c.shadowBlur = 12;
+    c.globalAlpha = Math.min(1, ps.milestoneT);
+    c.fillText(ps.milestoneMsg, ps.width/2, ps.height*0.25);
+    c.restore();
+  }
+}
+function psDrawGlass(c, x, y, w, h, rot, filled){
+  c.save();
+  c.translate(x + w/2, y + h/2);
+  c.rotate(rot);
+  // glass body
+  const grad = c.createLinearGradient(-w/2, -h/2, w/2, h/2);
+  grad.addColorStop(0, "rgba(200,220,240,0.22)");
+  grad.addColorStop(0.5, "rgba(230,245,255,0.08)");
+  grad.addColorStop(1, "rgba(200,220,240,0.18)");
+  c.fillStyle = grad;
+  c.strokeStyle = "rgba(255,255,255,0.45)";
+  c.lineWidth = 2;
+  const r = w*0.12;
+  c.beginPath();
+  c.moveTo(-w/2 + r, -h/2);
+  c.lineTo(w/2 - r, -h/2);
+  c.quadraticCurveTo(w/2, -h/2, w/2, -h/2 + r);
+  c.lineTo(w/2*0.85, h/2 - r);
+  c.quadraticCurveTo(w/2*0.8, h/2, w/2*0.7, h/2);
+  c.lineTo(-w/2*0.7, h/2);
+  c.quadraticCurveTo(-w/2*0.8, h/2, -w/2*0.85, h/2 - r);
+  c.lineTo(-w/2, -h/2 + r);
+  c.quadraticCurveTo(-w/2, -h/2, -w/2 + r, -h/2);
+  c.closePath();
+  c.fill(); c.stroke();
+  if(filled){
+    // beer liquid
+    const lg = c.createLinearGradient(0, h/2, 0, -h/2*0.3);
+    lg.addColorStop(0, "rgba(255,201,77,0.75)");
+    lg.addColorStop(1, "rgba(255,201,77,0.35)");
+    c.fillStyle = lg;
+    c.beginPath();
+    c.moveTo(-w/2*0.78, h/2 - 3);
+    c.lineTo(w/2*0.78, h/2 - 3);
+    c.lineTo(w/2*0.82, -h/2*0.15);
+    c.lineTo(-w/2*0.82, -h/2*0.15);
+    c.closePath(); c.fill();
+    // foam head
+    c.fillStyle = "rgba(255,255,255,0.55)";
+    c.beginPath();
+    c.ellipse(0, -h/2*0.12, w*0.45, h*0.08, 0, 0, Math.PI*2);
+    c.fill();
+  }
+  // shine
+  c.strokeStyle = "rgba(255,255,255,0.25)";
+  c.lineWidth = 1;
+  c.beginPath(); c.moveTo(-w*0.25, -h/2 + 4); c.lineTo(-w*0.22, h/2 - 6); c.stroke();
+  c.restore();
+}
+function pintstackBankWalk(){
+  if(!ps.on || ps.done) return;
+  const banked = Math.max(0, Math.floor(ps.score + ps.count*20));
+  pintstackEnd(banked);
+}
+function pintstackEnd(banked){
+  psStop(); ps.done = true; psSaveHigh(banked);
+  psShow(false); showScreen("table");
+  if(banked > 0){
+    addScore(banked, "PINT STACK BANKED", "carried " + ps.count + " pints back to the table");
+    setVerdict('<div class="verdict-line wave-clear">🍺 PINT STACK BANKED — +' + banked + '</div><div class="verdict-sub">TABLE RESUMES. ' + (ps.count >= 12 ? "THE LANDLORD'S APPLAUDING." : "NO PINTS WASTED. PROPER HERO.") + '</div>');
+  } else {
+    setVerdict("<div class=\"verdict-line wave-clear\">🍺 PINT STACK WOBBLE — TRAY WENT DOWN</div><div class=\"verdict-sub\">TABLE RESUMES. YOU'RE BUYING THE NEXT ROUND.</div>");
+  }
+  AudioFX.resumeMusic(); renderNextButton(); try{ updateBonusPill(); }catch(e){}
+}
+function pintstackShowRating(){
+  ps.done = true; psSaveHigh(ps.score);
+  el("psRating").classList.add("show");
+  let label = "PUB FLOUNDER";
+  if(ps.count >= 16) label = "🏆 LANDLORD'S LEGEND";
+  else if(ps.count >= 12) label = "👑 GODLIKE STACK";
+  else if(ps.count >= 8) label = "🍺 GOT THE ROUND IN";
+  else if(ps.count >= 5) label = "ALRIGHT, CARRIED A FEW";
+  else if(ps.count >= 1) label = "AT LEAST YOU TRIED";
+  el("psVerdictBig").textContent = label + " — " + ps.count + " PINTS";
+  el("psScoreLine").innerHTML = "SCORE " + ps.score + " · BEST " + psHighScore();
+  el("psBank").onclick = () => pintstackEnd(Math.max(0, ps.score));
+  AudioFX.wave();
+}
+function pintstackBack(){
+  AudioFX.click();
+  if(ps.on && ps.mid){ pintstackBankWalk(); return; }
+  psStop(); psShow(false); showScreen("title");
+}
+
 function maybeTriggerWhacka(){
   if (game.whackaOffered || game.phase === "over") return;
   if (game.wave >= 2 && Math.random() < 0.35){ game.whackaOffered = true; offerBonus("whacka"); bonusToast("🍺 WHACKA DRUNK: THE DOOR NEEDS YOU. FINISH THE ROUND…"); try{ updateBonusPill(); }catch(e){} }
@@ -9584,6 +10134,12 @@ function maybeTriggerBogwall(){
   if (game.bwOffered || game.phase === "over") return;
   if (game.wave >= 2 && Math.random() < 0.35){ game.bwOffered = true; offerBonus("bogwall"); bonusToast("✍️ BOG WALL: THE CUBICLE'S FREE. FINISH THE ROUND…"); try{ updateBonusPill(); }catch(e){} }
 }
+
+function maybeTriggerPintstack(){
+  if (game.pintstackOffered || game.phase === "over") return;
+  if (game.wave >= 2 && Math.random() < 0.35){ game.pintstackOffered = true; offerBonus("pintstack"); bonusToast("🍺 PINT STACK: THE TRAY'S READY. FINISH THE ROUND…"); try{ updateBonusPill(); }catch(e){} }
+}
+
 
 function cmMidGameStart(){ c3MidGameStart(); }
 function kbMidGameStart(){ kebabMidGameStart(); }
@@ -10440,7 +10996,7 @@ function startBonusNow(){
       if (pendingBonus.queue.length) maybePendingBonus();
       // Guard: if no bonus screen is visible after dispatch, force-open the next queued bonus directly.
       const bonusVisible = function(id){ const el = document.getElementById(id); return el && !el.classList.contains("hidden"); };
-      if (pendingBonus.queue.length && !bonusVisible("screen-fartinvaders") && !bonusVisible("screen-bogroll") && !bonusVisible("screen-fartoff") && !bonusVisible("screen-kebab") && !bonusVisible("screen-quiz") && !bonusVisible("screen-carpet3") && !bonusVisible("screen-gents") && !bonusVisible("screen-whacka") && !bonusVisible("screen-bogwall")){
+      if (pendingBonus.queue.length && !bonusVisible("screen-fartinvaders") && !bonusVisible("screen-bogroll") && !bonusVisible("screen-fartoff") && !bonusVisible("screen-kebab") && !bonusVisible("screen-quiz") && !bonusVisible("screen-carpet3") && !bonusVisible("screen-gents") && !bonusVisible("screen-whacka") && !bonusVisible("screen-bogwall") && !bonusVisible("screen-pintstack")){
         maybePendingBonus();
       }
     } catch(e3){ logBonusEvent("startGame-error", String(e3).slice(0,80)); }
@@ -10626,6 +11182,7 @@ if (fiWalk) fiWalk.addEventListener("click", () => { AudioFX.click(); fiWalkAway
 window.debugFartInvaders = function(){ offerBonus("fartinvaders"); };
 window.debugWhacka = function(){ offerBonus("whacka"); };
 window.debugBogWall = function(){ offerBonus("bogwall"); startBonusNow(); };
+window.debugPintstack = function(){ offerBonus("pintstack"); startBonusNow(); };
 
 (function whackaHandTrack(){
   const hand = el("whackaHand");
@@ -10704,6 +11261,12 @@ el("whackaBack").addEventListener("click", () => {
   AudioFX.click();
   if (whacka.on && whacka.mid) { whackaBankWalk(); return; }
   whackaShow(false); showScreen("title");
+});
+
+el("psBack").addEventListener("click", () => {
+  AudioFX.click();
+  if (ps.on && ps.mid) { pintstackBankWalk(); return; }
+  psShow(false); showScreen("title");
 });
 (function foBind(){
   const s = el("screen-fartoff");
