@@ -595,6 +595,96 @@ header#hud{
 @media (max-height:700px){
   #bwCanvasWrap{height:min(48dvh,340px)}
 }
+/* ---------- jukebox-78-r87: Jukebox Sabotage ---------- */
+.jukebox-wrap{justify-content:flex-start;padding-top:max(12px, env(safe-area-inset-top));padding-bottom:max(12px, env(safe-area-inset-bottom));touch-action:none;overflow:hidden}
+#jbCanvasWrap{
+  position:relative;
+  width:min(92vw,420px);
+  height:min(54dvh,420px);
+  border-radius:14px;
+  background:linear-gradient(180deg,#1a1410 0%,#0e0b08 100%);
+  box-shadow:inset 0 0 60px rgba(0,0,0,.55), 0 8px 30px rgba(0,0,0,.5);
+  overflow:hidden;
+  border:4px solid #5a4a3a;
+  margin:8px 0;
+}
+#jbCanvas{
+  position:absolute;inset:0;width:100%;height:100%;
+  cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
+}
+.jb-hud{
+  display:flex;gap:10px;justify-content:center;font-size:12px;font-weight:800;opacity:.95;margin:4px 0;flex-wrap:wrap;
+}
+.jb-hud span b{min-width:20px;display:inline-block}
+#jbTrackName{
+  font-size:clamp(13px,4vw,17px);font-weight:900;color:var(--gold);text-align:center;max-width:min(92vw,420px);text-shadow:0 0 12px rgba(227,178,60,.45);min-height:24px;display:flex;align-items:center;justify-content:center;gap:6px;
+}
+#jbPromptBox{
+  position:absolute;left:50%;bottom:14%;transform:translateX(-50%);width:min(82vw,340px);display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;z-index:10;
+}
+.jb-card{
+  background:linear-gradient(180deg,#2a2018,#1a1410);border:2px solid var(--gold-deep);border-radius:12px;padding:10px 18px;box-shadow:0 6px 22px rgba(0,0,0,.6),0 0 16px rgba(227,178,60,.25);text-align:center;pointer-events:auto;touch-action:manipulation;min-width:140px;
+}
+.jb-card .jb-action{
+  font-family:var(--font-arcade);font-size:clamp(18px,5.5vw,28px);color:var(--cream);letter-spacing:.04em;
+}
+.jb-card .jb-hint{
+  font-size:10px;color:var(--muted);font-weight:800;letter-spacing:.06em;margin-top:4px;
+}
+.jb-card.armed{animation:jbSlideIn .35s var(--ease-spring) forwards}
+.jb-card.hit{animation:jbHit .28s var(--ease-spring)}
+.jb-card.miss{animation:jbMiss .35s ease-out;border-color:var(--red)}
+.jb-card.early-late{animation:jbNudge .28s ease-in-out;border-color:#ff9800}
+@keyframes jbSlideIn{0%{transform:translateY(40px) scale(.9);opacity:0}100%{transform:translateY(0) scale(1);opacity:1}}
+@keyframes jbHit{0%{transform:scale(1)}50%{transform:scale(1.12)}100%{transform:scale(1)}}
+@keyframes jbMiss{0%{transform:translateX(0)}20%{transform:translateX(-12px)}40%{transform:translateX(10px)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}100%{transform:translateX(0)}}
+@keyframes jbNudge{0%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}100%{transform:translateX(0)}}
+#jbVerdict{
+  font-size:14px;font-weight:900;min-height:22px;max-width:min(92vw,420px);text-align:center;color:var(--cream);
+}
+#jbRating{
+  display:none;flex-direction:column;align-items:center;gap:10px;width:min(92vw,420px);text-align:center;
+}
+#jbRating.show{display:flex}
+#jbVerdictBig{
+  font-family:var(--font-arcade);font-size:clamp(16px,5vw,26px);color:var(--gold);text-shadow:0 0 12px rgba(227,178,60,.8);
+}
+#jbScoreLine{font-size:13px;color:var(--muted)}
+#jbHighScore{font-size:11px;color:var(--gold);letter-spacing:.06em;}
+.jb-bank{
+  margin-top:6px;
+}
+#jbKaraokeBloke{
+  position:absolute;top:8%;font-size:clamp(32px,9vw,52px);pointer-events:none;z-index:6;filter:drop-shadow(0 4px 6px rgba(0,0,0,.6));white-space:nowrap;transition:transform .2s ease-out;
+}
+.jb-float-text{
+  position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);font-family:var(--font-arcade);font-size:clamp(18px,6vw,30px);font-weight:900;pointer-events:none;z-index:20;text-shadow:0 0 16px currentColor;animation:jbFloatUp .7s ease-out forwards;
+}
+@keyframes jbFloatUp{0%{transform:translate(-50%,-50%) scale(.7);opacity:1}100%{transform:translate(-50%,-140%) scale(1.15);opacity:0}}
+#jbBeatRing{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:160px;height:160px;border-radius:50%;border:3px solid rgba(227,178,60,.35);pointer-events:none;z-index:4;transition:transform .05s linear,opacity .05s linear;
+}
+.jb-landlord{
+  position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:110;background:rgba(11,15,19,.92);
+}
+.jb-landlord.show{display:flex;animation:bwSlam .35s var(--ease-spring)}
+.jb-landlord .jb-plug{
+  font-size:clamp(60px,18vw,140px);filter:drop-shadow(0 0 20px rgba(255,0,0,.6));
+}
+.jb-landlord .jb-shout{
+  position:absolute;bottom:18%;font-family:var(--font-arcade);font-size:clamp(14px,4vw,22px);color:#fff;text-align:center;max-width:90%;padding:8px 12px;background:rgba(122,31,61,.85);border-radius:10px;border:2px solid var(--red);
+}
+@media (max-width:360px){
+  .jukebox-wrap{padding-top:8px;padding-bottom:8px}
+  #jbCanvasWrap{height:min(50dvh,360px)}
+  .jb-hud{font-size:11px;gap:6px}
+  .jb-card{padding:8px 12px}
+  .jb-card .jb-action{font-size:18px}
+}
+@media (max-height:700px){
+  #jbCanvasWrap{height:min(48dvh,360px)}
+}
+
 
 /* ---------- new-games-64-r70: kebab / quiz / carpet3 / gents ---------- */
 .ng-wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px 16px calc(20px + env(safe-area-inset-bottom));text-align:center}
@@ -5175,6 +5265,44 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
     </div>
   </section>
 
+  <section id="screen-jukebox" class="screen hidden bonus-fullscreen">
+    <div class="bonus-wrap jukebox-wrap">
+      <div class="bonus-tag">THE JUKEBOX IS CALLING THE SHOTS</div>
+      <button class="bonus-back" id="jbBack">WALK AWAY</button>
+      <h2>🎵 JUKEBOX SABOTAGE 🎵</h2>
+      <p class="bonus-sub" id="jbSub">Squat by the machine. Hit the prompt ON the beat. Smash, coin, dance, shhh. Three misses and the landlord unplugs it.</p>
+      <div id="jbTrackName"><span>🎵</span><span id="jbTrackText">LOADING TRACK…</span></div>
+      <div class="jb-hud">
+        <span>SCORE: <b id="jbScore">0</b></span>
+        <span>STREAK: <b id="jbStreak">0</b></span>
+        <span>MULTI: <b id="jbMulti">×1</b></span>
+        <span>LIVES: <b id="jbLives">❤️❤️❤️</b></span>
+      </div>
+      <div id="jbCanvasWrap">
+        <canvas id="jbCanvas" width="420" height="420"></canvas>
+        <div id="jbBeatRing"></div>
+        <div id="jbKaraokeBloke">🎤</div>
+        <div id="jbPromptBox">
+          <div class="jb-card" id="jbCard">
+            <div class="jb-action" id="jbAction">WAIT…</div>
+            <div class="jb-hint" id="jbHint">beat loading</div>
+          </div>
+        </div>
+        <div class="jb-landlord" id="jbLandlord">
+          <div class="jb-plug">🔌</div>
+          <div class="jb-shout" id="jbShoutText">THAT'S IT. UNPLUGGED.</div>
+        </div>
+      </div>
+      <div id="jbVerdict">TAP IN TIME WITH THE PULSE</div>
+      <div id="jbHighScore">BEST: 0</div>
+      <div id="jbRating">
+        <div id="jbVerdictBig"></div>
+        <div id="jbScoreLine"></div>
+      </div>
+      <button class="btn btn-cream jb-bank" id="jbBank">BANK IT &amp; WALK BACK</button>
+    </div>
+  </section>
+
   <section class="boards-overlay" id="boardsOverlay" role="dialog" aria-modal="true" aria-label="Leaderboards">
     <div class="boards-panel">
       <div class="boards-head">🏆 BOARDS</div>
@@ -5266,7 +5394,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = 'pintstack-77-r85';
+  const BUILD_STAMP = 'jukebox-78-r87';
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -6232,10 +6360,11 @@ function updateBodyLock(){
     visible("screen-carpet3") ||
     visible("screen-gents") ||
     visible("screen-whacka") ||
-    visible("screen-bogwall");
+    visible("screen-bogwall") ||
+    visible("screen-jukebox");
   document.body.style.overflow = any ? "hidden" : "";
   document.body.style.touchAction = any ? "none" : "";
-  const bonusActive = visible("screen-bonus") || visible("screen-bogroll") || visible("screen-fartoff") || visible("screen-fartinvaders") || visible("screen-whacka") || visible("screen-bogwall") || visible("screen-pintstack");
+  const bonusActive = visible("screen-bonus") || visible("screen-bogroll") || visible("screen-fartoff") || visible("screen-fartinvaders") || visible("screen-whacka") || visible("screen-bogwall") || visible("screen-pintstack") || visible("screen-jukebox");
   const hud = document.getElementById("hud");
   if (hud) hud.style.visibility = bonusActive ? "hidden" : "";
   document.body.classList.toggle("bonus-locked", bonusActive);
@@ -7361,6 +7490,7 @@ const game = {
   whackaOffered:false,
   bwOffered:false,
   pintstackOffered:false,
+  jukeboxOffered:false,
 };
 
 function refillBag(){ refillBagRng(); }
@@ -7398,7 +7528,7 @@ function startGame(mode){
   const M = MODES[mode];
   game.playerDeck = []; game.aiDeck = []; game.pot = []; game.bag = [];
   game.turnOwner = "player"; game.statKey = null;
-  game.score = 0; game.streak = 0; game.foOffered = false; game.brOffered = false; game.fiOffered = false; game.kebabOffered = false; game.quizOffered = false; game.c3Offered = false; game.gtOffered = false; game.whackaOffered = false; game.bwOffered = false; game.pintstackOffered = false; pendingBonus.queue.length = 0; game.paused = false;; game.bestStreak = 0; game.biggestPot = 0;
+  game.score = 0; game.streak = 0; game.foOffered = false; game.brOffered = false; game.fiOffered = false; game.kebabOffered = false; game.quizOffered = false; game.c3Offered = false; game.gtOffered = false; game.whackaOffered = false; game.bwOffered = false; game.pintstackOffered = false; game.jukeboxOffered = false; pendingBonus.queue.length = 0; game.paused = false;; game.bestStreak = 0; game.biggestPot = 0;
   game.roundsPlayed = 0; game.statWins = {}; game.pickHistory = {};
   resetScoreLedger();
   game.wave = 1; game.aiLevel = M.waves ? 0 : 1;
@@ -7466,6 +7596,7 @@ function startArcadeRunForPlayer(player){
   game.wave = 1; game.aiLevel = 0;
   game.foOffered = false; game.brOffered = false;
   game.bwOffered = false;
+  game.jukeboxOffered = false;
   game.duel.player = player;
   // draw from the pre-shuffled duel bag using seeded rng
   game.playerDeck = drawFromBagRng(6, game.rng);
@@ -7700,6 +7831,7 @@ function resolveRound(){
     try { maybeTriggerWhacka(); } catch(e){}
     try { maybeTriggerBogwall(); } catch(e){}
     try { maybeTriggerPintstack(); } catch(e){}
+    try { maybeTriggerJukebox(); } catch(e){}
   if (game.__bonusPillArmed){ game.__bonusPillArmed = false; if (maybePendingBonus()) return; }
     renderNextButton();
     return;
@@ -8979,6 +9111,7 @@ function maybePendingBonus(){ // returns true if a bonus round took over
   if (t === "whacka"){ whackaStart(); return true; }
   if (t === "bogwall"){ bwMidGameStart(); return true; }
   if (t === "pintstack"){ pintstackStart(); return true; }
+  if (t === "jukebox"){ jukeboxStart(); return true; }
   return false;
 }
 
@@ -10126,6 +10259,516 @@ function pintstackBack(){
   psStop(); psShow(false); showScreen("title");
 }
 
+
+/* ---------- jukebox-78-r87: Jukebox Sabotage ---------- */
+const JB_LS_KEY = "spoons.high.jukebox";
+const JB_TRACK_NAMES = [
+  "LAST ORDERS OVERTURE",
+  "PINT-GLASS PARADISE",
+  "10-PINTS THEN YOUR MUM",
+  "SAUSAGE UP MY ARSE",
+  "TOM & FIFI'S REUNION",
+  "DON'T LEAN ON THE BAR",
+  "PORK SCRATCHINGS SONATA",
+  "THE FLOOR IS LAVA",
+  "GIVE US A TUNE, DAVE",
+  "CARPET SYMPHONY NO. 5"
+];
+const JB_ACTIONS = [
+  { key:"smash", label:"SMASH", emoji:"👊", hint:"TAP machine", action:"tap", color:"#ff6b6b" },
+  { key:"coin", label:"COIN", emoji:"🪙", hint:"FLICK coin", action:"tap", color:"#ffd93d" },
+  { key:"dance", label:"DANCE", emoji:"🕺", hint:"WIGGLE-TAP", action:"tap", color:"#6bcb77" },
+  { key:"shhh", label:"SHHH", emoji:"🤫", hint:"HOLD to silence", action:"hold", color:"#4d96ff" }
+];
+const JB_VERDICTS = [
+  { min:0, text:"TONE DEAF" },
+  { min:400, text:"KARAOKE COWARD" },
+  { min:900, text:"PUB FLOUNDER" },
+  { min:1600, text:"ALRIGHT, KEEP THE BEAT" },
+  { min:2400, text:"BAR STOOL HERO" },
+  { min:3500, text:"JUKEBOX JESTER" },
+  { min:5000, text:"DJ LEGEND OF THE SPOONS CARPET" }
+];
+function jbHighScore(){ try { const v = localStorage.getItem(JB_LS_KEY); return v ? parseInt(v, 10) || 0 : 0; } catch(e){ return 0; } }
+function jbSaveHigh(score){ try { const cur = jbHighScore(); if (score > cur) localStorage.setItem(JB_LS_KEY, String(score)); } catch(e){} }
+
+var jb = {
+  on:false, mid:false, done:false, raf:0, lastT:0, canvas:null, ctx:null, width:0, height:0, dpr:1,
+  score:0, streak:0, combo:0, lives:3, multi:1, trackIdx:-1, trackName:"", isBallad:false, intensity:0,
+  beats:[], nextBeat:0, beatDur:0, bpm:120, beatPhase:0, audioTime:0, audioReady:false, musicStuck:0, lastMusicT:0,
+  prompts:[], activePrompt:null, promptId:0, hold:{on:false, start:0, required:0}, particles:[], texts:[], notes:[],
+  karaoke:{x:-100, dir:1, t:0, active:false, heckles:["OI! PLAY WONDERWALL!","MY SHOUT NEXT!","SING IT, YOU COWARD!","TURN IT UP!","LANDLORD'S COMING!"]},
+  ring:{scale:1, pulse:0}, shake:0, glow:0, gameOver:false
+};
+function jbEl(id){ return el(id); }
+function jbShow(v){ var s=el("screen-jukebox"); if(s) s.classList.toggle("hidden",!v); updateBodyLock(); if(v){ jbResize(); } }
+function jbLives(){ return "❤️".repeat(Math.max(0, jb.lives)); }
+function jbHud(){
+  const m = 1 + Math.min(jb.combo, 10) * 0.1;
+  jb.multi = Math.floor(m * 10) / 10;
+  el("jbScore").textContent = jb.score;
+  el("jbStreak").textContent = jb.combo;
+  el("jbMulti").textContent = "×" + jb.multi;
+  el("jbLives").textContent = jbLives();
+  el("jbHighScore").textContent = "BEST: " + jbHighScore();
+}
+function jbSetTrackName(name){
+  const t = el("jbTrackText"); if(t) t.textContent = name || "MYSTERY B-SIDE";
+}
+
+function jukeboxStart(){
+  AudioFX.stopMusic();
+  jbStop();
+  jb = {
+    on:true, mid:true, done:false, raf:0, lastT:performance.now(), canvas:el("jbCanvas"), ctx:null, width:0, height:0, dpr:1,
+    score:0, streak:0, combo:0, lives:3, multi:1, trackIdx:-1, trackName:"", isBallad:false, intensity:0,
+    beats:[], nextBeat:0, beatDur:0, bpm:120, beatPhase:0, audioTime:0, audioReady:false, musicStuck:0, lastMusicT:0,
+    prompts:[], activePrompt:null, promptId:0, hold:{on:false, start:0, required:0}, particles:[], texts:[], notes:[],
+    karaoke:{x:-100, dir:1, t:0, active:false, heckles:["OI! PLAY WONDERWALL!","MY SHOUT NEXT!","SING IT, YOU COWARD!","TURN IT UP!","LANDLORD'S COMING!"]},
+    ring:{scale:1, pulse:0}, shake:0, glow:0, gameOver:false
+  };
+  if(jb.canvas) jb.ctx = jb.canvas.getContext("2d");
+  jb.draw = jbDraw; jb.update = jbUpdate;
+  window.__jb = jb;
+  jbResize();
+  jbShow(true);
+  jbBindInput();
+  jbHud();
+  jbNextTrack();
+  el("jbVerdict").textContent = "TAP IN TIME WITH THE PULSE";
+  el("jbRating").classList.remove("show");
+  el("jbLandlord").classList.remove("show");
+  jb.trackStart = 0;
+  jb.startClock = performance.now();
+  jb.raf = requestAnimationFrame(jbLoop);
+}
+function jbStop(){
+  if (jb.raf){ cancelAnimationFrame(jb.raf); jb.raf = 0; }
+  jb.on = false;
+  jb.hold.on = false;
+}
+function jbNextTrack(){
+  jb.trackIdx = (jb.trackIdx + 1) % JB_TRACK_NAMES.length;
+  jb.trackName = JB_TRACK_NAMES[jb.trackIdx];
+  jb.isBallad = (jb.trackIdx % 3 === 2);
+  jb.intensity = Math.floor(jb.trackIdx / 3) + 1;
+  jb.bpm = jb.isBallad ? 75 : (95 + jb.intensity * 14);
+  jb.beatDur = 60 / jb.bpm;
+  jb.beatPhase = 0;
+  jb.beats = [];
+  jb.nextBeat = 0;
+  jb.audioTime = 0;
+  jb.audioReady = false;
+  jb.musicStuck = 0;
+  jb.lastMusicT = 0;
+  jb.trackStart = 0;
+  jb.startClock = performance.now();
+  jb.prompts = [];
+  jb.activePrompt = null;
+  jb.karaoke.active = jb.isBallad;
+  jb.karaoke.x = -80;
+  jb.karaoke.t = 0;
+  jbSetTrackName((jb.isBallad ? "💔 BALLAD: " : "🎵 ") + jb.trackName);
+  // Try to play real music; if it can't start, the fallback clock still drives the beat grid.
+  try {
+    AudioFX.cycleTrack();
+  } catch(e){}
+}
+
+function jbBindInput(){
+  const wrap = el("jbCanvasWrap"); if(!wrap || wrap.__jbBound) return; wrap.__jbBound = true;
+  const tap = e => {
+    if (!jb.on || jb.done || jb.gameOver || jb.hold.on) return;
+    if (e && e.preventDefault) e.preventDefault();
+    jbHit("tap");
+  };
+  const startHold = e => {
+    if (!jb.on || jb.done || jb.gameOver) return;
+    if (e && e.preventDefault) e.preventDefault();
+    jb.hold.on = true; jb.hold.start = performance.now();
+    if (jb.activePrompt && jb.activePrompt.def.action === "hold"){
+      el("jbHint").textContent = "HOLDING…";
+      jbHit("hold");
+    }
+  };
+  const endHold = e => {
+    if (!jb.on) return;
+    jb.hold.on = false;
+    if (jb.activePrompt) el("jbHint").textContent = jb.activePrompt.hint;
+  };
+  wrap.addEventListener("pointerdown", e => {
+    if (!jb.on || jb.done) return;
+    if (jb.activePrompt && jb.activePrompt.action === "hold") startHold(e);
+    else tap(e);
+  }, {passive:false});
+  wrap.addEventListener("pointerup", e => { endHold(e); }, {passive:false});
+  wrap.addEventListener("pointercancel", e => { jb.hold.on = false; }, {passive:false});
+  wrap.addEventListener("touchstart", e => {
+    if (!jb.on || jb.done) return;
+    if (e.touches.length === 1){
+      if (jb.activePrompt && jb.activePrompt.action === "hold") startHold(e);
+      else tap(e);
+    }
+  }, {passive:false});
+  wrap.addEventListener("touchend", e => { endHold(e); }, {passive:false});
+}
+
+function jbResize(){
+  const wrap = el("jbCanvasWrap"); if(!wrap || !jb.canvas) return;
+  const rect = wrap.getBoundingClientRect();
+  jb.dpr = Math.min(window.devicePixelRatio || 1, 2);
+  jb.width = rect.width; jb.height = rect.height;
+  jb.canvas.width = Math.floor(rect.width * jb.dpr); jb.canvas.height = Math.floor(rect.height * jb.dpr);
+  jb.canvas.style.width = rect.width + "px"; jb.canvas.style.height = rect.height + "px";
+  if(jb.ctx) jb.ctx.setTransform(jb.dpr,0,0,jb.dpr,0,0);
+  jb.draw();
+}
+
+function jbAudioTime(){ return jb.audioTime; }
+function jbUpdateBeats(dt){
+  // Use our own rAF-driven clock; real music plays in the background but the beat grid is stable.
+  jb.audioTime = (performance.now() - jb.startClock) * 0.001;
+  jb.audioReady = false;
+  const t = jb.audioTime;
+  const nowBeat = t / jb.beatDur;
+  // Generate beat grid ahead
+  while (jb.nextBeat < nowBeat + 6){
+    jb.beats.push({ b: jb.nextBeat, hit: false, generated: jb.nextBeat < nowBeat });
+    jb.nextBeat += 1;
+  }
+  // Clean old beats
+  while (jb.beats.length && jb.beats[0].b < nowBeat - 2) jb.beats.shift();
+  return { t, nowBeat };
+}
+
+function jbSpawnPrompt(nowBeat){
+  if (jb.done || jb.gameOver) return;
+  // Intensity schedule: verse = 1 action per bar (4 beats), chorus = 2 per bar, ballad = fake-out + high value
+  const bar = nowBeat / 4;
+  const inChorus = (Math.floor(bar) % 2 === 1);
+  const perBar = jb.isBallad ? 1 : (inChorus ? 2 : 1);
+  const beatSpacing = 4 / perBar;
+  // Schedule within next 2 bars
+  const startBar = Math.ceil(bar);
+  const endBar = startBar + 2;
+  for (let b = Math.max(startBar, 0); b < endBar; b++){
+    for (let k = 0; k < perBar; k++){
+      const beat = b * 4 + k * beatSpacing;
+      if (!jb.prompts.some(p => Math.abs(p.beat - beat) < 0.05) && beat > nowBeat + 0.3){
+        const actionIdx = Math.floor(Math.random() * JB_ACTIONS.length);
+        const def = JB_ACTIONS[actionIdx];
+        const balladFake = jb.isBallad && Math.random() < 0.35;
+        jb.prompts.push({
+          id: jb.promptId++, beat: beat, def: def, hit: false, missed: false,
+          fakeOffset: balladFake ? (Math.random() < 0.5 ? -0.4 : 0.4) : 0,
+          fakeBeat: balladFake ? beat + (Math.random() < 0.5 ? -0.4 : 0.4) : beat,
+          shown: false
+        });
+      }
+    }
+  }
+}
+
+function jbCardHtml(prompt){
+  const p = prompt || { def:{label:"WAIT…", emoji:"🎵", hint:"beat loading", color:"#aaa"} };
+  el("jbAction").textContent = p.def.emoji + " " + p.def.label;
+  el("jbHint").textContent = p.def.hint;
+  const card = el("jbCard");
+  card.style.borderColor = p.def.color;
+  card.classList.remove("armed","hit","miss","early-late");
+  void card.offsetWidth;
+  if (prompt) card.classList.add("armed");
+}
+function jbCardClear(){
+  el("jbAction").textContent = "";
+  el("jbHint").textContent = "NEXT BEAT…";
+  const card = el("jbCard");
+  card.style.borderColor = "#444";
+  card.classList.remove("armed","hit","miss","early-late");
+}
+
+function jbHit(kind){
+  if (!jb.activePrompt || jb.activePrompt.hit || jb.activePrompt.missed) return;
+  const { t, nowBeat } = jbUpdateBeats(0);
+  const beat = jb.activePrompt.fakeBeat;
+  const diffMs = Math.abs(t - beat * jb.beatDur) * 1000;
+  const perfectWindow = 120; // ms
+  const okWindow = 260; // ms
+  if (diffMs <= perfectWindow){
+    jb.activePrompt.hit = true;
+    jb.combo++;
+    const base = 150 * jb.intensity + (jb.isBallad ? 200 : 0);
+    const pts = Math.floor(base * jb.multi);
+    jb.score += pts;
+    jbHud();
+    AudioFX.win(Math.min(jb.combo, 6));
+    jbGlowPulse();
+    jbVinylNotes(10);
+    jbFloatText("PERFECT! +" + pts, "#ffd700");
+    jbToast("ON THE BEAT — " + (jb.combo > 1 ? "COMBO ×" + jb.combo : "PROPER TUNING"));
+    jbCardAnim("hit");
+    el("jbVerdict").textContent = "ON THE BEAT — " + (jb.combo > 1 ? "COMBO ×" + jb.combo : "PROPER TUNING");
+    jb.activePrompt = null;
+    setTimeout(() => { if(!jb.activePrompt) jbCardClear(); }, 120);
+  } else if (diffMs <= okWindow){
+    jb.activePrompt.hit = true;
+    jb.combo = 0; // OK breaks combo
+    const pts = Math.floor(40 * jb.intensity);
+    jb.score += pts;
+    jbHud();
+    AudioFX.click();
+    jbFloatText("OK +" + pts, "#f2e8d5");
+    jbToast("OFF THE POCKET BUT ACCEPTABLE");
+    jbCardAnim("early-late");
+    el("jbVerdict").textContent = "ACCEPTABLE";
+    jb.activePrompt = null;
+    setTimeout(() => { if(!jb.activePrompt) jbCardClear(); }, 120);
+  } else {
+    // Wrong timing: treat as miss
+    const early = t < beat * jb.beatDur;
+    jbMiss(early ? "EARLY!" : "LATE!");
+    el("jbVerdict").textContent = early ? "EARLY!" : "LATE!";
+    jb.activePrompt = null;
+    setTimeout(() => { if(!jb.activePrompt) jbCardClear(); }, 120);
+  }
+}
+function jbMiss(label){
+  if (!jb.activePrompt) return;
+  jb.activePrompt.missed = true;
+  jb.activePrompt.hit = true; // consume
+  jb.combo = 0;
+  jb.lives = Math.max(0, jb.lives - 1);
+  jbHud();
+  AudioFX.lose();
+  try { AudioFX.shout(); } catch(e){}
+  jb.shake = 10;
+  shake("shake-hard");
+  jbFloatText(label || "MISERABLE", "#ff5252");
+  jbToast("MISERABLE");
+  jbCardAnim("miss");
+  el("jbVerdict").textContent = label || "MISERABLE";
+  jb.activePrompt = null;
+  setTimeout(() => { if(!jb.activePrompt) jbCardClear(); }, 120);
+  if (jb.lives <= 0) jbGameOver();
+}
+function jbGameOver(){
+  jb.gameOver = true; jb.done = true;
+  el("jbLandlord").classList.add("show");
+  el("jbShoutText").textContent = "THAT'S IT. UNPLUGGED.";
+  setTimeout(() => { jukeboxEnd(0); }, 1600);
+}
+
+function jbCardAnim(cls){
+  const card = el("jbCard");
+  if (!card) return;
+  card.classList.remove("armed","hit","miss","early-late");
+  void card.offsetWidth;
+  card.classList.add(cls);
+  setTimeout(() => card.classList.remove(cls), 360);
+}
+function jbGlowPulse(){
+  jb.glow = 1.0;
+  try { const ring = el("jbBeatRing"); if(ring){ ring.style.borderColor = "rgba(255,215,0,.85)"; ring.style.transform = "translate(-50%,-50%) scale(1.35)"; } } catch(e){}
+  setTimeout(() => { try { const ring = el("jbBeatRing"); if(ring){ ring.style.borderColor = ""; ring.style.transform = ""; } } catch(e){} }, 150);
+}
+function jbVinylNotes(count){
+  const cx = jb.width * 0.5, cy = jb.height * 0.42;
+  for (let i = 0; i < count; i++){
+    const ang = Math.random() * Math.PI * 2;
+    const sp = 60 + Math.random() * 130;
+    jb.notes.push({ x:cx, y:cy, vx:Math.cos(ang)*sp, vy:Math.sin(ang)*sp - 80, life:1.0, size:4 + Math.random()*10, rot:Math.random()*6.28, vrot:(Math.random()-0.5)*6, color:"#ffd700" });
+  }
+}
+function jbFloatText(text, color){
+  const t = document.createElement("div"); t.className = "jb-float-text"; t.textContent = text; t.style.color = color;
+  el("jbCanvasWrap").appendChild(t);
+  setTimeout(() => t.remove(), 750);
+}
+function jbToast(msg){ bonusToast(msg); }
+
+function jbLoop(now){
+  if(!jb.on) return;
+  jb.raf = requestAnimationFrame(jbLoop);
+  const nowMs = performance.now();
+  const dt = Math.min(33, nowMs - jb.lastT);
+  jb.lastT = nowMs;
+  const { t, nowBeat } = jbUpdateBeats(dt);
+  jbSpawnPrompt(nowBeat);
+  jbUpdate(dt, nowMs, t, nowBeat);
+  jb.draw();
+}
+
+function jbUpdate(dt, now, t, nowBeat){
+  // Find current/upcoming prompt
+  let next = null;
+  for (const p of jb.prompts){
+    if (!p.hit && !p.missed){
+      const dist = p.fakeBeat - nowBeat;
+      if (dist >= -0.5 && dist < 2.5){ next = p; break; }
+    }
+  }
+  if (next && (!jb.activePrompt || jb.activePrompt.id !== next.id)){
+    jb.activePrompt = next;
+    jbCardHtml(next);
+    if (next.def.action === "hold") jb.hold.required = jb.isBallad ? 1100 : 700;
+    jb.hold.on = false;
+  }
+  // Auto-miss if prompt passed
+  if (jb.activePrompt && !jb.activePrompt.hit && nowBeat > jb.activePrompt.fakeBeat + 0.75){
+    jbMiss("MISSED!");
+  }
+  // Ring pulse to beat
+  const beatFrac = nowBeat % 1;
+  jb.ring.pulse = 1 - Math.abs(beatFrac - 0.5) * 2;
+  jb.ring.scale = 1 + jb.ring.pulse * 0.14;
+  // Glow decay
+  if (jb.glow > 0) jb.glow = Math.max(0, jb.glow - dt * 0.002);
+  // Shake decay
+  if (jb.shake > 0) jb.shake = Math.max(0, jb.shake - dt * 0.08);
+  // Karaoke bloke wander during ballads
+  if (jb.karaoke.active){
+    jb.karaoke.t += dt;
+    jb.karaoke.x += jb.karaoke.dir * dt * 0.045;
+    if (jb.karaoke.x > jb.width + 60){ jb.karaoke.x = jb.width + 60; jb.karaoke.dir = -1; }
+    if (jb.karaoke.x < -80){ jb.karaoke.x = -80; jb.karaoke.dir = 1; }
+    if (jb.karaoke.t > 2200 && jb.karaoke.t < 2800){
+      jbToast(jb.karaoke.heckles[Math.floor(Math.random()*jb.karaoke.heckles.length)]);
+      jb.karaoke.t = 0;
+    }
+  }
+  // Internal track progression if music isn't driving changes
+  if (t - jb.trackStart > (jb.isBallad ? 26 : 20)){
+    jb.trackStart = t;
+    jbNextTrack();
+  }
+  // Particles
+  for (let i = jb.notes.length - 1; i >= 0; i--){
+    const p = jb.notes[i];
+    p.x += p.vx * dt * 0.001; p.y += p.vy * dt * 0.001; p.vy += 0.0012 * dt; p.life -= dt * 0.001; p.rot += p.vrot * dt * 0.001;
+    if (p.life <= 0) jb.notes.splice(i, 1);
+  }
+}
+
+function jbDraw(){
+  const c = jb.ctx; if(!c) return;
+  c.clearRect(0, 0, jb.width, jb.height);
+  const cx = jb.width * 0.5, cy = jb.height * 0.42;
+  // carpet floor
+  c.fillStyle = "#1a1410";
+  c.fillRect(0, cy + 70, jb.width, jb.height - cy - 70);
+  // jukebox body
+  c.save();
+  c.translate(cx, cy);
+  const shakeX = jb.shake ? (Math.random()-0.5)*jb.shake : 0;
+  c.translate(shakeX, 0);
+  const glow = 0.25 + jb.glow * 0.6 + jb.ring.pulse * 0.15;
+  c.shadowColor = "rgba(227,178,60," + glow + ")";
+  c.shadowBlur = 18 + jb.glow * 30;
+  c.fillStyle = "#2a1810";
+  c.beginPath();
+  c.roundRect(-70, -95, 140, 190, 16);
+  c.fill();
+  c.shadowBlur = 0;
+  // chrome trim
+  c.strokeStyle = "rgba(227,178,60,.55)";
+  c.lineWidth = 3;
+  c.stroke();
+  // grill
+  c.fillStyle = "rgba(0,0,0,.35)";
+  c.fillRect(-54, -40, 108, 80);
+  for(let i=-35;i<=35;i+=10){ c.strokeStyle="rgba(255,255,255,.08)"; c.beginPath(); c.moveTo(-54,i); c.lineTo(54,i); c.stroke(); }
+  // vinyl record
+  c.fillStyle = "#111";
+  c.beginPath(); c.arc(0, -15, 36, 0, Math.PI*2); c.fill();
+  c.strokeStyle = "rgba(227,178,60,.3)"; c.lineWidth = 1;
+  for(let r=8;r<=30;r+=7){ c.beginPath(); c.arc(0,-15,r,0,Math.PI*2); c.stroke(); }
+  c.fillStyle = "#e3b23c"; c.beginPath(); c.arc(0,-15,5,0,Math.PI*2); c.fill();
+  // lights
+  const lightColors = ["#ff5252","#4caf50","#ffd93d","#4d96ff"];
+  for(let i=0;i<8;i++){
+    const a = (i/8)*Math.PI*2 + jb.ring.pulse*0.5;
+    const lx = Math.cos(a)*58, ly = Math.sin(a)*58 - 15;
+    c.fillStyle = lightColors[i%4];
+    c.globalAlpha = 0.4 + jb.ring.pulse*0.5;
+    c.beginPath(); c.arc(lx, ly, 4, 0, Math.PI*2); c.fill();
+  }
+  c.globalAlpha = 1;
+  c.restore();
+  // beat ring
+  try {
+    const ring = el("jbBeatRing");
+    if(ring){
+      const s = 1 + jb.ring.pulse * 0.18;
+      ring.style.transform = "translate(-50%,-50%) scale(" + s + ")";
+      ring.style.opacity = 0.25 + jb.ring.pulse * 0.55;
+    }
+  } catch(e){}
+  // karaoke bloke
+  const bloke = el("jbKaraokeBloke");
+  if(bloke){
+    bloke.style.transform = "translateX(" + (jb.karaoke.x - jb.width*0.5) + "px)";
+    bloke.style.display = jb.karaoke.active ? "block" : "none";
+  }
+  // notes
+  for(const p of jb.notes){
+    c.save();
+    c.translate(p.x, p.y); c.rotate(p.rot);
+    c.fillStyle = p.color;
+    c.globalAlpha = Math.max(0, p.life);
+    c.font = p.size + "px serif"; c.textAlign = "center"; c.textBaseline = "middle";
+    c.fillText("♪", 0, 0);
+    c.restore();
+  }
+}
+
+function jukeboxEnd(banked){
+  jbStop(); jb.done = true; jbSaveHigh(banked);
+  jbShow(false); showScreen("table");
+  if(banked > 0){
+    addScore(banked, "JUKEBOX BANKED", "kept the pub dancing for " + banked);
+    setVerdict('<div class="verdict-line wave-clear">🎵 JUKEBOX BANKED — +' + banked + '</div><div class="verdict-sub">TABLE RESUMES. THE KARAOKE BLOKE IS STILL DRUNK.</div>');
+  } else {
+    setVerdict('<div class="verdict-line wave-clear">🎵 JUKEBOX SABOTAGE — UNPLUGGED</div><div class="verdict-sub">TABLE RESUMES. THE LANDLORD TOOK THE PLUG.</div>');
+  }
+  AudioFX.resumeMusic(); renderNextButton(); try{ updateBonusPill(); }catch(e){}
+}
+function jukeboxShowRating(){
+  jb.done = true; jbSaveHigh(jb.score);
+  el("jbRating").classList.add("show");
+  const verdict = JB_VERDICTS.slice().reverse().find(v => jb.score >= v.min).text;
+  el("jbVerdictBig").textContent = verdict + " — " + jb.score + " PTS";
+  el("jbScoreLine").innerHTML = "SCORE " + jb.score + " · BEST " + jbHighScore();
+  el("jbBank").onclick = () => jukeboxEnd(Math.max(0, jb.score));
+  // also bind rating bank explicitly
+  const bankBtn = el("jbBank"); if(bankBtn) bankBtn.onclick = () => jukeboxEnd(Math.max(0, jb.score));
+  AudioFX.wave();
+}
+function jukeboxBack(){
+  AudioFX.click();
+  if(jb.on && jb.mid){ jukeboxBankWalk(); return; }
+  jbStop(); jbShow(false); showScreen("title");
+}
+function jukeboxBankWalk(){
+  if(!jb.on || jb.done || jb.gameOver) return;
+  const banked = Math.max(0, Math.floor(jb.score));
+  jukeboxEnd(banked);
+}
+
+(function jbWireBack(){
+  const b = el("jbBack"); if(b) b.addEventListener("click", jukeboxBack);
+})();
+
+function maybeTriggerJukebox(){
+  if (game.jukeboxOffered || game.phase === "over") return;
+  if (game.wave >= 2 && Math.random() < 0.35){ game.jukeboxOffered = true; offerBonus("jukebox"); bonusToast("🎵 JUKEBOX SABOTAGE: THE MACHINE'S HUNGRY. FINISH THE ROUND…"); try{ updateBonusPill(); }catch(e){} }
+}
+
+// Track-watch disabled: the game drives its own track progression so E2E/headless playback stays deterministic.
+(function jbTrackWatchPlaceholder(){
+  // AudioFX track changes are intentionally not used to reset the rhythm grid; jbNextTrack is called by the game loop timer.
+})();
+
+
 function maybeTriggerWhacka(){
   if (game.whackaOffered || game.phase === "over") return;
   if (game.wave >= 2 && Math.random() < 0.35){ game.whackaOffered = true; offerBonus("whacka"); bonusToast("🍺 WHACKA DRUNK: THE DOOR NEEDS YOU. FINISH THE ROUND…"); try{ updateBonusPill(); }catch(e){} }
@@ -10996,7 +11639,7 @@ function startBonusNow(){
       if (pendingBonus.queue.length) maybePendingBonus();
       // Guard: if no bonus screen is visible after dispatch, force-open the next queued bonus directly.
       const bonusVisible = function(id){ const el = document.getElementById(id); return el && !el.classList.contains("hidden"); };
-      if (pendingBonus.queue.length && !bonusVisible("screen-fartinvaders") && !bonusVisible("screen-bogroll") && !bonusVisible("screen-fartoff") && !bonusVisible("screen-kebab") && !bonusVisible("screen-quiz") && !bonusVisible("screen-carpet3") && !bonusVisible("screen-gents") && !bonusVisible("screen-whacka") && !bonusVisible("screen-bogwall") && !bonusVisible("screen-pintstack")){
+      if (pendingBonus.queue.length && !bonusVisible("screen-fartinvaders") && !bonusVisible("screen-bogroll") && !bonusVisible("screen-fartoff") && !bonusVisible("screen-kebab") && !bonusVisible("screen-quiz") && !bonusVisible("screen-carpet3") && !bonusVisible("screen-gents") && !bonusVisible("screen-whacka") && !bonusVisible("screen-bogwall") && !bonusVisible("screen-pintstack") && !bonusVisible("screen-jukebox")){
         maybePendingBonus();
       }
     } catch(e3){ logBonusEvent("startGame-error", String(e3).slice(0,80)); }
