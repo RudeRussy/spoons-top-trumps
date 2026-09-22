@@ -4465,7 +4465,10 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
   .brand{ font-size:min(3.6vw,12px); }
 }
 
-@media (max-width: 920px){
+/* P0 fix r93: score strip ALWAYS gets its own row — brand+buttons row 1, chips row 2.
+  Unconditional (desktop included): at ≥1024 the chip row ran under the right-aligned
+  buttons (elementFromPoint = btnMusic on top of comboChip/waveChip). No width skips. */
+
   /* P0 fix r92: score chip gets its OWN ROW (now also landscape phones) at narrow widths — brand+buttons row 1,
      score full-width row 2. Buttons physically cannot touch the score at ANY width,
      even with horizontal overflow. */
@@ -4491,7 +4494,6 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
   #demoChip{ grid-area:buttons; justify-self:end; margin-right:6px; }
   .hudbtn{ height:34px; padding:2px 6px; font-size:15px; gap:2px; }
   #bonusPill{ font-size:10px; padding:6px 8px; }
-}
 /* r91: kill the horizontal overflow that zoomed phones out (scrollWidth hit 449 on a
    375 viewport, pushing MENU off-screen and shrinking the score under the buttons) */
 @media (max-width: 430px){
@@ -5440,7 +5442,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = 'fart-pack-79-r92';
+  const BUILD_STAMP = 'fart-pack-79-r93';
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
