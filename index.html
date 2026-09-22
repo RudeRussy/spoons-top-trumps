@@ -5442,7 +5442,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = 'fart-pack-79-r93';
+  const BUILD_STAMP = 'fart-pack-79-r94';
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -5781,6 +5781,9 @@ const AudioFX = (() => {
     first.forEach(src => { for (let k = 0; k < CLONES; k++){ try { const a = new Audio(src); a.preload = "auto"; a.load(); FART_CLONE_POOL.push(a); } catch(e){} } });
     const extendOne = () => {
       if (fartLazyIdx >= FART_FILES.length) return;
+      // NEVER extend mid-game: element decode during Fart Invaders = the freeze.
+      // Defer while FI's loop is live, retry in 5s.
+      if (window.fi && fi.on){ setTimeout(extendOne, 5000); return; }
       const src = FART_FILES[fartLazyIdx++];
       try { const a = new Audio(src); a.preload = "auto"; a.load(); FART_POOL.push(a);
         const c = new Audio(src); c.preload = "auto"; c.load(); FART_CLONE_POOL.push(c);
@@ -5991,12 +5994,12 @@ function nextTrackIdx(){ // random next, never the same SONG in a row (ext+short
       const f = [659, 784, 880, 988][Math.min(step - 2, 3)] || 659; tone(f, 0.1, "square", 0.05); tone(f * 1.5, 0.12, "square", 0.04, 0.06);
     },
     fartShot(){
-      // random fart cannon blast (Turd Invaders): round-robin prebuilt clones —
-      // NEVER new/cloneNode per shot (element churn = GC freezes on iOS)
+      // random fart cannon blast: round-robin prebuilt clones ONLY.
+      // NEVER new/cloneNode per shot, NEVER mid-game preload burst (both froze iOS).
+      // Pool is warmed at fiMidGameStart; empty pool = synth shot fallback.
       try {
-        if (!FART_POOL.length) preloadFarts();
         const pool = FART_CLONE_POOL.length ? FART_CLONE_POOL : FART_POOL;
-        if (!pool.length) throw new Error("no fart pool");
+        if (!pool.length){ this.fiShot(); return; }
         const a = pool[fartCloneIdx % pool.length];
         fartCloneIdx++;
         a.pause();
@@ -11781,6 +11784,8 @@ function fiMidGameStart(){
   fiShow(true);
   fi.on = true; fi.mid = true; fi.epoch++;
   fiReset();
+  // warm the small fart pool BEFORE gameplay (first-shot burst froze iOS)
+  try { preloadFarts(); } catch(e){}
   fi.lastT = performance.now();
   fi.raf = requestAnimationFrame(fiUpdate);
   fiSubUpdate();
