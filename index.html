@@ -450,6 +450,99 @@ header#hud{
   text-shadow:0 0 20px rgba(227,178,60,.9);pointer-events:none;z-index:110;white-space:nowrap;animation:verdictIn .5s var(--ease-spring) forwards;
 }
 
+.whacka-wrap{justify-content:flex-start;padding-top:max(12px, env(safe-area-inset-top))}
+
+/* ---------- bogwall-76-r84: Bog Wall Graffiti ---------- */
+.bogwall-wrap{justify-content:flex-start;padding-top:max(12px, env(safe-area-inset-top));padding-bottom:max(12px, env(safe-area-inset-bottom));touch-action:none}
+#bwCanvasWrap{
+  position:relative;
+  width:min(92vw,420px);
+  height:min(55dvh,420px);
+  border-radius:14px;
+  background:linear-gradient(180deg,#e8e0d5 0%,#d8cfc0 100%);
+  box-shadow:inset 0 0 40px rgba(0,0,0,.15), 0 8px 30px rgba(0,0,0,.5);
+  overflow:hidden;
+  border:4px solid #5a4a3a;
+  margin:8px 0;
+}
+#bwCanvas{
+  position:absolute;inset:0;width:100%;height:100%;
+  cursor:crosshair;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
+}
+#bwTilePrompt{
+  font-size:15px;font-weight:900;max-width:min(92vw,420px);text-align:center;margin:4px 0 2px;
+  color:var(--cream);text-shadow:0 1px 4px rgba(0,0,0,.6);
+}
+.bw-tile-label{
+  font-size:11px;letter-spacing:.08em;color:var(--gold);margin-bottom:4px;
+}
+#bwTimerBar{
+  width:min(92vw,420px);height:10px;border-radius:5px;background:rgba(255,255,255,.12);overflow:hidden;margin:6px 0;
+}
+#bwTimerFill{
+  width:100%;height:100%;background:linear-gradient(90deg,#4caf50,#ff9800,#f44336,#7a1f3d);transform-origin:left;transition:none;
+}
+.bw-controls{
+  display:flex;gap:10px;justify-content:center;width:min(92vw,420px);margin:8px 0;
+}
+.bw-controls button{
+  flex:1;min-height:44px;font-size:13px;font-weight:900;border-radius:12px;border:2px solid rgba(242,232,213,.25);
+  background:rgba(0,0,0,.45);color:var(--cream);
+}
+.bw-controls button:active{transform:scale(.97)}
+.bw-hud{
+  display:flex;gap:14px;justify-content:center;font-size:13px;font-weight:800;opacity:.9;margin:4px 0;
+}
+#bwVerdict{
+  font-size:14px;font-weight:900;min-height:22px;max-width:min(92vw,420px);text-align:center;
+}
+#bwRating{
+  display:none;flex-direction:column;align-items:center;gap:10px;width:min(92vw,420px);text-align:center;
+}
+#bwRating.show{display:flex}
+#bwTiles{display:flex;gap:8px;justify-content:center;width:100%;flex-wrap:nowrap}
+.bw-tile-thumb{
+  flex:1 1 30%;min-width:0;aspect-ratio:1/1;border:2px solid #5a4a3a;border-radius:10px;background:#e8e0d5;overflow:hidden;
+}
+.bw-tile-thumb canvas{width:100%;height:100%}
+#bwVerdictBig{
+  font-family:var(--font-arcade);font-size:clamp(16px,5vw,26px);color:var(--gold);text-shadow:0 0 12px rgba(227,178,60,.8);
+}
+#bwScoreLine{font-size:13px;color:var(--muted)}
+#bwLandlord{
+  position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:110;background:rgba(11,15,19,.92);
+}
+#bwLandlord.show{display:flex;animation:bwSlam .35s var(--ease-spring)}
+#bwLandlord .bw-door{
+  font-size:clamp(60px,18vw,140px);filter:drop-shadow(0 0 20px rgba(255,0,0,.6));
+}
+#bwLandlord .bw-shout{
+  position:absolute;bottom:18%;font-family:var(--font-arcade);font-size:clamp(14px,4vw,22px);color:#fff;text-align:center;max-width:90%;padding:8px 12px;background:rgba(122,31,61,.85);border-radius:10px;border:2px solid var(--red);
+}
+@keyframes bwSlam{
+  0%{transform:scale(1.5);opacity:0}60%{transform:scale(.95);opacity:1}100%{transform:scale(1)}
+}
+@keyframes bwDrop{
+  0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--tx), var(--ty)) scale(0);opacity:0}
+}
+.bw-ink-drop{
+  position:absolute;border-radius:50%;background:#1a1a1a;pointer-events:none;z-index:5;
+  --tx:0; --ty:0;
+}
+#bwHighScore{
+  font-size:11px;color:var(--gold);letter-spacing:.06em;
+}
+@media (max-width:360px){
+  .bogwall-wrap{padding-top:8px;padding-bottom:8px}
+  #bwCanvasWrap{height:min(50dvh,340px)}
+  #bwTilePrompt{font-size:13px}
+  .bw-hud{font-size:11px;gap:8px}
+  .bw-controls button{font-size:11px;min-height:40px}
+}
+@media (max-height:700px){
+  #bwCanvasWrap{height:min(48dvh,340px)}
+}
+
 /* ---------- new-games-64-r70: kebab / quiz / carpet3 / gents ---------- */
 .ng-wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px 16px calc(20px + env(safe-area-inset-bottom));text-align:center}
 .ng-tag{font-size:11px;letter-spacing:2px;color:var(--gold);opacity:.85}
@@ -4499,6 +4592,10 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
         <span class="scratch-caption">🍺 WHACKA DRUNK — WAVE CLEAR</span>
         <span class="scratch-body"><b>🍺</b><i class="pips" id="whackaPips">····</i></span>
       </span>
+      <span class="scratch" id="scratchBogwall" title="WAVE CLEAR = WALL ART">
+        <span class="scratch-caption">✍️ BOG WALL — WAVE CLEAR</span>
+        <span class="scratch-body"><b>✍️</b><i class="pips" id="bwPips">····</i></span>
+      </span>
     </div>
     <div class="table">
       <div class="side">
@@ -4956,6 +5053,41 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
   </section>
 
 
+  <section id="screen-bogwall" class="screen hidden bonus-fullscreen">
+    <div class="bonus-wrap bogwall-wrap">
+      <div class="bonus-tag">THE CUBICLE WALLS HAVE EYES</div>
+      <div class="bonus-back" id="bwBack">WALK AWAY</div>
+      <h2>✍️ BOG WALL GRAFFITI ✍️</h2>
+      <div class="bw-tile-label" id="bwTileLabel">TILE 1 OF 3</div>
+      <div id="bwTilePrompt">Scrawl something rude before the landlord walks in.</div>
+      <div id="bwTimerBar"><div id="bwTimerFill"></div></div>
+      <div class="bw-hud">
+        <span>SCORE: <b id="bwScore">0</b></span>
+        <span id="bwTimerText">10.0s</span>
+        <span id="bwCombo">COMBO ×0</span>
+      </div>
+      <div id="bwCanvasWrap">
+        <canvas id="bwCanvas" width="420" height="420"></canvas>
+        <div id="bwLandlord">
+          <div class="bw-door">🚪</div>
+          <div class="bw-shout" id="bwShoutText">OI! WHAT'S GOING ON IN HERE?</div>
+        </div>
+      </div>
+      <div class="bw-controls" id="bwControls">
+        <button id="bwUndo">↶ UNDO</button>
+        <button id="bwDone">✓ DONE</button>
+      </div>
+      <div id="bwVerdict"></div>
+      <div id="bwHighScore">BEST: 0</div>
+      <div id="bwRating">
+        <div id="bwVerdictBig"></div>
+        <div id="bwTiles"></div>
+        <div id="bwScoreLine"></div>
+        <button class="btn btn-cream" id="bwBank">BANK IT &amp; WALK BACK</button>
+      </div>
+    </div>
+  </section>
+
   <section class="boards-overlay" id="boardsOverlay" role="dialog" aria-modal="true" aria-label="Leaderboards">
     <div class="boards-panel">
       <div class="boards-head">🏆 BOARDS</div>
@@ -5047,7 +5179,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = 'swear-pack-75-r83';
+  const BUILD_STAMP = 'bogwall-76-r84';
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -6012,10 +6144,11 @@ function updateBodyLock(){
     visible("screen-quiz") ||
     visible("screen-carpet3") ||
     visible("screen-gents") ||
-    visible("screen-whacka");
+    visible("screen-whacka") ||
+    visible("screen-bogwall");
   document.body.style.overflow = any ? "hidden" : "";
   document.body.style.touchAction = any ? "none" : "";
-  const bonusActive = visible("screen-bonus") || visible("screen-bogroll") || visible("screen-fartoff") || visible("screen-fartinvaders") || visible("screen-whacka");
+  const bonusActive = visible("screen-bonus") || visible("screen-bogroll") || visible("screen-fartoff") || visible("screen-fartinvaders") || visible("screen-whacka") || visible("screen-bogwall");
   const hud = document.getElementById("hud");
   if (hud) hud.style.visibility = bonusActive ? "hidden" : "";
   document.body.classList.toggle("bonus-locked", bonusActive);
@@ -7139,6 +7272,7 @@ const game = {
   demo:false, pendingMode:null,
   rng:Math.random,
   whackaOffered:false,
+  bwOffered:false,
 };
 
 function refillBag(){ refillBagRng(); }
@@ -7176,7 +7310,7 @@ function startGame(mode){
   const M = MODES[mode];
   game.playerDeck = []; game.aiDeck = []; game.pot = []; game.bag = [];
   game.turnOwner = "player"; game.statKey = null;
-  game.score = 0; game.streak = 0; game.foOffered = false; game.brOffered = false; game.fiOffered = false; game.kebabOffered = false; game.quizOffered = false; game.c3Offered = false; game.gtOffered = false; game.whackaOffered = false; pendingBonus.queue.length = 0; game.paused = false;; game.bestStreak = 0; game.biggestPot = 0;
+  game.score = 0; game.streak = 0; game.foOffered = false; game.brOffered = false; game.fiOffered = false; game.kebabOffered = false; game.quizOffered = false; game.c3Offered = false; game.gtOffered = false; game.whackaOffered = false; game.bwOffered = false; pendingBonus.queue.length = 0; game.paused = false;; game.bestStreak = 0; game.biggestPot = 0;
   game.roundsPlayed = 0; game.statWins = {}; game.pickHistory = {};
   resetScoreLedger();
   game.wave = 1; game.aiLevel = M.waves ? 0 : 1;
@@ -7243,6 +7377,7 @@ function startArcadeRunForPlayer(player){
   resetScoreLedger();
   game.wave = 1; game.aiLevel = 0;
   game.foOffered = false; game.brOffered = false;
+  game.bwOffered = false;
   game.duel.player = player;
   // draw from the pre-shuffled duel bag using seeded rng
   game.playerDeck = drawFromBagRng(6, game.rng);
@@ -7475,6 +7610,7 @@ function resolveRound(){
     try { maybeTriggerCarpet3(); } catch(e){}
     try { maybeTriggerGents(); } catch(e){}
     try { maybeTriggerWhacka(); } catch(e){}
+    try { maybeTriggerBogwall(); } catch(e){}
   if (game.__bonusPillArmed){ game.__bonusPillArmed = false; if (maybePendingBonus()) return; }
     renderNextButton();
     return;
@@ -8752,6 +8888,7 @@ function maybePendingBonus(){ // returns true if a bonus round took over
   if (t === "carpet3"){ cmMidGameStart(); return true; }
   if (t === "gents"){ gtMidGameStart(); return true; }
   if (t === "whacka"){ whackaStart(); return true; }
+  if (t === "bogwall"){ bwMidGameStart(); return true; }
   return false;
 }
 
@@ -9112,9 +9249,340 @@ function whackaBankWalk(){
   const banked = Math.floor(whacka.score + whacka.wave * 50);
   whackaEnd(banked);
 }
+
+
+/* ---------- bogwall-76-r84: Bog Wall Graffiti ---------- */
+const BW_PROMPTS = [
+  "DRAW A RUDE ONE",
+  "DRAW THE LANDLORD'S FACE",
+  "DRAW YOUR EX",
+  "DRAW THE WORST KEBAB",
+  "DRAW A PINT WITH A GRUDGE",
+  "DRAW THE BOG ROLL BANDIT"
+];
+const BW_LANDLORD_SHOUTS = [
+  "OI! WHAT'S GOING ON IN HERE?",
+  "THE DOOR WAS LOCKED FOR A REASON!",
+  "THAT BETTER NOT BE PERMANENT MARKER!",
+  "GET OUT OF THE CUBICLE! NOW!",
+  "I'M CALLING THE CLEANER!"
+];
+const BW_LS_KEY = "spoons.high.bogwall";
+function bwHighScore(){ try { const v = localStorage.getItem(BW_LS_KEY); return v ? parseInt(v, 10) || 0 : 0; } catch(e){ return 0; } }
+function bwSaveHigh(score){ try { const cur = bwHighScore(); if (score > cur) localStorage.setItem(BW_LS_KEY, String(score)); } catch(e){} }
+
+var bw = { on:false, mid:false, tile:0, tiles:[], score:0, combo:0, done:false, raf:0, lastT:0, timeLeft:0, maxTime:0, patrol:false, burst:false, strokes:[], drawing:false, canvas:null, ctx:null, width:0, height:0, particles:[] };
+function bwShow(v){ var s=el("screen-bogwall"); if(s) s.classList.toggle("hidden",!v); updateBodyLock(); if(v){ bwResize(); } }
+function bwEl(id){ return el(id); }
+function bwMidGameStart(){
+  AudioFX.stopMusic();
+  bwStop();
+  bw = { on:true, mid:true, tile:0, tiles:[], score:0, combo:0, done:false, raf:0, lastT:performance.now(), timeLeft:0, maxTime:0, patrol:false, burst:false, strokes:[], drawing:false, canvas:el("bwCanvas"), ctx:null, width:0, height:0, particles:[] };
+  bw.ctx = bw.canvas.getContext("2d");
+  bwResize();
+  bwShow(true);
+  bwBindButtons();
+  bwBindInput();
+  bwStartTile();
+}
+function bwBindButtons(){
+  const back = el("bwBack"); if (back) back.onclick = bwBack;
+  const undo = el("bwUndo"); if (undo) undo.onclick = bwUndo;
+  const done = el("bwDone"); if (done) done.onclick = bwFinishTile;
+}
+function bwStop(){
+  if (bw.raf){ cancelAnimationFrame(bw.raf); bw.raf = 0; }
+  bw.on = false;
+  bw.drawing = false;
+}
+function bwResize(){
+  const wrap = el("bwCanvasWrap");
+  if (!wrap || !bw.canvas) return;
+  const rect = wrap.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  bw.width = rect.width; bw.height = rect.height;
+  bw.canvas.width = Math.floor(rect.width * dpr);
+  bw.canvas.height = Math.floor(rect.height * dpr);
+  bw.canvas.style.width = rect.width + "px";
+  bw.canvas.style.height = rect.height + "px";
+  if (bw.ctx) bw.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  bwRedrawAll();
+}
+function bwClearCanvas(){
+  if (!bw.ctx) return;
+  bw.ctx.clearRect(0, 0, bw.width, bw.height);
+}
+function bwRedrawAll(){
+  bwClearCanvas();
+  bw.ctx.lineCap = "round"; bw.ctx.lineJoin = "round";
+  for (const stroke of bw.strokes) bwDrawStroke(stroke);
+}
+function bwDrawStroke(stroke){
+  const pts = stroke.pts; if (pts.length < 2) return;
+  const c = bw.ctx;
+  c.beginPath();
+  c.moveTo(pts[0].x, pts[0].y);
+  for (let i = 1; i < pts.length - 1; i++){
+    const midX = (pts[i].x + pts[i+1].x) / 2;
+    const midY = (pts[i].y + pts[i+1].y) / 2;
+    c.quadraticCurveTo(pts[i].x, pts[i].y, midX, midY);
+  }
+  if (pts.length > 2){
+    const last = pts[pts.length - 1];
+    c.quadraticCurveTo(last.x, last.y, last.x, last.y);
+  } else {
+    c.lineTo(pts[pts.length-1].x, pts[pts.length-1].y);
+  }
+  c.strokeStyle = stroke.color || "#1a1a1a";
+  c.lineWidth = stroke.width || 3;
+  c.stroke();
+}
+function bwInkColor(){ return "rgba(26,26,26," + (0.85 + Math.random()*0.15) + ")"; }
+function bwPointerPos(e){
+  const rect = bw.canvas.getBoundingClientRect();
+  const clientX = e.clientX != null ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+  const clientY = e.clientY != null ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
+  return { x: clientX - rect.left, y: clientY - rect.top };
+}
+function bwWobblePoint(p, t, idx){
+  // wobble physics: drunk ink shiver
+  const f = Math.sin(t * 0.012 + idx * 0.37) * 1.2 + Math.cos(t * 0.019 - idx * 0.21) * 0.8;
+  return { x: p.x + f, y: p.y + f * 0.6 };
+}
+function bwBeginStroke(e){
+  if (!bw.on || bw.done || bw.burst) return;
+  e.preventDefault();
+  bw.drawing = true;
+  const pos = bwPointerPos(e);
+  const stroke = { pts:[{x:pos.x, y:pos.y, t:performance.now()}], color:bwInkColor(), width:3.5 };
+  bw.strokes.push(stroke);
+  AudioFX.click();
+}
+function bwMoveStroke(e){
+  if (!bw.on || !bw.drawing || bw.burst) return;
+  e.preventDefault();
+  const pos = bwPointerPos(e);
+  const stroke = bw.strokes[bw.strokes.length - 1];
+  const now = performance.now();
+  const last = stroke.pts[stroke.pts.length - 1];
+  const dist = Math.hypot(pos.x - last.x, pos.y - last.y);
+  if (dist < 2) return;
+  const speed = dist / Math.max(1, now - last.t);
+  const targetWidth = Math.max(1.5, Math.min(6.5, 5.5 / (speed + 0.4)));
+  stroke.width = stroke.width * 0.6 + targetWidth * 0.4;
+  const wob = bwWobblePoint(pos, now, stroke.pts.length);
+  stroke.pts.push({x:wob.x, y:wob.y, t:now});
+  bwDrawStroke(stroke);
+}
+function bwEndStroke(e){
+  if (!bw.drawing) return;
+  bw.drawing = false;
+  const stroke = bw.strokes[bw.strokes.length - 1];
+  if (stroke && stroke.pts.length){
+    const last = stroke.pts[stroke.pts.length - 1];
+    bwSplatter(last.x, last.y, 8 + Math.random()*8);
+  }
+  AudioFX.fart();
+}
+function bwSplatter(x, y, count){
+  const wrap = el("bwCanvasWrap");
+  if (!wrap) return;
+  for (let i = 0; i < count; i++){
+    const drop = document.createElement("div");
+    drop.className = "bw-ink-drop";
+    const size = 2 + Math.random()*5;
+    drop.style.width = size + "px"; drop.style.height = size + "px";
+    drop.style.left = x + "px"; drop.style.top = y + "px";
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 10 + Math.random()*40;
+    const tx = Math.cos(angle) * dist;
+    const ty = Math.sin(angle) * dist;
+    drop.style.setProperty("--tx", tx + "px");
+    drop.style.setProperty("--ty", ty + "px");
+    drop.style.animation = "bwDrop " + (0.25 + Math.random()*0.25) + "s ease-out forwards";
+    wrap.appendChild(drop);
+    setTimeout(() => drop.remove(), 800);
+  }
+}
+function bwBindInput(){
+  const c = bw.canvas; if (!c || c.__bwBound) return; c.__bwBound = true;
+  c.addEventListener("pointerdown", bwBeginStroke, {passive:false});
+  c.addEventListener("pointermove", bwMoveStroke, {passive:false});
+  window.addEventListener("pointerup", bwEndStroke);
+  c.addEventListener("pointercancel", bwEndStroke);
+  c.addEventListener("touchstart", e => { if (e.touches.length === 2){ e.preventDefault(); bwUndo(); } }, {passive:false});
+}
+function bwStartTile(){
+  bw.strokes = []; bw.burst = false; bw.drawing = false; bw.finished = false;
+  bw.particles = [];
+  bwClearCanvas();
+  document.querySelectorAll(".bw-ink-drop").forEach(d => d.remove());
+  if (bw.raf){ cancelAnimationFrame(bw.raf); bw.raf = 0; }
+  bw.tile++;
+  bw.patrol = (bw.tile % 3 === 0);
+  bw.maxTime = bw.patrol ? 6000 : 10000;
+  bw.timeLeft = bw.maxTime;
+  const prompt = BW_PROMPTS[Math.floor(Math.random() * BW_PROMPTS.length)];
+  bwEl("bwTilePrompt").textContent = prompt;
+  bwEl("bwTileLabel").textContent = "TILE " + bw.tile + " OF 3" + (bw.patrol ? " — LANDLORD'S PATROL" : "");
+  bwEl("bwVerdict").textContent = bw.patrol ? "QUICK — HE'S COMING" : "HOLD AND DRAG TO DRAW";
+  bwEl("bwTimerText").textContent = (bw.maxTime/1000).toFixed(1) + "s";
+  bwEl("bwTimerFill").style.width = "100%";
+  bwEl("bwTimerFill").style.background = bw.patrol ? "linear-gradient(90deg,#ff9800,#f44336,#7a1f3d,#000)" : "linear-gradient(90deg,#4caf50,#ff9800,#f44336,#7a1f3d)";
+  bwEl("bwScore").textContent = bw.score;
+  bwEl("bwCombo").textContent = "COMBO ×" + bw.combo;
+  bwEl("bwHighScore").textContent = "BEST: " + bwHighScore();
+  bwEl("bwRating").classList.remove("show");
+  bwEl("bwControls").style.display = "flex";
+  bwEl("bwLandlord").classList.remove("show");
+  bw.lastT = performance.now();
+  bw.tileStartAt = bw.lastT;
+  if (!bw.raf) bw.raf = requestAnimationFrame(bwLoop);
+}
+function bwLoop(now){
+  if (!bw.on) return;
+  bw.raf = requestAnimationFrame(bwLoop);
+  const dt = now - bw.lastT;
+  bw.lastT = now;
+  if (bw.burst || bw.done) return;
+  bw.timeLeft -= dt;
+  if (bw.timeLeft <= 3000 && bw.timeLeft + dt > 3000){
+    // entering last 3s: tick acceleration
+    AudioFX.click();
+  }
+  if (bw.timeLeft <= 0){
+    bw.timeLeft = 0;
+    bwLandlordBurst();
+    return;
+  }
+  const pct = (bw.timeLeft / bw.maxTime) * 100;
+  bwEl("bwTimerFill").style.width = pct + "%";
+  bwEl("bwTimerText").textContent = (bw.timeLeft/1000).toFixed(1) + "s";
+  // audio ticking accelerates in last 3s (every ~0.25s)
+  if (bw.timeLeft <= 3000){
+    const tick = Math.floor(bw.timeLeft / 250);
+    if (tick !== bw._lastTick){ bw._lastTick = tick; AudioFX.click(); }
+  }
+}
+function bwLandlordBurst(){
+  if (bw.burst || bw.finished) return;
+  bw.burst = true;
+  bw.finished = true;
+  bwEl("bwLandlord").classList.add("show");
+  bwEl("bwShoutText").textContent = BW_LANDLORD_SHOUTS[Math.floor(Math.random()*BW_LANDLORD_SHOUTS.length)];
+  AudioFX.shout();
+  shake("shake-hard");
+  bwTileResult(0, "LANDLORD BURST IN — TILE FAILED");
+}
+function bwFinishTile(){
+  if (!bw.on || bw.burst || bw.done || bw.finished) return;
+  bw.finished = true;
+  const hadInk = bw.strokes.length > 0;
+  if (!hadInk){ bwEl("bwVerdict").textContent = "DRAW SOMETHING FIRST, YOU COWARD"; AudioFX.fart(); return; }
+  // Quick finish bonus if more than 3s left
+  const quick = bw.timeLeft > 3000;
+  let tileScore = 100;
+  if (quick){ tileScore += 50; bw.combo++; }
+  else { bw.combo = 0; }
+  bw.score += tileScore + Math.min(100, bw.combo * 25);
+  bwTileResult(tileScore, quick ? "QUICK FINISH — COMBO ×" + bw.combo : "TILE FINISHED");
+}
+function bwTileResult(tileScore, msg){
+  // Store snapshot of tile canvas
+  const snap = document.createElement("canvas");
+  snap.width = bw.canvas.width; snap.height = bw.canvas.height;
+  const sctx = snap.getContext("2d");
+  sctx.drawImage(bw.canvas, 0, 0);
+  bw.tiles.push({ snap:snap, score:tileScore, msg:msg, strokes:bw.strokes.slice() });
+  bwEl("bwVerdict").textContent = msg + (tileScore > 0 ? " — +" + tileScore : "");
+  bwEl("bwScore").textContent = bw.score;
+  bwEl("bwCombo").textContent = "COMBO ×" + bw.combo;
+  if (bw.tile >= 3){
+    setTimeout(bwShowRating, 900);
+  } else {
+    setTimeout(bwStartTile, bw.burst ? 1400 : 700);
+  }
+}
+function bwUndo(){
+  if (!bw.on || bw.burst || bw.done || !bw.strokes.length) return;
+  bw.strokes.pop();
+  bwRedrawAll();
+  AudioFX.click();
+  bwEl("bwVerdict").textContent = "LAST STROKE UNDONE";
+}
+function bwShowRating(){
+  bw.done = true; if (bw.raf){ cancelAnimationFrame(bw.raf); bw.raf = 0; }
+  bwEl("bwControls").style.display = "none";
+  bwEl("bwLandlord").classList.remove("show");
+  // compute rating
+  let totalLen = 0, totalArea = 0, coverageArea = 0, minX, minY, maxX, maxY;
+  for (const t of bw.tiles){
+    let tileLen = 0;
+    let first = true;
+    for (const s of t.strokes){
+      for (let i = 1; i < s.pts.length; i++){
+        tileLen += Math.hypot(s.pts[i].x - s.pts[i-1].x, s.pts[i].y - s.pts[i-1].y);
+        if (first){ minX = maxX = s.pts[i].x; minY = maxY = s.pts[i].y; first = false; }
+        else { minX = Math.min(minX, s.pts[i].x); maxX = Math.max(maxX, s.pts[i].x); minY = Math.min(minY, s.pts[i].y); maxY = Math.max(maxY, s.pts[i].y); }
+      }
+    }
+    totalLen += tileLen;
+    if (!first) coverageArea += (maxX - minX) * (maxY - minY);
+  }
+  const wallArea = bw.width * bw.height * 3;
+  const coverage = Math.min(1, coverageArea / (wallArea * 0.25));
+  const inkDensity = Math.min(1, totalLen / (bw.width * 3));
+  const confidence = Math.min(1, bw.tiles.filter(t => t.score > 100).length / 3 + (bw.combo / 6));
+  const rating = Math.min(100, Math.round((coverage*0.25 + inkDensity*0.45 + confidence*0.30) * 100));
+  const verdicts = [
+    { min:0, text:"MY KID COULD DO BETTER" },
+    { min:21, text:"NOT WORTH THE FELT-TIP" },
+    { min:41, text:"THE LANDLORD'D BAN YOU" },
+    { min:61, text:"PUB GRAFFITI HALL OF FAME" },
+    { min:81, text:"HANG IT IN THE LOUVRE" }
+  ];
+  const verdict = verdicts.slice().reverse().find(v => rating >= v.min).text;
+  const ratingBonus = Math.floor(rating * 20);
+  const banked = bw.score + ratingBonus;
+  bwSaveHigh(banked);
+  bwEl("bwVerdictBig").textContent = verdict + " — " + rating + "/100";
+  bwEl("bwScoreLine").innerHTML = "TILE SCORE " + bw.score + " + RATING BONUS " + ratingBonus + " = " + banked;
+  const thumbBox = bwEl("bwTiles"); thumbBox.innerHTML = "";
+  for (const t of bw.tiles){
+    const d = document.createElement("div"); d.className = "bw-tile-thumb";
+    const cvs = document.createElement("canvas"); cvs.width = t.snap.width; cvs.height = t.snap.height;
+    cvs.getContext("2d").drawImage(t.snap, 0, 0);
+    d.appendChild(cvs); thumbBox.appendChild(d);
+  }
+  bwEl("bwRating").classList.add("show");
+  bwEl("bwHighScore").textContent = "BEST: " + bwHighScore();
+  AudioFX.wave();
+  bwEl("bwBank").onclick = () => bwEnd(banked);
+}
+function bwEnd(banked){
+  bwStop(); bwShow(false); showScreen("table");
+  if (banked > 0){
+    addScore(banked, "BOG WALL BANKED", "the pub rated your cubicle art");
+    setVerdict('<div class="verdict-line wave-clear">✍️ BOG WALL BANKED — +' + banked + '</div><div class="verdict-sub">TABLE RESUMES. THE LANDLORD\'S STILL KNOCKING.</div>');
+  } else {
+    setVerdict('<div class="verdict-line wave-clear">✍️ CAUGHT MID-SCRAWL — NOTHING BANKED</div><div class="verdict-sub">TABLE RESUMES. WASH THE MARKER OFF YOUR HANDS.</div>');
+  }
+  AudioFX.resumeMusic(); renderNextButton(); try{ renderHud(); }catch(e){} try{ updateBonusPill(); }catch(e){}
+}
+function bwBack(){
+  AudioFX.click();
+  if (bw.on && bw.mid) return;
+  bwStop(); bwShow(false); showScreen("title");
+}
+
+
 function maybeTriggerWhacka(){
   if (game.whackaOffered || game.phase === "over") return;
   if (game.wave >= 2 && Math.random() < 0.35){ game.whackaOffered = true; offerBonus("whacka"); bonusToast("🍺 WHACKA DRUNK: THE DOOR NEEDS YOU. FINISH THE ROUND…"); try{ updateBonusPill(); }catch(e){} }
+}
+function maybeTriggerBogwall(){
+  if (game.bwOffered || game.phase === "over") return;
+  if (game.wave >= 2 && Math.random() < 0.35){ game.bwOffered = true; offerBonus("bogwall"); bonusToast("✍️ BOG WALL: THE CUBICLE'S FREE. FINISH THE ROUND…"); try{ updateBonusPill(); }catch(e){} }
 }
 
 function cmMidGameStart(){ c3MidGameStart(); }
@@ -9842,8 +10310,17 @@ function renderBonusScratch(){
     if (whP){
       const w = Math.min(4, Math.max(0, (game.wave || 1) - 1));
       let out = "";
-      for (let k = 0; k < 4; k++) out += '<i class="' + (k < w ? "on" : "") + '">' + (k < w ? "█" : "·") + "</i>";
+      for (let k = 0; k < 4; k++) out += '<i class="' + (k < w ? "on" : "") + '"\u003e' + (k < w ? "█" : "·") + "</i>";
       whP.innerHTML = out;
+    }
+    const bwS = document.getElementById("scratchBogwall");
+    if (bwS) bwS.classList.toggle("arm", pendingBonus.queue.indexOf("bogwall") !== -1);
+    const bwP = document.getElementById("bwPips");
+    if (bwP){
+      const w = Math.min(4, Math.max(0, (game.wave || 1) - 1));
+      let out = "";
+      for (let k = 0; k < 4; k++) out += '<i class="' + (k < w ? "on" : "") + '"\u003e' + (k < w ? "█" : "·") + "</i>";
+      bwP.innerHTML = out;
     }
     const fiS = document.getElementById("scratchFartInvaders");
     if (fiS) fiS.classList.toggle("arm", pendingBonus.queue.indexOf("fartinvaders") !== -1);
@@ -9963,7 +10440,7 @@ function startBonusNow(){
       if (pendingBonus.queue.length) maybePendingBonus();
       // Guard: if no bonus screen is visible after dispatch, force-open the next queued bonus directly.
       const bonusVisible = function(id){ const el = document.getElementById(id); return el && !el.classList.contains("hidden"); };
-      if (pendingBonus.queue.length && !bonusVisible("screen-fartinvaders") && !bonusVisible("screen-bogroll") && !bonusVisible("screen-fartoff") && !bonusVisible("screen-kebab") && !bonusVisible("screen-quiz") && !bonusVisible("screen-carpet3") && !bonusVisible("screen-gents") && !bonusVisible("screen-whacka")){
+      if (pendingBonus.queue.length && !bonusVisible("screen-fartinvaders") && !bonusVisible("screen-bogroll") && !bonusVisible("screen-fartoff") && !bonusVisible("screen-kebab") && !bonusVisible("screen-quiz") && !bonusVisible("screen-carpet3") && !bonusVisible("screen-gents") && !bonusVisible("screen-whacka") && !bonusVisible("screen-bogwall")){
         maybePendingBonus();
       }
     } catch(e3){ logBonusEvent("startGame-error", String(e3).slice(0,80)); }
@@ -10148,6 +10625,7 @@ if (fiWalk) fiWalk.addEventListener("click", () => { AudioFX.click(); fiWalkAway
 })();
 window.debugFartInvaders = function(){ offerBonus("fartinvaders"); };
 window.debugWhacka = function(){ offerBonus("whacka"); };
+window.debugBogWall = function(){ offerBonus("bogwall"); startBonusNow(); };
 
 (function whackaHandTrack(){
   const hand = el("whackaHand");
