@@ -595,6 +595,21 @@ header#hud{
 @media (max-height:700px){
   #bwCanvasWrap{height:min(48dvh,340px)}
 }
+
+/* ---------- fi-easy-82-r99: CRAP MAN ---------- */
+.cm-wrap{justify-content:flex-start;padding-top:max(12px, env(safe-area-inset-top));padding-bottom:max(10px, env(safe-area-inset-bottom))}
+.cm-hud{display:flex;gap:14px;justify-content:center;font-size:12px;letter-spacing:1px;color:var(--gold);margin:6px 0 4px}
+.cm-hud span b{min-width:24px;display:inline-block}
+.cm-board-wrap{position:relative;width:min(96vw,520px);aspect-ratio:21/15.2;max-height:62dvh;margin:2px auto;border-radius:12px;background:rgba(0,0,0,.42);box-shadow:0 8px 30px rgba(0,0,0,.55);overflow:hidden}
+.cm-canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+.cm-banner{position:absolute;left:0;right:0;top:38%;text-align:center;font-size:20px;font-weight:900;color:#ffd66e;text-shadow:0 2px 8px #000;pointer-events:none;opacity:0;transition:opacity .25s}
+.cm-banner.show{opacity:1}
+.cm-verdict{min-height:30px;text-align:center;font-size:14px;color:#ffd66e;margin-top:4px}
+.cm-hint{font-size:11px;color:#c9b58a;text-align:center;opacity:.8;margin:2px 0 0}
+@media (max-height:700px){
+  .cm-board-wrap{max-height:52dvh}
+  .cm-hud{font-size:11px;gap:10px}
+}
 /* ---------- jukebox-78-r87: Jukebox Sabotage ---------- */
 .jukebox-wrap{justify-content:flex-start;padding-top:max(12px, env(safe-area-inset-top));padding-bottom:max(12px, env(safe-area-inset-bottom));touch-action:none;overflow:hidden}
 #jbCanvasWrap{
@@ -4849,6 +4864,11 @@ html, body{ overflow-x:clip; }
         <span class="skill-name">PINT STACK</span>
         <i class="pips" id="psPips">····</i>
       </span>
+      <span class="skill-chip" data-skill="crapman" id="scratchCrapman">
+        <span class="skill-emoji">💩</span>
+        <span class="skill-name">CRAP MAN</span>
+        <i class="pips" id="cmPips">····</i>
+      </span>
       <span id="bonusToastSlot"></span>
     </div>
     <div id="skillSheet" class="skill-sheet hidden">
@@ -5367,6 +5387,27 @@ html, body{ overflow-x:clip; }
     </div>
   </section>
 
+    <section id="screen-crapman" class="screen hidden bonus-fullscreen">
+      <div class="bonus-wrap cm-wrap">
+        <div class="bonus-tag">LAST ORDERS LOCK-IN — EAT THE PUB</div>
+        <button class="bonus-back" id="cmBack">BACK / BANK</button>
+        <h2>💩 CRAP MAN 💩</h2>
+        <p class="bonus-sub" id="cmSub">Last orders rang, the doors locked, and you're stuck inside. Chomp every beer mat. Grab a swift half and the lads turn blue — gob 'em. Don't get grabbed.</p>
+        <div class="cm-hud">
+          <span>MATS: <b id="cmMats">0</b>/<b id="cmMatsTotal">0</b></span>
+          <span>LIVES: <b id="cmLives">❤️❤️❤️</b></span>
+          <span>SCORE: <b id="cmScore">0</b></span>
+        </div>
+        <div class="cm-board-wrap" id="cmBoardWrap">
+          <canvas class="cm-canvas" id="cmCanvas"></canvas>
+          <div class="cm-banner" id="cmBanner"></div>
+        </div>
+        <div class="cm-verdict" id="cmVerdict"></div>
+        <p class="cm-hint" id="cmHint">SWIPE TO STEER · PINTS = GOB THE LADS · 🥚 100 🍤 300 🥓 500</p>
+      </div>
+    </section>
+
+
   <section id="screen-jukebox" class="screen hidden bonus-fullscreen">
     <div class="bonus-wrap jukebox-wrap">
       <div class="bonus-tag">THE JUKEBOX IS CALLING THE SHOTS</div>
@@ -5496,7 +5537,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = 'kebab-gone-80-r97';
+  const BUILD_STAMP = 'fi-easy-82-r99';
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -7682,7 +7723,7 @@ function startGame(mode){
   const M = MODES[mode];
   game.playerDeck = []; game.aiDeck = []; game.pot = []; game.bag = [];
   game.turnOwner = "player"; game.statKey = null;
-  game.score = 0; game.streak = 0; game.foOffered = false; game.brOffered = false; game.fiOffered = false; game.quizOffered = false; game.c3Offered = false; game.gtOffered = false; game.whackaOffered = false; game.bwOffered = false; game.pintstackOffered = false; game.jukeboxOffered = false; pendingBonus.queue.length = 0; game.paused = false;; game.bestStreak = 0; game.biggestPot = 0;
+  game.score = 0; game.streak = 0; game.foOffered = false; game.brOffered = false; game.fiOffered = false; game.quizOffered = false; game.c3Offered = false; game.gtOffered = false; game.whackaOffered = false; game.crapmanOffered = false; game.bwOffered = false; game.pintstackOffered = false; game.jukeboxOffered = false; pendingBonus.queue.length = 0; game.paused = false;; game.bestStreak = 0; game.biggestPot = 0;
   game.roundsPlayed = 0; game.statWins = {}; game.pickHistory = {};
   resetScoreLedger();
   game.wave = 1; game.aiLevel = M.waves ? 0 : 1;
@@ -7751,6 +7792,7 @@ function startArcadeRunForPlayer(player){
   game.foOffered = false; game.brOffered = false;
   game.bwOffered = false;
   game.jukeboxOffered = false;
+  game.crapmanOffered = false;
   game.duel.player = player;
   // draw from the pre-shuffled duel bag using seeded rng
   game.playerDeck = drawFromBagRng(6, game.rng);
@@ -7984,6 +8026,7 @@ function resolveRound(){
     try { maybeTriggerWhacka(); } catch(e){}
     try { maybeTriggerBogwall(); } catch(e){}
     try { maybeTriggerPintstack(); } catch(e){}
+    try { maybeTriggerCrapman(); } catch(e){}
     try { maybeTriggerJukebox(); } catch(e){}
   if (game.__bonusPillArmed){ game.__bonusPillArmed = false; if (maybePendingBonus()) return; }
     renderNextButton();
@@ -9417,6 +9460,7 @@ function maybePendingBonus(){ // returns true if a bonus round took over
   if (t === "bogwall"){ bwMidGameStart(); return true; }
   if (t === "pintstack"){ pintstackStart(); return true; }
   if (t === "jukebox"){ jukeboxStart(); return true; }
+  if (t === "crapman"){ crapmanStart(); return true; }
   return false;
 }
 
@@ -10512,6 +10556,500 @@ function pintstackBack(){
 }
 
 
+
+/* ---------- fi-easy-82-r99: CRAP MAN — last-orders lock-in maze ---------- */
+const CM_LS_KEY = "spoons.high.crapman";
+const CM_MAP = [
+  "#####################",
+  "#m........#........m#",
+  "#o##.###..#..###.##o#",
+  "#...................#",
+  "#.##.#.#####.#.##...#",
+  "#....#...#...#.#...m#",
+  "####.###.#.###.#.####",
+  "   #.#.......#.#    ",
+  "####.#.##=##.#.#####",
+  "#m.......L........m#",
+  "#.##.###..#..###.##.#",
+  "#....#...P...#.....#",
+  "#.##.#.#######.#.#.#",
+  "#o.........#........#",
+  "#####################"
+];
+const CM_T = { WALL:0, MAT:1, EMPTY:2, PINT:3, DOOR:4, TUNNEL:5 };
+function cmParse(){
+  const rows = CM_MAP.map(r => r.split("").map(ch => {
+    if (ch === "#") return CM_T.WALL;
+    if (ch === ".") return CM_T.MAT;
+    if (ch === "o") return CM_T.PINT;
+    if (ch === "m") return CM_T.MAT;
+    if (ch === "=") return CM_T.DOOR;
+    if (ch === " ") return CM_T.TUNNEL;
+    if (ch === "L" || ch === "P") return CM_T.EMPTY;
+    return CM_T.MAT;
+  }));
+  return rows;
+}
+function cmHighScore(){ try { return parseInt(localStorage.getItem(CM_LS_KEY) || "0", 10) || 0; } catch(e){ return 0; } }
+function cmSaveHigh(v){ try { const cur = cmHighScore(); if (v > cur) localStorage.setItem(CM_LS_KEY, String(v)); } catch(e){} }
+var cm = { on:false, mid:false, done:false, raf:0, lastT:0, canvas:null, ctx:null, W:0, H:0, dpr:1,
+  grid:[], mats:0, matsTotal:0, eaten:0, score:0, lives:3, px:10.0, py:9.0, dir:[0,0], wantDir:[0,0],
+  ghosts:[], fright:0, frightT:0, phase:0, phaseT:0, releaseT:0, bellT:25, doubleT:0, banner:0,
+  shake:0, particles:[], texts:[], state:"ready", tunnelCooldown:0, egg:null, eggT:12, eggType:null };
+var CM_GHOST_DEFS = [
+  { name:"THE LANDLORD", color:"#e04434", chase:"direct", speed:4.4 },
+  { name:"BOUNCER", color:"#f79ac0", chase:"ambush", speed:4.1 },
+  { name:"KARAOKE BLOKE", color:"#3fd4d4", chase:"erratic", speed:3.9 },
+  { name:"BIN MAN", color:"#e8a33d", chase:"coward", speed:4.0 }
+];
+function cmShow(v){
+  document.body.classList.toggle("bonus-live", !!v); var s = el("screen-crapman");
+  if (s) s.classList.toggle("hidden", !v); updateBodyLock(); if (v){ cmResize(); }
+}
+function cmHud(){
+  el("cmMats").textContent = cm.eaten;
+  el("cmMatsTotal").textContent = cm.matsTotal;
+  el("cmLives").textContent = "❤️".repeat(Math.max(0, cm.lives));
+  el("cmScore").textContent = cm.score;
+}
+function cmBanner(txt, ms){
+  const b = el("cmBanner"); if (!b) return;
+  b.textContent = txt; b.classList.add("show");
+  clearTimeout(cm.banner); cm.banner = setTimeout(() => b.classList.remove("show"), ms || 1400);
+}
+function cmReset(full){
+  cm.grid = cmParse();
+  cm.matsTotal = 0;
+  for (const row of cm.grid) for (const t of row) if (t === CM_T.MAT || t === CM_T.PINT) cm.matsTotal++;
+  if (full){ cm.eaten = 0; cm.score = 0; cm.lives = 3; }
+  cm.px = 10.5; cm.py = 11.5; cm.dir = [0,0]; cm.wantDir = [0,0];
+  cm.fright = 0; cm.phase = 0; cm.phaseT = 6; cm.releaseT = 0; cm.bellT = 25; cm.doubleT = 0;
+  cm.ghosts = CM_GHOST_DEFS.map((g, i) => ({
+    def: g, x: 9.5 + i * 0.5, y: 9.0, dir: [0, i === 0 ? -1 : (i === 1 ? 1 : -1)],
+    home: { x: 9.5 + i * 0.5, y: 9.0 }, frightened: false, eaten_: false, release: i * 3.5, wobble: Math.random() * 6
+  }));
+  cm.egg = null; cm.eggT = 12;
+  cm.state = "run"; cmHud();
+}
+function crapmanStart(){
+  AudioFX.stopMusic();
+  cmStop();
+  cm = Object.assign(cm, { on:true, mid:true, done:false, raf:0, lastT:performance.now(),
+    canvas: el("cmCanvas"), ctx:null, W:0, H:0, dpr:1, shake:0, particles:[], texts:[] });
+  const isPhone = matchMedia("(pointer: coarse)").matches;
+  cm.dprCap = isPhone ? 1.5 : 2;
+  cmReset(true);
+  cmShow(true);
+  cmBind();
+  cm.lastT = performance.now();
+  cm.raf = requestAnimationFrame(cmLoop);
+  cmBanner("LAST ORDERS, YOU'LL BE 'ERE ALL NIGHT", 1800);
+  try { AudioFX.boss(); } catch(e){}
+}
+function cmStop(){
+  if (cm.raf){ cancelAnimationFrame(cm.raf); cm.raf = 0; }
+  cm.on = false;
+}
+function cmBind(){
+  if (cm.bound) return; cm.bound = true;
+  el("cmBack").addEventListener("click", crapmanBack);
+  const scr = el("screen-crapman");
+  scr.style.touchAction = "none";
+  scr.addEventListener("contextmenu", e => e.preventDefault());
+  let sx = 0, sy = 0, swiping = false;
+  scr.addEventListener("pointerdown", e => {
+    if (e.target.closest("#cmBack")) return;
+    e.preventDefault(); sx = e.clientX; sy = e.clientY; swiping = true;
+  });
+  scr.addEventListener("pointermove", e => {
+    if (!swiping) return;
+    const dx = e.clientX - sx, dy = e.clientY - sy;
+    if (Math.abs(dx) > 24 || Math.abs(dy) > 24){
+      cm.wantDir = Math.abs(dx) > Math.abs(dy) ? [dx > 0 ? 1 : -1, 0] : [0, dy > 0 ? 1 : -1];
+      sx = e.clientX; sy = e.clientY;
+    }
+  });
+  scr.addEventListener("pointerup", () => { swiping = false; });
+  scr.addEventListener("pointercancel", () => { swiping = false; });
+  // keyboard fallback for desktop:
+  window.addEventListener("keydown", e => {
+    if (!cm.on) return;
+    const k = e.key;
+    if (k === "ArrowLeft") cm.wantDir = [-1,0];
+    else if (k === "ArrowRight") cm.wantDir = [1,0];
+    else if (k === "ArrowUp") cm.wantDir = [0,-1];
+    else if (k === "ArrowDown") cm.wantDir = [0,1];
+    else return;
+    e.preventDefault();
+  });
+}
+function cmResize(){
+  const c = cm.canvas; if (!c) return;
+  const wrap = el("cmBoardWrap");
+  const r = wrap.getBoundingClientRect();
+  cm.dpr = Math.min(window.devicePixelRatio || 1, cm.dprCap || 1.5);
+  c.width = Math.max(1, Math.floor(r.width * cm.dpr));
+  c.height = Math.max(1, Math.floor(r.height * cm.dpr));
+  cm.W = c.width; cm.H = c.height;
+  cm.ctx = c.getContext("2d");
+  cm.ctx.setTransform(cm.dpr, 0, 0, cm.dpr, 0, 0);
+  cm.vw = r.width; cm.vh = r.height;
+}
+function cmLoop(t){
+  if (!cm.on) return;
+  cm.raf = requestAnimationFrame(cmLoop);
+  const dt = Math.min(0.05, (t - cm.lastT) / 1000); cm.lastT = t;
+  if (cm.state === "run") cmUpdate(dt);
+  cmDraw();
+}
+
+
+function cmIsWall(tx, ty, ghostOk){
+  if (ty < 0 || ty >= cm.grid.length) return true;
+  tx = ((tx % 21) + 21) % 21;
+  const t = cm.grid[ty][tx];
+  if (t === CM_T.WALL) return true;
+  if (t === CM_T.DOOR) return !ghostOk;
+  return false;
+}
+function cmTileAt(px, py){
+  const tx = Math.floor(px), ty = Math.floor(py);
+  if (ty < 0 || ty >= cm.grid.length) return CM_T.WALL;
+  return cm.grid[ty][((tx % 21) + 21) % 21];
+}
+function cmSpeedMul(){ return cm.doubleT > 0 ? 1.12 : 1; }
+function cmUpdate(dt){
+  // LAST ORDERS bell: double mats + ghosts briefly scatter
+  cm.bellT -= dt;
+  if (cm.bellT <= 0){
+    cm.bellT = 27; cm.doubleT = 6;
+    cmBanner("🔔 LAST ORDERS — DOUBLE MATS", 1600);
+    try { AudioFX.wave(); } catch(e){}
+    cm.texts.push({ x: cm.px, y: cm.py - 1, txt: "LAST ORDERS!", t: 1.4, color: "#ffd66e" });
+  }
+  if (cm.doubleT > 0) cm.doubleT -= dt;
+  if (cm.fright > 0){ cm.fright -= dt; if (cm.fright <= 0) cm.ghosts.forEach(g => { g.frightened = false; }); }
+
+  // player movement (tile-centred, classic corner handling)
+  const speed = 5.2 * cmSpeedMul();
+  const step = speed * dt;
+  // try to turn when near tile centre
+  const cx = Math.floor(cm.px), cy = Math.floor(cm.py);
+  const offX = cm.px - (cx + 0.5), offY = cm.py - (cy + 0.5);
+  if (cm.wantDir && (cm.wantDir[0] !== cm.dir[0] || cm.wantDir[1] !== cm.dir[1])){
+    const w = cm.wantDir;
+    if (w[1] === 0 && Math.abs(offY) < 0.28 && !cmIsWall(cx + w[0], cy)) {
+      cm.py = cy + 0.5; cm.dir = w.slice();
+    } else if (w[0] === 0 && Math.abs(offX) < 0.28 && !cmIsWall(cx, cy + w[1])) {
+      cm.px = cx + 0.5; cm.dir = w.slice();
+    }
+  }
+  // blocked check ahead
+  let nx = cm.px + cm.dir[0] * step, ny = cm.py + cm.dir[1] * step;
+  const aheadX = Math.floor(nx + cm.dir[0] * 0.51), aheadY = Math.floor(ny + cm.dir[1] * 0.51);
+  if (cm.dir[0] || cm.dir[1]){
+    if (cmIsWall(aheadX, aheadY)){
+      // snap to centre of current tile, stop
+      cm.px = cx + 0.5; cm.py = cy + 0.5;
+    } else {
+      // tunnel wrap
+      if (nx < 0) nx += 21; if (nx >= 21) nx -= 21;
+      cm.px = nx; cm.py = ny;
+    }
+  }
+  // eat
+  const tx = ((Math.floor(cm.px) % 21) + 21) % 21, ty = Math.floor(cm.py);
+  const tile = cm.grid[ty] && cm.grid[ty][tx];
+  if (tile === CM_T.MAT){
+    cm.grid[ty][tx] = CM_T.EMPTY;
+    cm.eaten++;
+    const pts = (cm.doubleT > 0 ? 40 : 20);
+    cm.score += pts;
+    if (cm.eaten % 8 === 0) try { AudioFX.coin(); } catch(e){}
+    else try { AudioFX.flip(); } catch(e){}
+    cmHud();
+  } else if (tile === CM_T.PINT){
+    cm.grid[ty][tx] = CM_T.EMPTY;
+    cm.eaten++;
+    cm.score += 50;
+    cm.fright = 8; cm.frightT = 8;
+    cm.ghosts.forEach(g => { g.frightened = true; g.eaten_ = false; });
+    cmBanner("🍺 SWIFT HALF — GOB THE LADS", 1500);
+    try { AudioFX.megaFart(); } catch(e){}
+    cmHud();
+  }
+  // spawn pickled egg / scampi / scratchings bonus pickup
+  cm.eggT -= dt;
+  if (!cm.egg && cm.eggT <= 0){
+    const spots = [];
+    for (let y = 1; y < 14; y++) for (let x = 1; x < 20; x++)
+      if (cm.grid[y][x] === CM_T.EMPTY && !(Math.abs(x - 10) < 2 && Math.abs(y - 9) < 2)) spots.push([x, y]);
+    if (spots.length){
+      cm.egg = spots[Math.floor(Math.random() * spots.length)];
+      cm.eggType = [["🥚",100],["🍤",300],["🥓",500]][Math.floor(Math.random()*3)];
+    }
+  } else if (cm.egg){
+    if (Math.abs(cm.px - (cm.egg[0] + 0.5)) < 0.6 && Math.abs(cm.py - (cm.egg[1] + 0.5)) < 0.6){
+      cm.score += cm.eggType[1];
+      cm.texts.push({ x: cm.egg[0] + 0.5, y: cm.egg[1], txt: cm.eggType[0] + " +" + cm.eggType[1], t: 1.2, color: "#ffe08a" });
+      try { AudioFX.win(); } catch(e){}
+      cm.egg = null; cm.eggT = 14 + Math.random() * 8;
+      cmHud();
+    }
+  }
+  // ghost release stagger
+  cm.releaseT += dt;
+  // ghosts
+  for (const g of cm.ghosts){
+    if (cm.releaseT < g.release) continue;
+    const gs = (g.def.speed * 0.92) * dt * (g.frightened ? 0.55 : 1);
+    // choose direction at tile centres
+    const gx = Math.floor(g.x), gy = Math.floor(g.y);
+    const goffX = g.x - (gx + 0.5), goffY = g.y - (gy + 0.5);
+    if (Math.abs(goffX) < 0.08 && Math.abs(goffY) < 0.08){
+      g.x = gx + 0.5; g.y = gy + 0.5;
+      const opts = [];
+      const dirs = [[0,-1],[-1,0],[0,1],[1,0]];
+      for (const d of dirs){
+        if (d[0] === -g.dir[0] && d[1] === -g.dir[1]) continue; // no reverse
+        if (!cmIsWall(gx + d[0], gy + d[1], true)) opts.push(d);
+      }
+      if (opts.length){
+        // scatter/chase wave every 6s alternate; frightened = flee random
+        const scatter = (cm.fright > 0) || (Math.floor(performance.now() / 6000) % 2 === 0);
+        let target;
+        if (g.frightened){
+          target = [gx + g.dir[0] * 3, gy + g.dir[1] * 3];
+          // random flee: pick random option mostly
+          g.dir = opts[Math.floor(Math.random() * opts.length)].slice();
+        } else {
+          const px = cm.px, py = cm.py;
+          switch (g.def.chase){
+            case "direct": target = [px, py]; break;
+            case "ambush": target = [px + cm.dir[0] * 4, py + cm.dir[1] * 4]; break;
+            case "erratic": target = (Math.random() < 0.35) ? [Math.random() * 21, Math.random() * 15] : [px, py]; break;
+            case "coward": {
+              const d = Math.hypot(g.x - px, g.y - py);
+              target = d < 4.5 ? [g.x * 2 - px, g.y * 2 - py] : [px, py];
+              break;
+            }
+          }
+          // pick nearest to target
+          let bestOpt = null, bestDist = 1e9;
+          for (const o of opts){
+            const txx = gx + o[0], tyy = gy + o[1];
+            const dd = Math.hypot(txx - target[0], tyy - target[1]);
+            if (dd < bestDist){ bestDist = dd; bestOpt = o; }
+          }
+          g.dir = bestOpt.slice();
+        }
+      }
+    }
+    let mx = g.x + g.dir[0] * gs * 0.55, my = g.y + g.dir[1] * gs * 0.55;
+    if (mx < 0) mx += 21; if (mx >= 21) mx -= 21;
+    // wall stop
+    if (cmIsWall(Math.floor(mx + g.dir[0] * 0.51), Math.floor(my + g.dir[1] * 0.51), true)){
+      g.x = gx + 0.5; g.y = gy + 0.5;
+    } else { g.x = mx; g.y = my; }
+    // catch check
+    if (Math.hypot(g.x - cm.px, g.y - cm.py) < 0.62){
+      if (g.frightened && !g.eaten_){
+        g.eaten_ = true; g.x = g.home.x; g.y = g.home.y; g.frightened = false;
+        const pts = 400; cm.score += pts;
+        cm.texts.push({ x: g.x, y: g.y - 1, txt: "GOBBED +" + pts, t: 1.3, color: "#9be89b" });
+        cmBanner("😂 GOBBED " + g.def.name + "!", 1300);
+        try { AudioFX.fartShot(); } catch(e){}
+        try { bonusParticles(0, -window.innerHeight * 0.1, { color: g.def.color, count: 18, fixed: true }); } catch(e){}
+        cmHud();
+      } else if (!g.eaten_){
+        cmDie();
+        return;
+      }
+    }
+  }
+  // particles + floating texts
+  cm.particles = cm.particles.filter(p => (p.t -= dt) > 0);
+  cm.texts = cm.texts.filter(t => (t.t -= dt) > 0);
+  if (cm.shake > 0) cm.shake = Math.max(0, cm.shake - dt * 3);
+  // win check
+  if (cm.eaten >= cm.matsTotal){
+    cm.state = "won";
+    cmBanner("🏆 PUB DEVORED. THE LADS ARE BROKEN.", 2400);
+    setTimeout(() => crapmanEnd(Math.max(0, cm.score + 600)), 2200);
+  }
+}
+function cmDie(){
+  cm.lives--; cmHud();
+  cm.shake = 1;
+  try { AudioFX.shout(); } catch(e){}
+  try { AudioFX.fart(); } catch(e){}
+  shake("shake-hard");
+  try { bonusParticles(0, -window.innerHeight * 0.1, { color: "#e04434", count: 26, type: "skid", fixed: true }); } catch(e){}
+  if (cm.lives <= 0){
+    cm.state = "dead";
+    cmBanner("❌ BINNED. THE LADS CARRY YOU OUT.", 2200);
+    setTimeout(() => crapmanEnd(0), 2000);
+  } else {
+    cmBanner("CAUGHT — " + cm.lives + " LIVES LEFT", 1200);
+    // reset positions
+    cm.px = 10.5; cm.py = 11.5; cm.dir = [0,0]; cm.wantDir = [0,0];
+    cm.ghosts.forEach((g, i) => { g.x = 9.5 + i * 0.5; g.y = 9.0; g.dir = [0, i === 0 ? -1 : (i === 1 ? 1 : -1)]; g.frightened = false; g.eaten_ = false; });
+    cm.releaseT = 0;
+  }
+}
+
+
+function cmDraw(){
+  const ctx = cm.ctx; if (!ctx) return;
+  const vw = cm.vw || 360, vh = cm.vh || 260;
+  const cols = 21, rows = 15;
+  const ts = Math.min(vw / cols, vh / rows);
+  const ox = (vw - cols * ts) / 2, oy = (vh - rows * ts) / 2;
+  ctx.save();
+  if (cm.shake > 0){
+    ctx.translate((Math.random() - 0.5) * 8 * cm.shake, (Math.random() - 0.5) * 8 * cm.shake);
+  }
+  ctx.clearRect(-10, -10, vw + 20, vh + 20);
+  // board bg
+  ctx.fillStyle = "rgba(0,0,0,0.35)";
+  ctx.fillRect(0, 0, vw, vh);
+  // tiles
+  for (let y = 0; y < rows; y++){
+    for (let x = 0; x < cols; x++){
+      const t = cm.grid[y][x];
+      const X = ox + x * ts, Y = oy + y * ts;
+      if (t === CM_T.WALL){
+        ctx.fillStyle = "#4a3520";
+        ctx.fillRect(X + 1, Y + 1, ts - 2, ts - 2);
+        ctx.fillStyle = "rgba(255,214,110,0.14)";
+        ctx.fillRect(X + 1, Y + 1, ts - 2, 3);
+      } else if (t === CM_T.MAT){
+        ctx.fillStyle = cm.doubleT > 0 ? "#ffe08a" : "#e8d9b0";
+        ctx.beginPath();
+        // beer mat = tiny rounded square
+        const r = ts * 0.16;
+        ctx.arc(X + ts/2, Y + ts/2, r, 0, 7);
+        ctx.fill();
+      } else if (t === CM_T.PINT){
+        ctx.font = (ts * 0.8) + "px serif";
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillText("🍺", X + ts/2, Y + ts/2 + 1);
+        // pulse
+        ctx.strokeStyle = "rgba(255,214,110," + (0.4 + 0.3 * Math.sin(performance.now()/180)) + ")";
+        ctx.strokeRect(X + 2, Y + 2, ts - 4, ts - 4);
+      } else if (t === CM_T.DOOR){
+        ctx.fillStyle = "rgba(255,214,110,0.35)";
+        ctx.fillRect(X + 2, Y + ts/3, ts - 4, ts/3);
+      }
+    }
+  }
+  // bonus pickup
+  if (cm.egg){
+    ctx.font = (ts * 0.85) + "px serif";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    const pulse = 1 + 0.12 * Math.sin(performance.now() / 180);
+    ctx.save();
+    ctx.translate(ox + (cm.egg[0] + 0.5) * ts, oy + (cm.egg[1] + 0.5) * ts);
+    ctx.scale(pulse, pulse);
+    ctx.fillText(cm.eggType[0], 0, 0);
+    ctx.restore();
+  }
+  // crap man (drunk bloke: round face + pint-tilt)
+  {
+    const X = ox + cm.px * ts, Y = oy + cm.py * ts;
+    ctx.save();
+    ctx.translate(X, Y);
+    const mouth = (Math.floor(performance.now() / 120) % 2) ? 0.55 : 0.18;
+    const ang = Math.atan2(cm.dir[1], cm.dir[0]);
+    ctx.rotate(ang);
+    ctx.fillStyle = "#f5d76e";
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, ts * 0.52, mouth, Math.PI * 2 - mouth);
+    ctx.closePath();
+    ctx.fill();
+    // pint in hand
+    ctx.rotate(-ang);
+    ctx.font = (ts * 0.5) + "px serif";
+    ctx.fillText("🍺", ts * 0.34, ts * 0.30);
+    ctx.restore();
+  }
+  // ghosts (the lads)
+  for (const g of cm.ghosts){
+    if (cm.releaseT < g.release) continue;
+    const X = ox + g.x * ts, Y = oy + g.y * ts;
+    ctx.save();
+    ctx.translate(X, Y);
+    const wob = Math.sin(performance.now() / 150 + g.wobble) * 0.08;
+    ctx.rotate(wob);
+    // body
+    ctx.fillStyle = g.frightened ? (cm.fright < 2 && (Math.floor(performance.now() / 180) % 2) ? "#ffffff" : "#4a6fe3") : g.def.color;
+    ctx.beginPath();
+    ctx.arc(0, -ts * 0.08, ts * 0.42, Math.PI, 0);
+    ctx.lineTo(ts * 0.42, ts * 0.3);
+    // wavy skirt
+    for (let i = 0; i < 3; i++){
+      ctx.quadraticCurveTo(ts * (0.42 - 0.28 * i - 0.14), ts * 0.42, ts * (0.42 - 0.28 * (i + 1)), ts * 0.3);
+    }
+    ctx.closePath();
+    ctx.fill();
+    // eyes
+    ctx.fillStyle = "#fff";
+    ctx.beginPath(); ctx.arc(-ts * 0.15, -ts * 0.1, ts * 0.11, 0, 7); ctx.arc(ts * 0.15, -ts * 0.1, ts * 0.11, 0, 7); ctx.fill();
+    ctx.fillStyle = "#222";
+    const lookX = g.dir[0] * ts * 0.05, lookY = g.dir[1] * ts * 0.05;
+    ctx.beginPath(); ctx.arc(-ts * 0.15 + lookX, -ts * 0.1 + lookY, ts * 0.055, 0, 7); ctx.arc(ts * 0.15 + lookX, -ts * 0.1 + lookY, ts * 0.055, 0, 7); ctx.fill();
+    // name tag for landlord only
+    if (g.def.name === "THE LANDLORD"){
+      ctx.fillStyle = "#fff"; ctx.font = (ts * 0.3) + "px sans-serif"; ctx.textAlign = "center";
+      ctx.fillText("🧔", 0, -ts * 0.45);
+    }
+    ctx.restore();
+  }
+  // bonus egg handled above; particles
+  for (const p of cm.particles){
+    ctx.globalAlpha = Math.min(1, p.t);
+    ctx.fillStyle = p.color || "#e8d9b0";
+    ctx.fillRect(p.x * ts - 2, p.y * ts - 2, 4, 4);
+  }
+  ctx.globalAlpha = 1;
+  for (const t of cm.texts){
+    ctx.globalAlpha = Math.min(1, t.t);
+    ctx.fillStyle = t.color || "#ffd66e";
+    ctx.font = "700 " + Math.max(11, ts * 0.5) + "px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(t.txt, ox + t.x * ts, oy + t.y * ts - (1.2 - t.t) * 14);
+  }
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}
+function crapmanBankWalk(){
+  if (!cm.on || cm.done) return;
+  const banked = Math.max(0, Math.floor(cm.score + cm.eaten * 10));
+  crapmanEnd(banked);
+}
+function crapmanEnd(banked){
+  cmStop(); cm.done = true; cmSaveHigh(banked);
+  cmShow(false); showScreen("table");
+  if (banked > 0){
+    addScore(banked, "CRAP MAN BANKED", "devoured " + cm.eaten + " beer mats before last bin");
+    setVerdict('<div class="verdict-line wave-clear">💩 CRAP MAN BANKED — +' + banked + '</div><div class="verdict-sub">TABLE RESUMES. ' + (cm.eaten >= 140 ? "THE FLOOR IS SPOTLESS. WITCHCRAFT." : "THE LADS ARE RUBBING THEIR EYES.") + '</div>');
+  } else {
+    setVerdict('<div class="verdict-line wave-clear">💩 CRAP MAN — THE LADS GOT YOU</div><div class="verdict-sub">TABLE RESUMES. WALK IT OFF, CHAMPION.</div>');
+  }
+  AudioFX.resumeMusic(); renderNextButton(); try { updateBonusPill(); } catch(e){}
+}
+function crapmanBack(){
+  AudioFX.click();
+  if (cm.on && cm.mid){ crapmanBankWalk(); return; }
+  cmStop(); cmShow(false); showScreen("title");
+}
+/* --- crapman trigger: joins the wave-clear rotation (once per game) --- */
+function maybeTriggerCrapman(){
+  if (game.crapmanOffered || game.phase === "over") return;
+  if (game.wave >= 3 && Math.random() < 0.4){ game.crapmanOffered = true; offerBonus("crapman"); bonusToast("💩 CRAP MAN: THE PUB'S LOCKED. FINISH THE ROUND TO GET IN…"); }
+}
+
 /* ---------- jukebox-78-r87: Jukebox Sabotage ---------- */
 const JB_LS_KEY = "spoons.high.jukebox";
 const JB_TRACK_NAMES = [
@@ -11135,7 +11673,7 @@ let FI = {
   ufo:null, ufoTimer:0, direction:1, stepTimer:0, stepInterval:850,
   marchOffset:0, wobble:0, moveHeld:0,
   rowCounts:[5,5,5,5,5],
-  lives:1,
+  lives:3, invuln:0,
   score:0,
   wave:1,
   boss:null, bossHit:0,
@@ -11143,7 +11681,7 @@ let FI = {
   over:false,
   cleared:false,
   lastShot:0,
-  shotCooldown:280,
+  shotCooldown:210,
 };
 
 const FI_COLS = 11;
@@ -11153,7 +11691,7 @@ const FI_SHIELD_H = 42;
 
 function fiLog(t){ const e = el("fiLog"); if (e) e.textContent = t; }
 function fiTopbar(){
-  const e = el("fiTopbar"); if (e) e.textContent = "SCORE " + FI.score + " · WAVE " + FI.wave + " · BANKED " + fi.banked;
+  const e = el("fiTopbar"); if (e) e.textContent = "SCORE " + FI.score + " · WAVE " + FI.wave + " · 💗" + FI.lives + " · BANKED " + fi.banked;
 }
 function fiShow(on_){
   const s = el("screen-fartinvaders");
@@ -11177,7 +11715,7 @@ function fiReset(){
   FI.ufo = null; FI.ufoTimer = 0;
   FI.direction = 1; FI.stepTimer = 0; FI.stepInterval = 850; FI.marchOffset = 0;
   FI.rowCounts = [FI_COLS, FI_COLS, FI_COLS, FI_COLS, FI_COLS];
-  FI.lives = 1; FI.score = 0; FI.wave = 1; FI.over = false; FI.cleared = false;
+  FI.lives = 3; FI.score = 0; FI.wave = 1; FI.over = false; FI.cleared = false;
   FI.moveHeld = 0; fi.keys.left = false; fi.keys.right = false;
   FI.milestones = {};
   fi.score = 0; fi.wave = 1; fi.banked = 0;
@@ -11307,17 +11845,30 @@ function fiFire(){
   FI.playerJiggle = 12;
   FI.ballRecoil = 8;
   const spread = (Math.random() - 0.5) * 0.008;
-  FI.bullets.push({ x: FI.playerX, y: fi.height - FI.playerH - 10, vy: -fi.height * (0.013 + spread), alive: true });
+  FI.bullets.push({ x: FI.playerX, y: fi.height - FI.playerH - 10, vy: -fi.height * (0.016 + spread), alive: true });
 }
 
 function fiDie(reason){
   if (FI.over) return;
+  FI.lives--;
+  if (FI.lives > 0){
+    FI.bombs = [];
+    for (const inv of FI.invaders){ if (inv.dive){ inv.dive = 0; inv.x = inv.baseX; inv.y = inv.baseY; } }
+    FI.invuln = 1800;
+    FI.playerX = fi.width / 2;
+    fiCombo("💗 LIFE LOST — " + FI.lives + " LEFT");
+    AudioFX.lose();
+    fiSplatterFull();
+    fiTopbar();
+    return;
+  }
   FI.over = true;
   cancelAnimationFrame(fi.raf); fi.raf = 0;
   AudioFX.lose();
   fiSplatterFull();
+  fi.banked = Math.floor((FI.score + FI.wave * 25) / 2);
   const banner = el("fiBossBanner");
-  if (banner){ banner.textContent = reason || "THE TURDS TOOK THE BOG"; banner.classList.add("show"); }
+  if (banner){ banner.textContent = (reason || "THE TURDS TOOK THE BOG") + " — BANKED " + fi.banked; banner.classList.add("show"); }
   setTimeout(() => {
     if (banner) banner.classList.remove("show");
     if (fi.mid) fiMidGameEnd(false);
@@ -11396,6 +11947,7 @@ function fiUpdate(now){
   if (steer) fiMovePlayer(steer, dt);
 
   // update timers
+  if (FI.invuln > 0) FI.invuln -= dt;
   if (FI.playerJiggle > 0) FI.playerJiggle = Math.max(0, FI.playerJiggle - dt * 0.06);
   if (FI.ballRecoil > 0) FI.ballRecoil = Math.max(0, FI.ballRecoil - dt * 0.06);
 
@@ -11429,7 +11981,7 @@ function fiUpdate(now){
         for (const inv of FI.invaders) if (inv.alive && !inv.dive) inv.baseY += inv.h * 0.45;
       }
       // dive bomber launch: bottom-row invaders sometimes peel off and swoop
-      if (Math.random() < 0.10 + Math.min(0.25, FI.wave * 0.03)){
+      if (Math.random() < 0.07 + Math.min(0.16, FI.wave * 0.02)){
         const divers = alive.filter(i => i.row >= 2 && !i.dive);
         if (divers.length){
           const diver = divers[Math.floor(Math.random() * divers.length)];
@@ -11448,11 +12000,11 @@ function fiUpdate(now){
       inv.x += (targetX - inv.x) * 0.04;
       inv.y += (targetY - inv.y) * 0.03;
       // drop a bomb mid-dive
-      if (inv.diveT > 400 && inv.diveT < 1200 && Math.random() < 0.04){
+      if (inv.diveT > 400 && inv.diveT < 1200 && Math.random() < 0.025){
         FI.bombs.push({ x: inv.x, y: inv.y + inv.h/2, vy: fi.height * 0.006, alive: true });
       }
       // diver reaches low line or near player → kamikaze
-      if (inv.y >= fi.height - FI.playerH - 16 || (Math.abs(inv.x - FI.playerX) < FI.playerW && inv.y > fi.height * 0.82)){
+      if (FI.invuln <= 0 && (inv.y >= fi.height - FI.playerH - 16 || (Math.abs(inv.x - FI.playerX) < FI.playerW && inv.y > fi.height * 0.82))){
         fiDie("A TURD KAMIKAZED YOUR COCK");
         return;
       }
@@ -11492,7 +12044,7 @@ function fiUpdate(now){
       inv.bombTimer -= dt;
       if (inv.bombTimer <= 0){
         // lower rows more likely to drop; random column near player
-        const chance = 0.003 + (FI_ROWS - inv.row) * 0.001;
+        const chance = 0.002 + (FI_ROWS - inv.row) * 0.0008;
         if (Math.random() < chance){
           FI.bombs.push({ x: inv.x, y: inv.y + inv.h/2, vy: fi.height * 0.005, alive: true });
         }
@@ -11505,7 +12057,7 @@ function fiUpdate(now){
     b.y += b.vy;
     if (b.y > fi.height){ FI.bombs.splice(i,1); continue; }
     // hit player
-    if (Math.abs(b.x - FI.playerX) < FI.playerW/2 + 4 && Math.abs(b.y - (fi.height - FI.playerH/2)) < FI.playerH/2 + 6){
+    if (FI.invuln <= 0 && Math.abs(b.x - FI.playerX) < FI.playerW/2 + 4 && Math.abs(b.y - (fi.height - FI.playerH/2)) < FI.playerH/2 + 6){
       fiDie("DIRECT HIT ON THE COCK");
       return;
     }
@@ -11582,7 +12134,7 @@ function fiUpdate(now){
   }
 
   // lose: invaders reached bottom line
-  for (const inv of FI.invaders){
+  if (FI.invuln <= 0) for (const inv of FI.invaders){
     if (inv.alive && inv.y + inv.h/2 >= fi.height - FI.playerH - 16){
       fiDie("THE TURDS LANDED");
       return;
@@ -11602,7 +12154,7 @@ function fiSpeedUp(){
   const alive = FI.invaders.filter(i => i.alive).length;
   const total = FI_COLS * FI_ROWS;
   // classic: speed increases as invaders die
-  const factor = 1 + (total - alive) / total * 2.2;
+  const factor = 1 + (total - alive) / total * 1.8;
   FI.stepInterval = Math.max(140, Math.floor((850 - (FI.wave - 1) * 80) / factor));
 }
 function fiTurdColor(type){
@@ -11904,6 +12456,15 @@ function renderBonusScratch(){
       let out = "";
       for (let k = 0; k < 4; k++) out += '<i class="' + (k < w ? "on" : "") + '"\u003e' + (k < w ? "█" : "·") + "</i>";
       bwP.innerHTML = out;
+    }
+    const cmS = document.getElementById("scratchCrapman");
+    if (cmS) cmS.classList.toggle("arm", pendingBonus.queue.indexOf("crapman") !== -1);
+    const cmP = document.getElementById("cmPips");
+    if (cmP){
+      const w = Math.min(4, Math.max(0, (game.wave || 1) - 2));
+      let out = "";
+      for (let k = 0; k < 4; k++) out += '<i class="' + (k < w ? "on" : "") + '">' + (k < w ? "█" : "·") + "</i>";
+      cmP.innerHTML = out;
     }
     const fiS = document.getElementById("scratchFartInvaders");
     if (fiS) fiS.classList.toggle("arm", pendingBonus.queue.indexOf("fartinvaders") !== -1);
@@ -13136,7 +13697,8 @@ startArcadeRunForPlayer = function(player){
     fartinvaders:  { name: "FART INVADERS",   emoji: "🚀", desc: "One life. Slide the cock cannon and blast the turd army before they land. Wave clear = BUM ATTACK." },
     whacka:        { name: "WHACKA DRUNK",    emoji: "🍺", desc: "Whack the lads as they pop from behind the bar. Wave clear = DOOR DUTY." },
     bogwall:       { name: "BOG WALL",        emoji: "✍️", desc: "Ink graffiti on the cubicle wall before the timer dies. Landlord bust-in ends it. WAVE CLEAR = WALL ART." },
-    pintstack:     { name: "PINT STACK",      emoji: "🥛", desc: "Catch falling pints and stack the tray. Wobble physics, drunk leans. CLEAR = TRAY TOWER." }
+    pintstack:     { name: "PINT STACK",      emoji: "🥛", desc: "Catch falling pints and stack the tray. Wobble physics, drunk leans. CLEAR = TRAY TOWER." },
+    crapman:       { name: "CRAP MAN",        emoji: "💩", desc: "The pub's locked at last orders. Chomp every beer mat, grab swift halves and GOB the lads. Bank before the landlord gets you." }
   };
   let sheet = document.getElementById("skillSheet");
   let pipsCache = {};
@@ -13153,7 +13715,7 @@ startArcadeRunForPlayer = function(player){
     document.getElementById("skillSheetName").textContent = s.name;
     document.getElementById("skillSheetDesc").textContent = s.desc;
     // live progress pips from the strip's own pip element:
-    const map = { fartoff:"foPips", bogroll:"brPips", fartinvaders:"fiPips", whacka:"whackaPips", bogwall:"bwPips", pintstack:"psPips" };
+    const map = { fartoff:"foPips", bogroll:"brPips", fartinvaders:"fiPips", whacka:"whackaPips", bogwall:"bwPips", pintstack:"psPips", crapman:"cmPips" };
     const p = document.getElementById("skillSheetPips");
     if (p) p.innerHTML = pipsOf(map[key] || "");
     el.classList.remove("hidden");
@@ -13171,7 +13733,7 @@ startArcadeRunForPlayer = function(player){
   // mirror arm-state from scratch ids onto chips (existing code toggles .arm on scratch*)
   try {
     const orig = MutationObserver;
-    ["scratchFart","scratchBog","scratchFartInvaders","scratchWhacka","scratchBogwall","scratchPintstack"].forEach(id => {
+    ["scratchFart","scratchBog","scratchFartInvaders","scratchWhacka","scratchBogwall","scratchPintstack","scratchCrapman"].forEach(id => {
       const src = document.getElementById(id);
       if (!src) return;
       new MutationObserver(() => {
