@@ -596,7 +596,7 @@ header#hud{
   #bwCanvasWrap{height:min(48dvh,340px)}
 }
 
-/* ---------- fi-easy-82-r99: CRAP MAN ---------- */
+/* ---------- fi-smooth-83-r100: CRAP MAN ---------- */
 .cm-wrap{justify-content:flex-start;padding-top:max(12px, env(safe-area-inset-top));padding-bottom:max(10px, env(safe-area-inset-bottom))}
 .cm-hud{display:flex;gap:14px;justify-content:center;font-size:12px;letter-spacing:1px;color:var(--gold);margin:6px 0 4px}
 .cm-hud span b{min-width:24px;display:inline-block}
@@ -5537,7 +5537,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = 'fi-easy-82-r99';
+  const BUILD_STAMP = 'fi-smooth-83-r100';
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -10557,7 +10557,7 @@ function pintstackBack(){
 
 
 
-/* ---------- fi-easy-82-r99: CRAP MAN — last-orders lock-in maze ---------- */
+/* ---------- fi-smooth-83-r100: CRAP MAN — last-orders lock-in maze ---------- */
 const CM_LS_KEY = "spoons.high.crapman";
 const CM_MAP = [
   "#####################",
@@ -11898,8 +11898,10 @@ function fiWaveCleared(){
 function fiCombo(txt){
   const c = el("fiCombo");
   if (!c) return;
-  c.textContent = txt;
-  c.classList.remove("show"); void c.offsetWidth; c.classList.add("show");
+  if (c.textContent !== txt) {
+    c.textContent = txt;
+    c.classList.remove("show"); void c.offsetWidth; c.classList.add("show");
+  }
   setTimeout(() => c.classList.remove("show"), 900);
 }
 function fiMilestone(score){
@@ -12040,7 +12042,7 @@ function fiUpdate(now){
   // bombs
   if (!FI.cleared){
     for (const inv of FI.invaders){
-      if (!inv.alive) continue;
+      if (!inv.alive || FI.bombs.length > 14) continue;
       inv.bombTimer -= dt;
       if (inv.bombTimer <= 0){
         // lower rows more likely to drop; random column near player
@@ -12161,16 +12163,17 @@ function fiTurdColor(type){
   return type === "squatter" ? "#8d6e63" : type === "medium" ? "#6d4c41" : "#4e342e";
 }
 function fiSplatParticles(x, y, color, count, big){
+  if (FI.particles.length > 120) FI.particles.length = 90;
   for (let k=0;k<count;k++){
     const ang = Math.random() * Math.PI * 2;
     const spd = (big ? 2.5 : 1.5) + Math.random() * (big ? 4.5 : 3.5);
     FI.particles.push({ x:x, y:y, vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd - (big ? 2.2 : 1), life:big ? 1.4 : 1, size:(big ? 5 : 2)+Math.random()*(big ? 8 : 5), color:color });
   }
   const wrap = el("fiCanvasWrap");
-  if (wrap){
+  if (wrap && big){
     wrap.classList.remove("shake-soft","shake-hard"); void wrap.offsetWidth;
-    wrap.classList.add(big ? "shake-hard" : "shake-soft");
-    setTimeout(() => wrap.classList.remove("shake-soft","shake-hard"), big ? 360 : 220);
+    wrap.classList.add("shake-hard");
+    setTimeout(() => wrap.classList.remove("shake-soft","shake-hard"), 360);
   }
   if (big) AudioFX.megaFart(2); else AudioFX.fart();
 }
