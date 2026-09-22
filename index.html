@@ -5426,7 +5426,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = 'fart-pack-79-r89';
+  const BUILD_STAMP = 'fart-pack-79-r90';
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -5754,12 +5754,24 @@ const AudioFX = (() => {
   const FI_SHOT_POOL = [];
   const FI_SHOT_POOL_SIZE = 6;
   let fiShotIdx = 0;
-  let FART_CLONE_POOL = []; let fartCloneIdx = 0;
+  let FART_CLONE_POOL = []; let fartCloneIdx = 0; let fartLazyIdx = 0;
   function preloadFarts(){
     if (FART_POOL.length || !FART_FILES.length) return;
-    FART_FILES.forEach(src => { try { const a = new Audio(src); a.preload = "auto"; a.load(); FART_POOL.push(a); } catch(e){} });
-    // prebuilt round-robin clones (2 per file) — no per-shot element creation
-    FART_FILES.forEach(src => { for (let k = 0; k < 2; k++){ try { const a = new Audio(src); a.preload = "auto"; a.load(); FART_CLONE_POOL.push(a); } catch(e){} } });
+    // iOS freeze fix: start with 6 files × 2 clones = 12 elements (not 60);
+    // the rest trickle in one-at-a-time below so the media pipeline never floods
+    const START = 6, CLONES = 2;
+    const first = FART_FILES.slice(0, START);
+    first.forEach(src => { try { const a = new Audio(src); a.preload = "auto"; a.load(); FART_POOL.push(a); } catch(e){} });
+    first.forEach(src => { for (let k = 0; k < CLONES; k++){ try { const a = new Audio(src); a.preload = "auto"; a.load(); FART_CLONE_POOL.push(a); } catch(e){} } });
+    const extendOne = () => {
+      if (fartLazyIdx >= FART_FILES.length) return;
+      const src = FART_FILES[fartLazyIdx++];
+      try { const a = new Audio(src); a.preload = "auto"; a.load(); FART_POOL.push(a);
+        const c = new Audio(src); c.preload = "auto"; c.load(); FART_CLONE_POOL.push(c);
+      } catch(e){}
+      if (fartLazyIdx < FART_FILES.length) setTimeout(extendOne, 1500);
+    };
+    setTimeout(extendOne, 4000);
   }
   function preloadMegas(){
     if (MEGA_POOL.length) return;
@@ -5926,7 +5938,7 @@ function nextTrackIdx(){ // random next, never the same SONG in a row (ext+short
     get master(){ return muted ? 0 : 1; },
     get sfx(){ return muted ? 0 : 1; },
     unlock(){
-      ac(); silentKick(); preloadFarts(); preloadFiShots();
+      ac(); silentKick(); preloadFiShots(); // FART pools load lazily on game start (boot-time bulk load froze iOS)
       // iOS: the physical silent switch silences WebAudio unless the page holds an
       // active <audio> media session. Open a silent looping one inside the first gesture.
       try {
@@ -8809,10 +8821,23 @@ const FO_TAUNTS = [
   "THAT'S NOT A TRUMP, THAT'S A WHISPER FROM A SPARROW'S BUM!"
 ];
 let FO_CLONE_POOL = []; let foCloneIdx = 0;
+let foLazyIdx = 0;
 function foPreload(){
   if (FO_POOL.length || !FO_FILES.length) return;
-  FO_FILES.forEach(src => { try { const a = new Audio(src); a.preload = "auto"; a.load(); FO_POOL.push(a); } catch(e){} });
-  FO_FILES.forEach(src => { for (let k = 0; k < 2; k++){ try { const a = new Audio(src); a.preload = "auto"; a.load(); FO_CLONE_POOL.push(a); } catch(e){} } });
+  // iOS freeze fix: 8 files × 2 clones to start, rest trickle in one per 1.5s
+  const START = 8, CLONES = 2;
+  const first = FO_FILES.slice(0, START);
+  first.forEach(src => { try { const a = new Audio(src); a.preload = "auto"; a.load(); FO_POOL.push(a); } catch(e){} });
+  first.forEach(src => { for (let k = 0; k < CLONES; k++){ try { const a = new Audio(src); a.preload = "auto"; a.load(); FO_CLONE_POOL.push(a); } catch(e){} } });
+  const extendOne = () => {
+    if (foLazyIdx >= FO_FILES.length) return;
+    const src = FO_FILES[foLazyIdx++];
+    try { const a = new Audio(src); a.preload = "auto"; a.load(); FO_POOL.push(a);
+      const c = new Audio(src); c.preload = "auto"; c.load(); FO_CLONE_POOL.push(c);
+    } catch(e){}
+    if (foLazyIdx < FO_FILES.length) setTimeout(extendOne, 1500);
+  };
+  setTimeout(extendOne, 4000);
 }
 const fo = { on:false, holding:false, holdStart:0, meter:0, raf:0, you:0, ai:0, busy:false, mid:false, epoch:0, tauntIdx:0 };
 function foShow(on_){
