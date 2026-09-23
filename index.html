@@ -596,7 +596,7 @@ header#hud{
   #bwCanvasWrap{height:min(48dvh,340px)}
 }
 
-/* ---------- fi-sprites-84-r102: CRAP MAN ---------- */
+/* ---------- fi-crt-85-r103: CRAP MAN ---------- */
 .cm-wrap{justify-content:flex-start;padding-top:max(12px, env(safe-area-inset-top));padding-bottom:max(10px, env(safe-area-inset-bottom))}
 .cm-hud{display:flex;gap:14px;justify-content:center;font-size:12px;letter-spacing:1px;color:var(--gold);margin:6px 0 4px}
 .cm-hud span b{min-width:24px;display:inline-block}
@@ -4087,10 +4087,10 @@ header#hud .score > *:not(#scoreChip):not(.combo):not(#bonusPill){
   inset:0;
   pointer-events:none;
   z-index:20;
-  background:
-    radial-gradient(circle at 50% 50%, rgba(30,40,55,.12) 0%, rgba(0,0,0,.55) 85%),
-    repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0px, rgba(0,0,0,.18) 1px, transparent 1px, transparent 3px);
-  mix-blend-mode:multiply;
+  /* r103 iOS: mix-blend-mode + repeating 1px gradients over an animating canvas
+     force WebKit off the GPU path (per-frame readback) = phone-side freeze.
+     Static vignette only, normal blending. */
+  background:radial-gradient(circle at 50% 50%, rgba(30,40,55,.10) 0%, rgba(0,0,0,.45) 85%);
 }
 .fi-canvas-wrap::after{
   content:"";
@@ -5537,7 +5537,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = 'fi-sprites-84-r102';
+  const BUILD_STAMP = 'fi-crt-85-r103';
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -10564,7 +10564,7 @@ function pintstackBack(){
 
 
 
-/* ---------- fi-sprites-84-r102: CRAP MAN — last-orders lock-in maze ---------- */
+/* ---------- fi-crt-85-r103: CRAP MAN — last-orders lock-in maze ---------- */
 const CM_LS_KEY = "spoons.high.crapman";
 const CM_MAP = [
   "#####################",
