@@ -596,7 +596,7 @@ header#hud{
   #bwCanvasWrap{height:min(48dvh,340px)}
 }
 
-/* ---------- fi-diag-87-r105: CRAP MAN ---------- */
+/* ---------- fi-wab-88-r106: CRAP MAN ---------- */
 .cm-wrap{justify-content:flex-start;padding-top:max(12px, env(safe-area-inset-top));padding-bottom:max(10px, env(safe-area-inset-bottom))}
 .cm-hud{display:flex;gap:14px;justify-content:center;font-size:12px;letter-spacing:1px;color:var(--gold);margin:6px 0 4px}
 .cm-hud span b{min-width:24px;display:inline-block}
@@ -5537,7 +5537,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = 'fi-diag-87-r105';
+  const BUILD_STAMP = 'fi-wab-88-r106';
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -5837,6 +5837,38 @@ const statByKey = key => STATS.find(s => s.key === key);
 /* 0.1s of silence as a data URI — keeps an <audio> media session alive on iOS,
    bypassing the physical silent switch for WebAudio. */
 const FART_FILES = ["sfx/fart-wet-church.mp3", "sfx/fart-big-wet.mp3", "sfx/gut-rumble.mp3", "sfx/fart-alt.mp3", "sfx/fart-bad-chili.mp3", "sfx/fart-chair.mp3", "sfx/fart-computer.mp3", "sfx/fart-crazy.mp3", "sfx/fart-innocent.mp3", "sfx/fart-pig.mp3", "sfx/fart-push.mp3", "sfx/fart-real.mp3", "sfx/fart-reverb.mp3", "sfx/fart-s1.mp3", "sfx/fart-s2.mp3", "sfx/fart-s3.mp3", "sfx/fart-s4.mp3", "sfx/fart-s5.mp3", "sfx/fart-trumpet.mp3", "sfx/fart-wav506.mp3"];
+
+/* ===== r106 WEBAUDIO SFX: decode-once buffers, zero <audio> element pressure.
+   iOS WebKit chokes when many Audio elements play() simultaneously (each grabs
+   the media pipeline); BufferSource playback is hardware-mixed and immune. ===== */
+const WAB = { buf: {}, loading: {}, ctx: null, maxVoices: 10, voices: [] };
+function wabCtx(){ try { return AudioFX.ac(); } catch(e){ return null; } } // r106: ac() is closure-private
+function wabLoad(name, src){
+  if (WAB.buf[src]) return Promise.resolve(WAB.buf[src]);
+  if (WAB.loading[src]) return WAB.loading[src];
+  const c = wabCtx(); if (!c) return Promise.reject("no ctx");
+  WAB.loading[src] = fetch(src).then(r => r.arrayBuffer()).then(ab => c.decodeAudioData(ab)).then(b => { WAB.buf[src] = b; delete WAB.loading[src]; return b; }).catch(() => { delete WAB.loading[src]; return null; });
+  return WAB.loading[src];
+}
+function wabPlay(src, rate, vol){
+  const c = wabCtx(); if (!c || AudioFX.master === 0) return false; // r106: muted is closure-private
+  const b = WAB.buf[src]; if (!b) return false;
+  // voice cap: steal the oldest voice if at limit
+  if (WAB.voices.length >= WAB.maxVoices){ const v0 = WAB.voices.shift(); try { v0.stop(); } catch(e){} }
+  try {
+    const s = c.createBufferSource(); s.buffer = b;
+    s.playbackRate.value = rate || 1;
+    const g = c.createGain(); g.gain.value = vol == null ? 1 : vol;
+    s.connect(g); g.connect(c.destination);
+    s.onended = () => { const ix = WAB.voices.indexOf(s); if (ix >= 0) WAB.voices.splice(ix, 1); };
+    s.start();
+    WAB.voices.push(s);
+    return true;
+  } catch(e){ return false; }
+}
+window.WAB = WAB; window.wabPlay = wabPlay; window.wabWarm = wabWarm;
+function wabWarm(list){ const c = wabCtx(); if (!c) return; list.forEach(s => wabLoad(s, s)); }
+
 const MEGA_LONG_FILES = ["sfx/mega-long.mp3","sfx/mega-epic.mp3","sfx/mega-agonized.mp3","sfx/mega-cavern.mp3"];
 const MEGA_COMEDY_FILES = ["sfx/belch-disgusting.mp3", "sfx/belch-gross-long.mp3", "sfx/burps-assorted.mp3", "sfx/beer-slurp.mp3", "sfx/mega-oldman.mp3","sfx/mega-groan.mp3","sfx/mega-grandad.mp3","sfx/mega-burp.mp3","sfx/mega-juicy.mp3"];
 const MEGA_TOON_FILES = ["sfx/mega-toon1.mp3","sfx/mega-toon2.mp3","sfx/mega-toon3.mp3","sfx/mega-toon4.mp3","sfx/mega-short1.mp3"];
@@ -6079,6 +6111,7 @@ function nextTrackIdx(){ // random next, never the same SONG in a row (ext+short
       // AudioContext resume + silent media session. 16 audio element creations
       // inside the tap frame froze iOS at the FI title.
       ac(); silentKick();
+      try { if (typeof FI_SND_FILES !== "undefined") FI_SND_FILES.forEach(s => wabLoad(s, s)); } catch(e){}
       try {
         if (!mediaAudio || mediaAudio.__failed){
           mediaAudio = { __creating: true };
@@ -10588,7 +10621,7 @@ function pintstackBack(){
 
 
 
-/* ---------- fi-diag-87-r105: CRAP MAN — last-orders lock-in maze ---------- */
+/* ---------- fi-wab-88-r106: CRAP MAN — last-orders lock-in maze ---------- */
 const CM_LS_KEY = "spoons.high.crapman";
 const CM_MAP = [
   "#####################",
@@ -11888,7 +11921,11 @@ function fiFire(){
   const now = performance.now();
   if (now - FI.lastShot < FI.shotCooldown) return;
   FI.lastShot = now;
-  AudioFX.fartShot();
+  /* r106: shot via WebAudio buffer, zero element pressure (autofire hammers this) */
+  if (!wabPlay("sfx/fart-s1.mp3", 1.5 + Math.random() * 0.25, 0.85)){
+    AudioFX.fartShot(); // fallback until buffer decoded (warm below)
+    wabLoad("sfx/fart-s1.mp3", "sfx/fart-s1.mp3");
+  }
   // jiggle + recoil
   FI.playerJiggle = 12;
   FI.ballRecoil = 8;
@@ -12228,8 +12265,21 @@ function fiSplatParticles(x, y, color, count, big){
     wrap.classList.add("shake-hard");
     setTimeout(() => wrap.classList.remove("shake-soft","shake-hard"), 360);
   }
-  if (big) AudioFX.megaFart(2); else AudioFX.fart();
+  /* r106: FI kill sounds via WebAudio buffers (no Audio elements in the media
+     pipeline) + 250ms throttle — overlapping kills were stacking concurrent mp3
+     plays until iOS's media pipeline stalled. */
+  const kw = performance.now();
+  if (kw - (FI.__lastKillSnd || 0) > 250){
+    FI.__lastKillSnd = kw;
+    const kf = big ? ["sfx/mega-toon1.mp3","sfx/mega-short1.mp3"] : ["sfx/mega-short1.mp3","sfx/fart-s1.mp3"];
+    if (!wabPlay(kf[Math.floor(Math.random()*kf.length)], 0.9 + Math.random()*0.4, big ? 0.95 : 0.8)){
+      // buffers not decoded yet → fall back, and warm for next time
+      try { big ? AudioFX.fartShot() : AudioFX.fart(); } catch(e){}
+      wabWarm(FI_SND_FILES);
+    }
+  }
 }
+const FI_SND_FILES = ["sfx/mega-toon1.mp3","sfx/mega-toon2.mp3","sfx/mega-short1.mp3","sfx/fart-s1.mp3"];
 
 function fiRender(){
   const ctx = fiCtx;
@@ -12296,7 +12346,7 @@ function fiRender(){
 
   // jizz bolts
   for (const b of FI.bullets){
-    ctx.drawImage(FI_BULLET_SPRITE, b.x - 8, b.y - 12);
+    ctx.drawImage(fiBulletSprite(), b.x - 8, b.y - 12); // r106: lazy build, was null-var drawImage throw
   }
 
   // bombs (turd drops)
@@ -12467,8 +12517,11 @@ function fiMidGameStart(){
   fiRender(); // first frame immediately
   fi.raf = requestAnimationFrame(fiUpdate);
   fiSubUpdate();
-  // warm pools AFTER first paint (Kimi r104)
-  requestAnimationFrame(() => { try { preloadFarts(); preloadFiShots(); } catch(e){} });
+  // warm pools AFTER first paint (Kimi r104) + r106 WebAudio buffers
+  requestAnimationFrame(() => {
+    try { preloadFarts(); preloadFiShots(); } catch(e){}
+    try { FI_SND_FILES.forEach(s => wabLoad(s, s)); } catch(e){}
+  });
 }
 function fiMidGameEnd(won){
   fi.mid = false;
@@ -12519,7 +12572,10 @@ function openFartInvaders(){
   fiRender(); // draw first frame immediately — never show stale title HTML
   fi.raf = requestAnimationFrame(fiUpdate);
   // warm pools AFTER first paint, never inside the tap frame
-  requestAnimationFrame(() => { try { preloadFarts(); preloadFiShots(); } catch(e){} });
+  requestAnimationFrame(() => {
+    try { preloadFarts(); preloadFiShots(); } catch(e){}
+    try { FI_SND_FILES.forEach(s => wabLoad(s, s)); } catch(e){}
+  });
 }
 
 function renderBonusScratch(){
