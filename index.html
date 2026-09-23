@@ -596,7 +596,7 @@ header#hud{
   #bwCanvasWrap{height:min(48dvh,340px)}
 }
 
-/* ---------- fi-sfx-89-r107: CRAP MAN ---------- */
+/* ---------- fi-autofi-90-r108: CRAP MAN ---------- */
 .cm-wrap{justify-content:flex-start;padding-top:max(12px, env(safe-area-inset-top));padding-bottom:max(10px, env(safe-area-inset-bottom))}
 .cm-hud{display:flex;gap:14px;justify-content:center;font-size:12px;letter-spacing:1px;color:var(--gold);margin:6px 0 4px}
 .cm-hud span b{min-width:24px;display:inline-block}
@@ -5537,7 +5537,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = 'fi-sfx-89-r107';
+  const BUILD_STAMP = 'fi-autofi-90-r108';
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -10639,7 +10639,7 @@ function pintstackBack(){
 
 
 
-/* ---------- fi-sfx-89-r107: CRAP MAN — last-orders lock-in maze ---------- */
+/* ---------- fi-autofi-90-r108: CRAP MAN — last-orders lock-in maze ---------- */
 const CM_LS_KEY = "spoons.high.crapman";
 const CM_MAP = [
   "#####################",
@@ -13514,6 +13514,14 @@ refreshBests();
 updatePlayingAt();
 ensureSignup();
 renderWelcomeBack();
+
+// r108 debug: ?fi=1 auto-launches Fart Invaders (device/CI reproduction)
+try {
+  if ((new URLSearchParams(location.search)).get("fi") === "1"){
+    setTimeout(() => { offerBonus("fartinvaders"); maybePendingBonus(); }, 400);
+  }
+} catch(e){}
+
 syncDown().then(ok => { ensureSignup(); renderWelcomeBack(); if (!ok) boardRead().then(() => { ensureSignup(); renderWelcomeBack(); }).catch(() => {}); });
 updateOrderHint();
 game.demo = false;
