@@ -596,7 +596,7 @@ header#hud{
   #bwCanvasWrap{height:min(48dvh,340px)}
 }
 
-/* ---------- fi-autofi-90-r108: CRAP MAN ---------- */
+/* ---------- fi-errsurf-91-r109: CRAP MAN ---------- */
 .cm-wrap{justify-content:flex-start;padding-top:max(12px, env(safe-area-inset-top));padding-bottom:max(10px, env(safe-area-inset-bottom))}
 .cm-hud{display:flex;gap:14px;justify-content:center;font-size:12px;letter-spacing:1px;color:var(--gold);margin:6px 0 4px}
 .cm-hud span b{min-width:24px;display:inline-block}
@@ -5537,7 +5537,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = 'fi-autofi-90-r108';
+  const BUILD_STAMP = 'fi-errsurf-91-r109';
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -10639,7 +10639,7 @@ function pintstackBack(){
 
 
 
-/* ---------- fi-autofi-90-r108: CRAP MAN — last-orders lock-in maze ---------- */
+/* ---------- fi-errsurf-91-r109: CRAP MAN — last-orders lock-in maze ---------- */
 const CM_LS_KEY = "spoons.high.crapman";
 const CM_MAP = [
   "#####################",
@@ -11801,6 +11801,7 @@ function fiShow(on_){
 }
 
 function fiReset(){
+  try { if (!window.__fiErrors) window.__fiErrors = []; } catch(_){}
   fiInitCanvas();
   if (!fiCtx) { return; } // r104 (Kimi): bounded retry lives in fiInitCanvas; callers guard
 
@@ -12038,6 +12039,8 @@ function fiSplatterFull(){
 }
 
 function fiUpdate(now){
+  var __fierr = null;
+  try {
   if (!fi.on || FI.over) return;
   const dt = Math.min(50, now - fi.lastT);
   /* r105 watchdog: real-time gap since previous frame (unclamped) */
@@ -12252,6 +12255,9 @@ function fiUpdate(now){
   fiTopbar();
   fiWaveCleared();
   fiRender();
+  } catch(e__){
+    try { if (window.__fiErrors){ window.__fiErrors.push(String(e__ && e__.message || e__)); if (window.__fiErrors.length>50) window.__fiErrors.shift(); } } catch(_){}
+  }
   fi.raf = requestAnimationFrame(fiUpdate);
 }
 
@@ -12307,7 +12313,9 @@ function fiRender(){
     ctx.fillStyle = "rgba(0,255,136,.85)";
     ctx.font = "10px monospace";
     ctx.textAlign = "left"; ctx.textBaseline = "top";
-    ctx.fillText("fps~" + (avg ? Math.round(1000/Math.max(1,avg)) : 0) + " avg" + avg + "ms max" + mx + "ms stall" + (FI.__stallCount||0) + " w" + FI.wave + " dpr" + (window.devicePixelRatio||1).toFixed(2) + " " + (fi.width|0) + "x" + (fi.height|0), 6, 4);
+    let diag = "fps~" + (avg ? Math.round(1000/Math.max(1,avg)) : 0) + " avg" + avg + "ms max" + mx + "ms stall" + (FI.__stallCount||0) + " w" + FI.wave + " dpr" + (window.devicePixelRatio||1).toFixed(2) + " " + (fi.width|0) + "x" + (fi.height|0);
+    try { if (window.__fiErrors && window.__fiErrors.length){ diag += " ERR=" + window.__fiErrors[window.__fiErrors.length-1].slice(0,60); } } catch(_){}
+    ctx.fillText(diag, 6, 4);
     ctx.restore();
   } catch(e){}
 
