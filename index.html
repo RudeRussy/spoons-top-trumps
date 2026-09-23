@@ -596,7 +596,7 @@ header#hud{
   #bwCanvasWrap{height:min(48dvh,340px)}
 }
 
-/* ---------- fi-smooth-83-r100: CRAP MAN ---------- */
+/* ---------- fi-sprites-84-r102: CRAP MAN ---------- */
 .cm-wrap{justify-content:flex-start;padding-top:max(12px, env(safe-area-inset-top));padding-bottom:max(10px, env(safe-area-inset-bottom))}
 .cm-hud{display:flex;gap:14px;justify-content:center;font-size:12px;letter-spacing:1px;color:var(--gold);margin:6px 0 4px}
 .cm-hud span b{min-width:24px;display:inline-block}
@@ -5537,7 +5537,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = 'fi-smooth-83-r100';
+  const BUILD_STAMP = 'fi-sprites-84-r102';
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -5855,6 +5855,9 @@ function __spoonsStartShoutTrickle(){
   if (sLazyIdx >= SHOUT_FILES.length) return;
   const step = () => {
     if (sLazyIdx >= SHOUT_FILES.length) return;
+    /* r101 iOS freeze fix: NEVER start a new audio load while a bonus game loop
+       is live — the decode stalls the media pipeline mid-game. Retry in 4s. */
+    if ((typeof fi !== "undefined" && fi.on) || (typeof fo !== "undefined" && fo.on) || document.body.classList.contains("bonus-live")){ setTimeout(step, 4000); return; }
     try { const a = new Audio(SHOUT_FILES[sLazyIdx++]); a.preload = "auto"; a.load(); SHOUT_POOL.push(a); } catch(e){}
     if (sLazyIdx < SHOUT_FILES.length) setTimeout(step, 1500);
   };
@@ -6050,6 +6053,10 @@ function nextTrackIdx(){ // random next, never the same SONG in a row (ext+short
       if (musicWatchdog) clearInterval(musicWatchdog);
       musicWatchdog = setInterval(() => {
         if (!musicOn || muted || document.hidden) return;
+        /* r101: never re-start music while a bonus game is live — the game paused
+           it on purpose (stopMusic); restarting mid-FI = mp3 decode stall every 10s */
+        if (document.body.classList.contains("bonus-live")) return;
+        if ((typeof fi !== "undefined" && fi.on) || (typeof fo !== "undefined" && fo.on)) return;
         if (funkAudio && funkAudio.paused && game.phase !== "title"){
           try { AudioFX.unlock(); } catch(e){}
           tryPlayFunk();
@@ -10557,7 +10564,7 @@ function pintstackBack(){
 
 
 
-/* ---------- fi-smooth-83-r100: CRAP MAN — last-orders lock-in maze ---------- */
+/* ---------- fi-sprites-84-r102: CRAP MAN — last-orders lock-in maze ---------- */
 const CM_LS_KEY = "spoons.high.crapman";
 const CM_MAP = [
   "#####################",
@@ -11655,7 +11662,7 @@ function fiInitCanvas(){
   // perf r96: cap backing store at 1.5 on phones — halving pixels/frame was the
   // single biggest fps win on iPhone; invaders don't need retina backing
   const isPhone = matchMedia("(pointer: coarse)").matches;
-  const dpr = Math.min(isPhone ? 1.5 : 2, window.devicePixelRatio || 1);
+  const dpr = Math.min(isPhone ? 1.25 : 2, window.devicePixelRatio || 1);
   const w = Math.max(320, Math.floor(rect.width || wrap.clientWidth || window.innerWidth || 320));
   const h = Math.max(420, Math.floor(rect.height || wrap.clientHeight || (window.innerHeight * 0.55) || 420));
   fi.width = w; fi.height = h;
@@ -11673,7 +11680,7 @@ let FI = {
   ufo:null, ufoTimer:0, direction:1, stepTimer:0, stepInterval:850,
   marchOffset:0, wobble:0, moveHeld:0,
   rowCounts:[5,5,5,5,5],
-  lives:3, invuln:0,
+  lives:3, invuln:0, aliveDirty:false, aliveCache:null,
   score:0,
   wave:1,
   boss:null, bossHit:0,
@@ -11690,8 +11697,12 @@ const FI_SHIELD_W = 56;
 const FI_SHIELD_H = 42;
 
 function fiLog(t){ const e = el("fiLog"); if (e) e.textContent = t; }
+let fiTopbarCache = "";
 function fiTopbar(){
-  const e = el("fiTopbar"); if (e) e.textContent = "SCORE " + FI.score + " · WAVE " + FI.wave + " · 💗" + FI.lives + " · BANKED " + fi.banked;
+  const s = "SCORE " + FI.score + " · WAVE " + FI.wave + " · 💗" + FI.lives + " · BANKED " + fi.banked;
+  if (s === fiTopbarCache) return;
+  fiTopbarCache = s;
+  const e = el("fiTopbar"); if (e) e.textContent = s;
 }
 function fiShow(on_){
   const s = el("screen-fartinvaders");
@@ -11725,7 +11736,7 @@ function fiReset(){
 }
 
 function fiBuildWave(){
-  FI.invaders = [];
+  FI.invaders = []; FI.aliveCache = null; FI.aliveDirty = false;
   FI.boss = null; FI.bossHit = 0;
   const isBoss = (FI.wave % 4 === 0);
   const marginX = fi.width * 0.08;
@@ -11802,7 +11813,10 @@ function fiBuildShields(){
         }
       }
     }
-    FI.shields.push({ x: px, y: py, w: FI_SHIELD_W, h: FI_SHIELD_H, img: img });
+    const scv = document.createElement("canvas");
+    scv.width = FI_SHIELD_W; scv.height = FI_SHIELD_H;
+    scv.getContext("2d").putImageData(img, 0, 0);
+    FI.shields.push({ x: px, y: py, w: FI_SHIELD_W, h: FI_SHIELD_H, img: img, cv: scv, dirty: false });
   }
 }
 
@@ -11957,14 +11971,15 @@ function fiUpdate(now){
   if (!FI.cleared){
     FI.stepTimer += dt;
     FI.wobble += dt * 0.003;
-    const alive = FI.invaders.filter(i => i.alive);
-    if (alive.length){
-      // every invader gently wobbles in place
-      for (const inv of alive){
-        if (!inv.dive){
-          inv.x = inv.baseX + Math.sin(FI.wobble + inv.col * 0.6) * 3;
-          inv.y = inv.baseY;
-        }
+    if (!FI.aliveCache || FI.aliveDirty){
+      FI.aliveCache = FI.invaders.filter(i => i.alive);
+      FI.aliveDirty = false;
+    }
+    const alive = FI.aliveCache;
+    for (const inv of alive){
+      if (!inv.dive){
+        inv.x = inv.baseX + Math.sin(FI.wobble + inv.col * 0.6) * 3;
+        inv.y = inv.baseY;
       }
     }
     if (FI.stepTimer >= FI.stepInterval){
@@ -12105,6 +12120,7 @@ function fiUpdate(now){
         if (!inv.alive) continue;
         if (Math.abs(b.x - inv.x) < inv.w/2 + 4 && Math.abs(b.y - inv.y) < inv.h/2 + 6){
           inv.alive = false;
+          FI.aliveDirty = true;
           FI.score += inv.pts; fi.score += inv.pts;
           fiRowDie(inv.row);
           const isDiver = inv.dive;
@@ -12230,59 +12246,23 @@ function fiRender(){
 
   // jizz bolts
   for (const b of FI.bullets){
-    ctx.save();
-    ctx.translate(b.x, b.y);
-    ctx.fillStyle = "rgba(255,255,255,.95)";
-    ctx.strokeStyle = "rgba(200,220,255,.6)";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(0, -7);
-    ctx.lineTo(3, 2);
-    ctx.lineTo(0, 6);
-    ctx.lineTo(-3, 2);
-    ctx.closePath();
-    ctx.fill(); ctx.stroke();
-    // drippy tip
-    ctx.fillStyle = "#fff";
-    ctx.beginPath(); ctx.arc(0, -9, 2, 0, Math.PI*2); ctx.fill();
-    ctx.restore();
+    ctx.drawImage(FI_BULLET_SPRITE, b.x - 8, b.y - 12);
   }
 
   // bombs (turd drops)
   for (const b of FI.bombs){
-    ctx.save();
-    ctx.translate(b.x, b.y);
-    ctx.fillStyle = "#5d4037";
-    ctx.beginPath();
-    ctx.arc(0, 0, 5, 0, Math.PI*2);
-    ctx.fill();
-    ctx.fillStyle = "#8d6e63";
-    ctx.beginPath(); ctx.arc(-2, -2, 2, 0, Math.PI*2); ctx.fill();
-    ctx.restore();
+    ctx.drawImage(fiBombSprite(), b.x - 8, b.y - 8);
   }
 
   // invaders (turds)
   for (const inv of FI.invaders){
     if (!inv.alive) continue;
-    ctx.save();
-    ctx.translate(inv.x, inv.y + (inv.frame ? -2 : 0));
-    fiDrawTurd(ctx, inv.type, inv.w, inv.h);
-    ctx.restore();
+    ctx.drawImage(fiTurdSprite(inv.type, inv.w, inv.h), inv.x - inv.w/2, inv.y - inv.h/2 + (inv.frame ? -2 : 0), inv.w, inv.h);
   }
 
   // ufo (golden nugget)
   if (FI.ufo){
-    ctx.save();
-    ctx.translate(FI.ufo.x, FI.ufo.y);
-    ctx.fillStyle = "#ffd700";
-    ctx.shadowColor = "#ffd700"; ctx.shadowBlur = 14;
-    ctx.beginPath();
-    ctx.ellipse(0, 0, FI.ufo.w/2, FI.ufo.h/2, 0, 0, Math.PI*2);
-    ctx.fill();
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = "#ffecb3";
-    ctx.beginPath(); ctx.ellipse(0, -FI.ufo.h*0.15, FI.ufo.w*0.22, FI.ufo.h*0.25, 0, 0, Math.PI*2); ctx.fill();
-    ctx.restore();
+    ctx.drawImage(fiUfoSprite(), FI.ufo.x - FI.ufo.w/2 - 8, FI.ufo.y - FI.ufo.h/2 - 8, FI.ufo.w + 16, FI.ufo.h + 16);
   }
 
   // THE LANDLORD boss
@@ -12311,15 +12291,82 @@ function fiRender(){
   }
 
   // particles
-  for (const p of FI.particles){
-    ctx.globalAlpha = Math.max(0, p.life);
-    ctx.fillStyle = p.color;
-    ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill();
+  if (FI.particles.length){
+    let lastColor = null;
+    for (const p of FI.particles){
+      if (p.color !== lastColor){ ctx.fillStyle = p.color; lastColor = p.color; }
+      ctx.globalAlpha = Math.max(0, Math.min(1, p.life));
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill();
+    }
     ctx.globalAlpha = 1;
   }
 }
 
+let FI_TURD_SPRITES = {};
+let FI_BULLET_SPRITE = null;
+let FI_BOMB_SPRITE = null;
+let FI_UFO_SPRITE = null;
+function fiUfoSprite(){
+  if (FI_UFO_SPRITE) return FI_UFO_SPRITE;
+  const cv = document.createElement("canvas");
+  cv.width = 76; cv.height = 52;
+  const c2 = cv.getContext("2d");
+  c2.setTransform(1,0,0,1,38,26);
+  c2.shadowColor = "#ffd700"; c2.shadowBlur = 14;
+  c2.fillStyle = "#ffd700";
+  c2.beginPath(); c2.ellipse(0, 0, 20, 10, 0, 0, Math.PI*2); c2.fill();
+  c2.shadowBlur = 0;
+  c2.fillStyle = "#ffecb3";
+  c2.beginPath(); c2.ellipse(0, -3, 9, 5, 0, 0, Math.PI*2); c2.fill();
+  FI_UFO_SPRITE = cv;
+  return cv;
+}
+function fiBombSprite(){
+  if (FI_BOMB_SPRITE) return FI_BOMB_SPRITE;
+  const cv = document.createElement("canvas");
+  cv.width = 16; cv.height = 16;
+  const c2 = cv.getContext("2d");
+  c2.setTransform(1,0,0,1,8,8);
+  c2.fillStyle = "#5d4037";
+  c2.beginPath(); c2.arc(0, 0, 5, 0, Math.PI*2); c2.fill();
+  c2.fillStyle = "#8d6e63";
+  c2.beginPath(); c2.arc(-2, -2, 2, 0, Math.PI*2); c2.fill();
+  FI_BOMB_SPRITE = cv;
+  return cv;
+}
+function fiBulletSprite(){
+  if (FI_BULLET_SPRITE) return FI_BULLET_SPRITE;
+  const cv = document.createElement("canvas");
+  cv.width = 16; cv.height = 24;
+  const c2 = cv.getContext("2d");
+  c2.setTransform(1,0,0,1,8,12);
+  c2.fillStyle = "rgba(255,255,255,.95)";
+  c2.strokeStyle = "rgba(200,220,255,.6)";
+  c2.lineWidth = 1;
+  c2.beginPath(); c2.moveTo(0,-7); c2.lineTo(3,2); c2.lineTo(0,6); c2.lineTo(-3,2); c2.closePath(); c2.fill(); c2.stroke();
+  c2.fillStyle = "#fff"; c2.beginPath(); c2.arc(0,-9,2,0,Math.PI*2); c2.fill();
+  FI_BULLET_SPRITE = cv;
+  return cv;
+}
+function fiTurdSprite(type, w, h){
+  w = w || 34; h = h || 25; // fallback for legacy callers
+  const key = type + "|" + Math.round(w) + "x" + Math.round(h);
+  if (FI_TURD_SPRITES[key]) return FI_TURD_SPRITES[key];
+  const S = 2; // 2x supersample: crisp but cheap 1:2 blit
+  const cv = document.createElement("canvas");
+  cv.width = Math.max(4, Math.round(w * S)); cv.height = Math.max(4, Math.round(h * S));
+  const c2 = cv.getContext("2d");
+  c2.setTransform(S, 0, 0, S, cv.width/2, cv.height/2);
+  fiDrawTurdPath(c2, type, w, h);
+  FI_TURD_SPRITES[key] = cv;
+  return cv;
+}
 function fiDrawTurd(ctx, type, w, h){
+  const spr = fiTurdSprite(type, w, h);
+  if (spr){ ctx.drawImage(spr, -w/2, -h/2, w, h); return; }
+  fiDrawTurdPath(ctx, type, w, h);
+}
+function fiDrawTurdPath(ctx, type, w, h){
   // 2020-style cartoon turd: lumpy swirly shape with face
   ctx.fillStyle = fiTurdColor(type);
   ctx.strokeStyle = "rgba(0,0,0,.35)";
