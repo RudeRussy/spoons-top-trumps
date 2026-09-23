@@ -596,7 +596,7 @@ header#hud{
   #bwCanvasWrap{height:min(48dvh,340px)}
 }
 
-/* ---------- fi-crt-85-r103: CRAP MAN ---------- */
+/* ---------- kimi-unlock-86-r104: CRAP MAN ---------- */
 .cm-wrap{justify-content:flex-start;padding-top:max(12px, env(safe-area-inset-top));padding-bottom:max(10px, env(safe-area-inset-bottom))}
 .cm-hud{display:flex;gap:14px;justify-content:center;font-size:12px;letter-spacing:1px;color:var(--gold);margin:6px 0 4px}
 .cm-hud span b{min-width:24px;display:inline-block}
@@ -5537,7 +5537,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = 'fi-crt-85-r103';
+  const BUILD_STAMP = 'kimi-unlock-86-r104';
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -6074,6 +6074,29 @@ function nextTrackIdx(){ // random next, never the same SONG in a row (ext+short
     ac,
     get master(){ return muted ? 0 : 1; },
     get sfx(){ return muted ? 0 : 1; },
+    unlockLite(){
+      // r104 (Kimi): gesture-time unlock does ONLY the gesture-required work —
+      // AudioContext resume + silent media session. 16 audio element creations
+      // inside the tap frame froze iOS at the FI title.
+      ac(); silentKick();
+      try {
+        if (!mediaAudio || mediaAudio.__failed){
+          mediaAudio = { __creating: true };
+          const a = document.createElement("audio");
+          a.src = SILENT_WAV;
+          a.loop = true; a.volume = 0.001; a.muted = false;
+          a.setAttribute("playsinline", "");
+          a.addEventListener("playing", function once(){
+            a.removeEventListener("playing", once);
+            mediaAudio = a;
+          });
+          const p = a.play();
+          if (p && p.catch) p.catch(() => { mediaAudio = { __failed: true }; });
+        } else if (mediaAudio.paused){
+          mediaAudio.play().catch(() => {});
+        }
+      } catch (e) {}
+    },
     unlock(){
       ac(); silentKick(); preloadFiShots(); // r94: FART+SHOUT pools load lazily (boot-time bulk load froze iOS)
       window.__spoonsStartShoutTrickle && window.__spoonsStartShoutTrickle();
@@ -6132,7 +6155,8 @@ function nextTrackIdx(){ // random next, never the same SONG in a row (ext+short
     fiShot(){
       // Turd Invaders cannon: round-robin clone pool so rapid taps overlap cleanly on iOS
       try {
-        if (!FI_SHOT_POOL.length) preloadFiShots();
+        // r104 (Kimi): NEVER preload inside a touch handler — blocks iOS UI thread.
+        // Pool is warmed post-paint by openFartInvaders/fiMidGameStart.
         if (!FI_SHOT_POOL.length) throw new Error("no shot pool");
         const a = FI_SHOT_POOL[fiShotIdx % FI_SHOT_POOL.length];
         fiShotIdx++;
@@ -10564,7 +10588,7 @@ function pintstackBack(){
 
 
 
-/* ---------- fi-crt-85-r103: CRAP MAN — last-orders lock-in maze ---------- */
+/* ---------- kimi-unlock-86-r104: CRAP MAN — last-orders lock-in maze ---------- */
 const CM_LS_KEY = "spoons.high.crapman";
 const CM_MAP = [
   "#####################",
@@ -11651,20 +11675,29 @@ function fiInitCanvas(){
     try { fiCtx = fiCanvas.getContext("2d"); } catch(e){ fiCtx = null; }
   }
   if (!fiCanvas || !fiCtx){
-    requestAnimationFrame(fiInitCanvas);
+    // r104 (Kimi): bounded retry — never loop forever
+    if (fiCanvas.__initAttempts === undefined) fiCanvas.__initAttempts = 0;
+    fiCanvas.__initAttempts++;
+    if (fiCanvas.__initAttempts < 4) requestAnimationFrame(fiInitCanvas);
     return;
   }
+  if (fiCanvas.__initAttempts) fiCanvas.__initAttempts = 0;
   const wrap = el("fiCanvasWrap");
   if (!wrap) return;
   // Force a layout pass so wrap has computed size even if screen just unhidden
   try { void wrap.offsetHeight; } catch(e){}
-  const rect = wrap.getBoundingClientRect ? wrap.getBoundingClientRect() : {width:0, height:0};
+  let rect = wrap.getBoundingClientRect ? wrap.getBoundingClientRect() : {width:0, height:0};
+  // r104 (Kimi): iOS WebKit can still report 0x0 right after display:none is removed
+  if (!rect.width || !rect.height){
+    try { void wrap.offsetHeight; } catch(e){}
+    rect = wrap.getBoundingClientRect ? wrap.getBoundingClientRect() : {width:0, height:0};
+  }
   // perf r96: cap backing store at 1.5 on phones — halving pixels/frame was the
   // single biggest fps win on iPhone; invaders don't need retina backing
   const isPhone = matchMedia("(pointer: coarse)").matches;
   const dpr = Math.min(isPhone ? 1.25 : 2, window.devicePixelRatio || 1);
-  const w = Math.max(320, Math.floor(rect.width || wrap.clientWidth || window.innerWidth || 320));
-  const h = Math.max(420, Math.floor(rect.height || wrap.clientHeight || (window.innerHeight * 0.55) || 420));
+  const w = Math.max(320, Math.floor(wrap.clientWidth || rect.width || window.innerWidth || 320)); // r104 (Kimi)
+  const h = Math.max(320, Math.min(520, Math.floor(wrap.clientHeight || rect.height || (window.innerHeight * 0.45) || 420)));
   fi.width = w; fi.height = h;
   fiCanvas.width = Math.floor(w * dpr);
   fiCanvas.height = Math.floor(h * dpr);
@@ -11713,12 +11746,13 @@ function fiShow(on_){
     s.classList.toggle("mid", !!fi.mid);
   }
   updateBodyLock();
-  if (on_){ try { updateHomeChip(); } catch(e){} fiInitCanvas(); }
+  if (on_){ try { updateHomeChip(); } catch(e){} requestAnimationFrame(fiInitCanvas); } // r104 (Kimi): size after paint
 }
 
 function fiReset(){
   fiInitCanvas();
-  if (!fiCtx) { requestAnimationFrame(fiReset); return; }
+  if (!fiCtx) { return; } // r104 (Kimi): bounded retry lives in fiInitCanvas; callers guard
+
   FI.playerX = fi.width / 2;
   FI.playerW = Math.min(52, fi.width * 0.12);
   FI.playerH = FI.playerW * 0.85;
@@ -12409,13 +12443,16 @@ function fiEnd(won){
 function fiMidGameStart(){
   AudioFX.stopMusic();
   fiShow(true);
-  fi.on = true; fi.mid = true; fi.epoch++;
+  fi.mid = true; fi.epoch++;
   fiReset();
-  // warm the small fart pool BEFORE gameplay (first-shot burst froze iOS)
-  try { preloadFarts(); } catch(e){}
+  if (!fiCtx){ fi.on = false; fiShow(false); return; } // r104 (Kimi)
+  fi.on = true;
   fi.lastT = performance.now();
+  fiRender(); // first frame immediately
   fi.raf = requestAnimationFrame(fiUpdate);
   fiSubUpdate();
+  // warm pools AFTER first paint (Kimi r104)
+  requestAnimationFrame(() => { try { preloadFarts(); preloadFiShots(); } catch(e){} });
 }
 function fiMidGameEnd(won){
   fi.mid = false;
@@ -12452,16 +12489,21 @@ function fiSubUpdate(){
 function openFartInvaders(){
   const m = getFartMeter();
   if (m.charges <= 0){ showNoCharges(); return; }
-  AudioFX.unlock();
+  AudioFX.unlockLite(); // r104 (Kimi): NO pool creation inside the tap frame
   fiShow(true);
   if (el("screen-fartinvaders").classList.contains("hidden")) return;
   if (consumeFartMeterCharge()) updateFartMeterChip();
   fi.mid = false;
   fiReset();
+  if (!fiCtx){ fi.on = false; fiShow(false); return; }
   fi.on = true;
   fiTopbar();
   fiSubUpdate();
+  fi.lastT = performance.now();
+  fiRender(); // draw first frame immediately — never show stale title HTML
   fi.raf = requestAnimationFrame(fiUpdate);
+  // warm pools AFTER first paint, never inside the tap frame
+  requestAnimationFrame(() => { try { preloadFarts(); preloadFiShots(); } catch(e){} });
 }
 
 function renderBonusScratch(){
