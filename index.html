@@ -596,7 +596,7 @@ header#hud{
   #bwCanvasWrap{height:min(48dvh,340px)}
 }
 
-/* ---------- fi-errsurf-91-r109: CRAP MAN ---------- */
+/* ---------- fi-fixedstep-92-r110: CRAP MAN ---------- */
 .cm-wrap{justify-content:flex-start;padding-top:max(12px, env(safe-area-inset-top));padding-bottom:max(10px, env(safe-area-inset-bottom))}
 .cm-hud{display:flex;gap:14px;justify-content:center;font-size:12px;letter-spacing:1px;color:var(--gold);margin:6px 0 4px}
 .cm-hud span b{min-width:24px;display:inline-block}
@@ -5537,7 +5537,7 @@ const REWARDS = {
   });
 
   /* ---------- build stamp: bulletproof self-heal ---------- */
-  const BUILD_STAMP = 'fi-errsurf-91-r109';
+  const BUILD_STAMP = 'fi-fixedstep-92-r110';
   try {
     const seen = localStorage.getItem("spoons_build");
     if (seen && seen !== BUILD_STAMP){
@@ -10639,7 +10639,7 @@ function pintstackBack(){
 
 
 
-/* ---------- fi-errsurf-91-r109: CRAP MAN — last-orders lock-in maze ---------- */
+/* ---------- fi-fixedstep-92-r110: CRAP MAN — last-orders lock-in maze ---------- */
 const CM_LS_KEY = "spoons.high.crapman";
 const CM_MAP = [
   "#####################",
@@ -11802,6 +11802,9 @@ function fiShow(on_){
 
 function fiReset(){
   try { if (!window.__fiErrors) window.__fiErrors = []; } catch(_){}
+  // r110: fresh-run hygiene — no stale hold-flag or timestep debt carries over
+  FI.fireHeld = false;
+  fi.__acc = 0; fi.__lastT = 0; fi.__lastRaw = 0;
   fiInitCanvas();
   if (!fiCtx) { return; } // r104 (Kimi): bounded retry lives in fiInitCanvas; callers guard
 
@@ -12039,101 +12042,139 @@ function fiSplatterFull(){
 }
 
 function fiUpdate(now){
-  var __fierr = null;
-  try {
-  if (!fi.on || FI.over) return;
-  const dt = Math.min(50, now - fi.lastT);
-  /* r105 watchdog: real-time gap since previous frame (unclamped) */
-  FI.__rawGap = now - (fi.__lastRaw || now); fi.__lastRaw = now;
-  if (FI.__rawGap > 1200){ FI.__stallCount = (FI.__stallCount || 0) + 1; }
-  fi.lastT = now;
+  // r110 TOTAL RETHINK: single authoritative fixed-timestep rAF loop.
+  // - One tick owns everything (no setInterval fight, no raw-time mixing)
+  // - Per-subsystem isolation: a throw in ONE entity/subsystem can never
+  //   freeze the loop or skip collision for the others
+  // - Held-fire is a flag consumed by the step, not a wall-clock interval
+  if (!fi.on || FI.over){ try{ fi.raf = requestAnimationFrame(fiUpdate); }catch(e){} return; }
+  // raw gap watchdog (kept from r105) — measures real wall-clock stalls
+  const raw = now - (fi.__lastRaw || now); fi.__lastRaw = now;
+  if (raw > 1200){ FI.__stallCount = (FI.__stallCount || 0) + 1; }
+  // fixed-step accumulator (16.6ms), max 6 steps/frame so a slow device
+  // NEVER snowballs the queue — a lag spike drops time instead of spiralling
+  let frame = now - (fi.__lastT || now);
+  if (frame < 0 || frame > 250) frame = 16.667; // first frame / tab resume guard
+  fi.__lastT = now;
+  fi.__acc = (fi.__acc || 0) + frame;
+  const STEP = 16.667;
+  let guard = 0;
+  while (fi.__acc >= STEP && guard++ < 6){
+    try { fiStep(STEP); } catch(e){ fiErr(e); }
+    fi.__acc -= STEP;
+  }
+  // autofire + render resolved once per rAF, crash-proof
+  try { if (FI.fireHeld) fiFire(); } catch(e){ fiErr(e); }
+  try { fiRender(); } catch(e){ fiErr(e); }
+  try { fi.raf = requestAnimationFrame(fiUpdate); } catch(e){ fi.raf = 0; }
+}
 
-  // continuous steering (keyboard / held buttons / touch)
+function fiErr(e){
+  try {
+    if (!window.__fiErrors) window.__fiErrors = [];
+    const msg = String((e && e.message) || e);
+    window.__fiErrors.push(msg);
+    if (window.__fiErrors.length > 50) window.__fiErrors.shift();
+  } catch(_){}
+}
+
+// Per-frame simulation, subsystems isolated from each other
+function fiStep(dt){
+  if (FI.invuln > 0) FI.invuln -= dt;
+  if (FI.playerJiggle > 0) FI.playerJiggle = Math.max(0, FI.playerJiggle - dt * 0.06);
+  if (FI.ballRecoil > 0) FI.ballRecoil = Math.max(0, FI.ballRecoil - dt * 0.06);
   let steer = 0;
   if (fi.keys.left) steer -= 1;
   if (fi.keys.right) steer += 1;
   if (FI.moveHeld) steer = FI.moveHeld;
-  if (steer) fiMovePlayer(steer, dt);
+  if (steer) fiMovePlayer(steer, 16.667);
+  fiMarch(dt);
+  fiDivers(dt);
+  if (FI.boss && FI.boss.alive) fiBoss(dt);
+  fiUfo(dt);
+  fiBombs(dt);
+  fiBullets(dt);
+  fiParticles(dt);
+  // lose: invaders reached the bottom line
+  if (FI.invuln <= 0) for (const inv of FI.invaders){
+    if (inv.alive && inv.y + inv.h/2 >= fi.height - FI.playerH - 16){ fiDie("THE TURDS LANDED"); return; }
+  }
+  fiTopbar();
+  fiWaveCleared();
+}
 
-  // update timers
-  if (FI.invuln > 0) FI.invuln -= dt;
-  if (FI.playerJiggle > 0) FI.playerJiggle = Math.max(0, FI.playerJiggle - dt * 0.06);
-  if (FI.ballRecoil > 0) FI.ballRecoil = Math.max(0, FI.ballRecoil - dt * 0.06);
-
-  // wobble formation march
-  if (!FI.cleared){
-    FI.stepTimer += dt;
-    FI.wobble += dt * 0.003;
-    if (!FI.aliveCache || FI.aliveDirty){
-      FI.aliveCache = FI.invaders.filter(i => i.alive);
-      FI.aliveDirty = false;
+function fiMarch(dt){
+  if (FI.cleared) return;
+  FI.stepTimer += dt;
+  FI.wobble += dt * 0.003;
+  if (!FI.aliveCache || FI.aliveDirty){
+    FI.aliveCache = FI.invaders.filter(i => i.alive);
+    FI.aliveDirty = false;
+  }
+  const alive = FI.aliveCache || [];
+  for (const inv of alive){
+    if (!inv.dive){
+      inv.x = inv.baseX + Math.sin(FI.wobble + inv.col * 0.6) * 3;
+      inv.y = inv.baseY;
     }
-    const alive = FI.aliveCache;
-    for (const inv of alive){
-      if (!inv.dive){
-        inv.x = inv.baseX + Math.sin(FI.wobble + inv.col * 0.6) * 3;
-        inv.y = inv.baseY;
-      }
-    }
-    if (FI.stepTimer >= FI.stepInterval){
-      FI.stepTimer = 0;
-      FI.marchOffset += FI.direction;
-      let hitEdge = false;
-      const stepX = alive.length ? alive[0].w * 0.28 : 6;
-      for (const inv of FI.invaders){
-        if (!inv.alive || inv.dive) continue;
-        inv.baseX += FI.direction * stepX;
-        inv.frame = 1 - inv.frame;
-        if (inv.baseX < inv.w/2 + 4 || inv.baseX > fi.width - inv.w/2 - 4) hitEdge = true;
-      }
-      if (hitEdge){
-        FI.direction *= -1;
-        for (const inv of FI.invaders) if (inv.alive && !inv.dive) inv.baseY += inv.h * 0.45;
-      }
-      // dive bomber launch: bottom-row invaders sometimes peel off and swoop
-      if (Math.random() < 0.07 + Math.min(0.16, FI.wave * 0.02)){
-        const divers = alive.filter(i => i.row >= 2 && !i.dive);
-        if (divers.length){
-          const diver = divers[Math.floor(Math.random() * divers.length)];
-          diver.dive = 1;
-          diver.diveT = 0;
-        }
-      }
-    }
-    // move active divers
+  }
+  if (FI.stepTimer >= FI.stepInterval){
+    FI.stepTimer = 0;
+    FI.marchOffset += FI.direction;
+    let hitEdge = false;
+    const stepX = alive.length ? alive[0].w * 0.28 : 6;
     for (const inv of FI.invaders){
-      if (!inv.alive || !inv.dive) continue;
-      inv.diveT += dt;
-      const targetX = FI.playerX + Math.sin(inv.diveT * 0.004) * fi.width * 0.25;
-      const targetY = fi.height - FI.playerH * 1.4;
-      const t = Math.min(1, inv.diveT / 1600);
-      inv.x += (targetX - inv.x) * 0.04;
-      inv.y += (targetY - inv.y) * 0.03;
-      // drop a bomb mid-dive
-      if (inv.diveT > 400 && inv.diveT < 1200 && Math.random() < 0.025){
-        FI.bombs.push({ x: inv.x, y: inv.y + inv.h/2, vy: fi.height * 0.006, alive: true });
-      }
-      // diver reaches low line or near player → kamikaze
-      if (FI.invuln <= 0 && (inv.y >= fi.height - FI.playerH - 16 || (Math.abs(inv.x - FI.playerX) < FI.playerW && inv.y > fi.height * 0.82))){
-        fiDie("A TURD KAMIKAZED YOUR COCK");
-        return;
+      if (!inv.alive || inv.dive) continue;
+      inv.baseX += FI.direction * stepX;
+      inv.frame = 1 - inv.frame;
+      if (inv.baseX < inv.w/2 + 4 || inv.baseX > fi.width - inv.w/2 - 4) hitEdge = true;
+    }
+    if (hitEdge){
+      FI.direction *= -1;
+      for (const inv of FI.invaders) if (inv.alive && !inv.dive) inv.baseY += inv.h * 0.45;
+    }
+    if (Math.random() < 0.07 + Math.min(0.16, FI.wave * 0.02)){
+      const divers = alive.filter(i => i.row >= 2 && !i.dive);
+      if (divers.length){
+        const diver = divers[Math.floor(Math.random() * divers.length)];
+        diver.dive = 1;
+        diver.diveT = 0;
       }
     }
   }
+}
 
-  // THE LANDLORD boss
-  if (FI.boss && FI.boss.alive){
-    FI.boss.x += FI.boss.dx;
-    FI.boss.y = fi.height * 0.06 + Math.sin(FI.wobble * 1.4) * fi.height * 0.025;
-    if (FI.boss.x <= FI.boss.w/2 + 4 || FI.boss.x >= fi.width - FI.boss.w/2 - 4) FI.boss.dx *= -1;
-    FI.boss.bombTimer = (FI.boss.bombTimer || 0) - dt;
-    if (FI.boss.bombTimer <= 0){
-      FI.bombs.push({ x: FI.boss.x + (Math.random()-.5)*FI.boss.w*0.5, y: FI.boss.y + FI.boss.h/2, vy: fi.height * 0.006, alive: true });
-      FI.boss.bombTimer = 600 + Math.random() * 900;
+function fiDivers(dt){
+  for (const inv of FI.invaders){
+    if (!inv.alive || !inv.dive) continue;
+    inv.diveT += dt;
+    const targetX = FI.playerX + Math.sin(inv.diveT * 0.004) * fi.width * 0.25;
+    const targetY = fi.height - FI.playerH * 1.4;
+    inv.x += (targetX - inv.x) * 0.04;
+    inv.y += (targetY - inv.y) * 0.03;
+    if (inv.diveT > 400 && inv.diveT < 1200 && Math.random() < 0.025){
+      FI.bombs.push({ x: inv.x, y: inv.y + inv.h/2, vy: fi.height * 0.006, alive: true });
+    }
+    if (FI.invuln <= 0 && (inv.y >= fi.height - FI.playerH - 16 || (Math.abs(inv.x - FI.playerX) < FI.playerW && inv.y > fi.height * 0.82))){
+      fiDie("A TURD KAMIKAZED YOUR COCK");
+      return;
     }
   }
+}
 
-  // UFO
+function fiBoss(dt){
+  if (!FI.boss || !FI.boss.alive) return;
+  FI.boss.x += FI.boss.dx;
+  FI.boss.y = fi.height * 0.06 + Math.sin(FI.wobble * 1.4) * fi.height * 0.025;
+  if (FI.boss.x <= FI.boss.w/2 + 4 || FI.boss.x >= fi.width - FI.boss.w/2 - 4) FI.boss.dx *= -1;
+  FI.boss.bombTimer = (FI.boss.bombTimer || 0) - dt;
+  if (FI.boss.bombTimer <= 0){
+    FI.bombs.push({ x: FI.boss.x + (Math.random()-.5)*FI.boss.w*0.5, y: FI.boss.y + FI.boss.h/2, vy: fi.height * 0.006, alive: true });
+    FI.boss.bombTimer = 600 + Math.random() * 900;
+  }
+}
+
+function fiUfo(dt){
   if (FI.ufoTimer > 0){
     FI.ufoTimer -= dt;
     if (FI.ufoTimer <= 0 && !FI.ufo){
@@ -12146,14 +12187,14 @@ function fiUpdate(now){
     FI.ufo.x += FI.ufo.dx;
     if ((FI.ufo.dx > 0 && FI.ufo.x > fi.width + 50) || (FI.ufo.dx < 0 && FI.ufo.x < -50)) FI.ufo = null;
   }
+}
 
-  // bombs
+function fiBombs(dt){
   if (!FI.cleared){
     for (const inv of FI.invaders){
       if (!inv.alive || FI.bombs.length > 14) continue;
       inv.bombTimer -= dt;
       if (inv.bombTimer <= 0){
-        // lower rows more likely to drop; random column near player
         const chance = 0.002 + (FI_ROWS - inv.row) * 0.0008;
         if (Math.random() < chance){
           FI.bombs.push({ x: inv.x, y: inv.y + inv.h/2, vy: fi.height * 0.005, alive: true });
@@ -12166,12 +12207,10 @@ function fiUpdate(now){
     const b = FI.bombs[i];
     b.y += b.vy;
     if (b.y > fi.height){ FI.bombs.splice(i,1); continue; }
-    // hit player
     if (FI.invuln <= 0 && Math.abs(b.x - FI.playerX) < FI.playerW/2 + 4 && Math.abs(b.y - (fi.height - FI.playerH/2)) < FI.playerH/2 + 6){
       fiDie("DIRECT HIT ON THE COCK");
       return;
     }
-    // hit shields
     for (const s of FI.shields){
       const sr = fiShieldRect(s);
       if (b.x >= sr.x && b.x <= sr.x + sr.w && b.y >= sr.y && b.y <= sr.y + sr.h){
@@ -12179,14 +12218,14 @@ function fiUpdate(now){
       }
     }
   }
+}
 
-  // bullets
+function fiBullets(dt){
   for (let i = FI.bullets.length - 1; i >= 0; i--){
     const b = FI.bullets[i];
     b.y += b.vy;
     if (b.y < 0){ FI.bullets.splice(i,1); continue; }
     let hit = false;
-    // ufo
     if (FI.ufo && Math.abs(b.x - FI.ufo.x) < FI.ufo.w/2 + 4 && Math.abs(b.y - FI.ufo.y) < FI.ufo.h/2 + 4){
       FI.score += FI.ufo.pts; fi.score += FI.ufo.pts;
       fiCombo("NUGGET! +" + FI.ufo.pts);
@@ -12194,7 +12233,6 @@ function fiUpdate(now){
       FI.ufo = null;
       hit = true;
     }
-    // THE LANDLORD boss
     if (!hit && FI.boss && FI.boss.alive && b.x > FI.boss.x - FI.boss.w/2 - 6 && b.x < FI.boss.x + FI.boss.w/2 + 6 && b.y < FI.boss.y + FI.boss.h/2 + 6){
       FI.boss.hits++;
       fiSplatParticles(b.x, b.y, "#8d6e63", 12, true);
@@ -12206,7 +12244,6 @@ function fiUpdate(now){
       }
       hit = true;
     }
-    // invaders
     if (!hit){
       for (let j = FI.invaders.length - 1; j >= 0; j--){
         const inv = FI.invaders[j];
@@ -12225,7 +12262,6 @@ function fiUpdate(now){
         }
       }
     }
-    // shields (player bullets erode from top)
     if (!hit){
       for (const s of FI.shields){
         const sr = fiShieldRect(s);
@@ -12236,29 +12272,14 @@ function fiUpdate(now){
     }
     if (hit){ FI.bullets.splice(i,1); }
   }
+}
 
-  // particles
+function fiParticles(dt){
   for (let i = FI.particles.length - 1; i >= 0; i--){
     const p = FI.particles[i];
     p.x += p.vx; p.y += p.vy; p.vy += 0.25; p.life -= 0.025;
     if (p.life <= 0) FI.particles.splice(i,1);
   }
-
-  // lose: invaders reached bottom line
-  if (FI.invuln <= 0) for (const inv of FI.invaders){
-    if (inv.alive && inv.y + inv.h/2 >= fi.height - FI.playerH - 16){
-      fiDie("THE TURDS LANDED");
-      return;
-    }
-  }
-
-  fiTopbar();
-  fiWaveCleared();
-  fiRender();
-  } catch(e__){
-    try { if (window.__fiErrors){ window.__fiErrors.push(String(e__ && e__.message || e__)); if (window.__fiErrors.length>50) window.__fiErrors.shift(); } } catch(_){}
-  }
-  fi.raf = requestAnimationFrame(fiUpdate);
 }
 
 function fiRowDie(row){
@@ -12940,15 +12961,16 @@ if (fiRight){
   fiRight.addEventListener("click", () => { if (fi.on) fiMovePlayer(1, 80); });
 }
 if (fiFireBtn){
-  let repeat = null;
-  const startFire = () => { if (!fi.on) return; fiFire(); if (!repeat) repeat = setInterval(fiFire, FI.shotCooldown); };
-  const stopFire = () => { clearInterval(repeat); repeat = null; };
+  // r110: held-fire is a FLAG consumed by the fixed-step loop once per rAF
+  // (no wall-clock setInterval fighting the loop = removes the r102 timer jank)
+  const startFire = () => { if (!fi.on || FI.over) return; FI.fireHeld = true; fiFire(); };
+  const stopFire = () => { FI.fireHeld = false; };
   fiFireBtn.addEventListener("pointerdown", startFire);
   fiFireBtn.addEventListener("pointerup", stopFire);
   fiFireBtn.addEventListener("pointerleave", stopFire);
   fiFireBtn.addEventListener("pointercancel", stopFire);
   // click fallback for non-pointer taps / keyboard / E2E
-  fiFireBtn.addEventListener("click", fiFire);
+  fiFireBtn.addEventListener("click", () => { startFire(); FI.fireHeld = false; });
 }
 if (fiBack) fiBack.addEventListener("click", () => { AudioFX.click(); if (fi.on && fi.mid) return; fiWalkAway(); });
 if (fiWalk) fiWalk.addEventListener("click", () => { AudioFX.click(); fiWalkAway(); });
